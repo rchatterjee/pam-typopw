@@ -1,4 +1,9 @@
-full: pam_typopw
+full: pam_opendirectory
+
+pam_opendirectory: pam_opendirectory.o fix_pw.o
+	gcc -shared -o pam_opendirectory.so pam_opendirectory.o fix_pw.o -F/System/Library/Frameworks/ -framework CoreFoundation -framework OpenDirectory -lpam
+pam_opendirectory.o: pam_opendirectory.c
+	gcc -fPIC -c pam_opendirectory.c
 
 pam_typopw: pam_typopw.o fix_pw.o
 	gcc -shared -o pam_typopw.so pam_typopw.o fix_pw.o -lpam
