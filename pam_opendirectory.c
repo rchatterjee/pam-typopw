@@ -182,7 +182,7 @@ int test_password_typotolerant(ODRecordRef cfRecord, const char* password, CFErr
   return 0;
 }
 
-#define DELAY 30
+#define DELAY 60
 #define MAX_ATTEMPT 3
 
 int writelog(const char* user, int attempt) {
