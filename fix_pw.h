@@ -5,9 +5,9 @@
 #include<string.h>
 #include<ctype.h>
 
-enum FIX_TYPE {swcall=0, swcfirst, rmlast, swslast, rmfirst, swcfirstl};
+enum FIX_TYPE {same=0, swcall=1, swcfirst, rmlast, swslast, rmfirst, swcfirstl};
 
-#define NFIXES 6
+#define NFIXES 7
 
 char **fix_passwords(const char*pw);
 

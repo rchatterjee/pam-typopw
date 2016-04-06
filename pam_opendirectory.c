@@ -43,7 +43,7 @@
 
 
 #include "fix_pw.h"  // Fixes the typos
-
+#include "time.h"
 
 static int
 get_boolean_value(const void *p)
@@ -58,28 +58,28 @@ get_boolean_value(const void *p)
     return 0;
 }
 
-static int
-check_pwpolicy(ODRecordRef record)
-{
-  CFDictionaryRef policy = NULL;
-  const void *isDisabled;
-  const void *newPasswordRequired;
-  int retval;
+/* static int */
+/* check_pwpolicy(ODRecordRef record) */
+/* { */
+/*   CFDictionaryRef policy = NULL; */
+/*   const void *isDisabled; */
+/*   const void *newPasswordRequired; */
+/*   int retval; */
 	
-  if (NULL == (policy = ODRecordCopyPasswordPolicy(kCFAllocatorDefault, record, NULL)) ||
-      NULL == (isDisabled = CFDictionaryGetValue(policy, CFSTR("isDisabled"))) ||
-      !get_boolean_value(isDisabled))
-    retval = PAM_SUCCESS;
-  else
-    retval = PAM_PERM_DENIED;
-  if (NULL != policy &&
-      NULL != (newPasswordRequired = CFDictionaryGetValue(policy, CFSTR("newPasswordRequired"))) &&
-      get_boolean_value(newPasswordRequired))
-    retval = PAM_NEW_AUTHTOK_REQD;
-  if (NULL != policy)
-    CFRelease(policy);
-  return retval;
-}
+/*   if (NULL == (policy = ODRecordCopyPasswordPolicy(kCFAllocatorDefault, record, NULL)) || */
+/*       NULL == (isDisabled = CFDictionaryGetValue(policy, CFSTR("isDisabled"))) || */
+/*       !get_boolean_value(isDisabled)) */
+/*     retval = PAM_SUCCESS; */
+/*   else */
+/*     retval = PAM_PERM_DENIED; */
+/*   if (NULL != policy && */
+/*       NULL != (newPasswordRequired = CFDictionaryGetValue(policy, CFSTR("newPasswordRequired"))) && */
+/*       get_boolean_value(newPasswordRequired)) */
+/*     retval = PAM_NEW_AUTHTOK_REQD; */
+/*   if (NULL != policy) */
+/*     CFRelease(policy); */
+/*   return retval; */
+/* } */
 
 static int
 check_authauthority(ODRecordRef record)
@@ -149,7 +149,7 @@ pam_sm_acct_mgmt(pam_handle_t * pamh, int flags, int argc, const char **argv)
       ODRecordRef cfRecord = ODNodeCopyRecord(cfNodeRef, CFSTR(kDSStdRecordTypeUsers), cfUser, NULL, NULL);
       if (cfRecord != NULL) {
         if (retval == PAM_SUCCESS) {
-          retval = check_pwpolicy(cfRecord);
+          retval = 0;// check_pwpolicy(cfRecord);
         }
         if (retval == PAM_SUCCESS) {
           retval = check_authauthority(cfRecord);
@@ -169,13 +169,12 @@ pam_sm_acct_mgmt(pam_handle_t * pamh, int flags, int argc, const char **argv)
 
 
 
-int test_password_typotolerant(ODRecordRef cfRecord, CFStringRef cfPassword, CFErrorRef* odErr) {
-  if (ODRecordVerifyPassword(cfRecord, cfPassword, odErr))
-    return 1;
-  char **fixed = fix_passwords(CFStringGetCStringPtr(cfPassword, kCFStringEncodingUTF8)); // obtain possible fixes
-  int i;
-  for(i = 0; i<NFIXES; i++) {
-    printf("Checking: %s\n", fixed[i]);
+int test_password_typotolerant(ODRecordRef cfRecord, const char* password, CFErrorRef* odErr) {
+  char **fixed = fix_passwords(password); // obtain possible fixes
+  CFStringRef cfPassword;
+  for(int i = 0; i<NFIXES; i++) {
+    if (!fixed[i] || strlen(fixed[i])<=0) continue;
+    printf("Checking: %s, %lu\n", fixed[i], strlen(fixed[i]));
     cfPassword = CFStringCreateWithCString(NULL, fixed[i], kCFStringEncodingUTF8);
     if(ODRecordVerifyPassword(cfRecord, cfPassword, odErr))
       return 1;
@@ -183,6 +182,35 @@ int test_password_typotolerant(ODRecordRef cfRecord, CFStringRef cfPassword, CFE
   return 0;
 }
 
+#define DELAY 30
+#define MAX_ATTEMPT 3
+
+int writelog(const char* user, int attempt) {
+  /* writes the failed attempts count */
+  FILE* fp = fopen("userlog.bin", "w");
+  unsigned timestamp = time(NULL);
+  fprintf(fp, "%d,%u\n", attempt, timestamp);
+  fclose(fp);
+  return 0;
+}
+
+int readlog(const char* user) {
+  FILE* fp = fopen("userlog.bin", "r");
+  if (!fp) {
+    printf("New file, Intializing\n");
+    writelog(user, 0);
+    return 0;
+  }
+  int attempt=0;
+  unsigned timestamp_now = time(NULL);
+  unsigned timestamp_old = 0;
+  fscanf(fp, "%d,%d", &attempt, &timestamp_old);
+  printf("timestamp=%u, attempt=%d\n", timestamp_old, attempt);
+  if (timestamp_now - timestamp_old > DELAY)
+    attempt = 0;
+  fclose(fp);
+  return attempt;
+}
 
 PAM_EXTERN int
 pam_sm_authenticate(pam_handle_t * pamh, int flags, int argc, const char **argv)
@@ -207,51 +235,63 @@ pam_sm_authenticate(pam_handle_t * pamh, int flags, int argc, const char **argv)
 
   /* verify the user's password */
   retval = PAM_USER_UNKNOWN;
-  ODNodeRef cfNodeRef = ODNodeCreateWithNodeType(kCFAllocatorDefault,
-                                                 kODSessionDefault,
-                                                 eDSAuthenticationSearchNodeName,
-                                                 NULL);
-  if (cfNodeRef != NULL) {
-    CFStringRef cfUser = CFStringCreateWithCString(NULL, user, kCFStringEncodingUTF8);
-    CFStringRef cfPassword = CFStringCreateWithCString(NULL, password, kCFStringEncodingUTF8);
-    if ((cfUser != NULL) && (cfPassword != NULL)) {
-      ODRecordRef cfRecord = ODNodeCopyRecord(cfNodeRef, CFSTR(kDSStdRecordTypeUsers), cfUser, NULL, NULL);
-      if (cfRecord != NULL) {
-        if (!test_password_typotolerant(cfRecord, cfPassword, &odErr)) {
-          switch (CFErrorGetCode(odErr)) {
-          case kODErrorCredentialsAccountNotFound:
-            retval = PAM_USER_UNKNOWN;
-            break;
-          case kODErrorCredentialsAccountDisabled:
-          case kODErrorCredentialsAccountInactive:
-            retval = PAM_PERM_DENIED;
-            break;
-          case kODErrorCredentialsPasswordExpired:
-          case kODErrorCredentialsPasswordChangeRequired:
+  int attempt = readlog(user);
+  if (attempt > MAX_ATTEMPT) {
+    writelog(user, attempt+1);
+    retval = PAM_AUTH_ERR;
+  }
+  else {
+    ODNodeRef cfNodeRef = ODNodeCreateWithNodeType(kCFAllocatorDefault,
+                                                   kODSessionDefault,
+                                                   eDSAuthenticationSearchNodeName,
+                                                   NULL);
+    if (cfNodeRef != NULL) {
+      CFStringRef cfUser = CFStringCreateWithCString(NULL, user, kCFStringEncodingUTF8);
+      CFStringRef cfPassword = CFStringCreateWithCString(NULL, password, kCFStringEncodingUTF8);
+      if ((cfUser != NULL) && (cfPassword != NULL)) {
+        ODRecordRef cfRecord = ODNodeCopyRecord(cfNodeRef, CFSTR(kDSStdRecordTypeUsers), cfUser, NULL, NULL);
+        if (cfRecord != NULL) {
+          if (!test_password_typotolerant(cfRecord, password, &odErr)) {
+            switch (CFErrorGetCode(odErr)) {
+            case kODErrorCredentialsAccountNotFound:
+              retval = PAM_USER_UNKNOWN;
+              break;
+            case kODErrorCredentialsAccountDisabled:
+            case kODErrorCredentialsAccountInactive:
+              retval = PAM_PERM_DENIED;
+              break;
+            case kODErrorCredentialsPasswordExpired:
+            case kODErrorCredentialsPasswordChangeRequired:
+              retval = PAM_SUCCESS;
+              break;
+            default:
+              retval = PAM_AUTH_ERR;
+              break;
+            }
+          }
+          else {
             retval = PAM_SUCCESS;
-            break;
-          default:
-            retval = PAM_AUTH_ERR;
-            break;
+          }
+          CFRelease(cfRecord);
+          if (odErr) {
+            CFRelease(odErr);
           }
         }
         else {
-          retval = PAM_SUCCESS;
+          retval = PAM_AUTH_ERR;
         }
-        CFRelease(cfRecord);
-        if (odErr) {
-          CFRelease(odErr);
+        if (retval == PAM_AUTH_ERR) {
+          printf ("Adding one more attempt! %d\n", attempt+1);
+          writelog(user, attempt+1);
+        } else {
+          writelog(user, 0);
         }
+        CFRelease(cfUser);
+        CFRelease(cfPassword);
       }
-      else {
-        retval = PAM_AUTH_ERR;
-      }
-      CFRelease(cfUser);
-      CFRelease(cfPassword);
+      CFRelease(cfNodeRef);
     }
-    CFRelease(cfNodeRef);
   }
-
   return retval;
 }
 
