@@ -24,7 +24,6 @@ char swapshift(char c) {
 
 void swcaseall(const char *pw, char *ret){
   while(*pw){
-    printf(">>> %s <-> %s\n", pw, ret);
     *ret++ = swapcase(*pw++);
   }
 }
@@ -59,15 +58,16 @@ void swslastone(const char *pw, char *ret) {
 
 
 char** fix_passwords(const char* pw) {
-  char **fixes = (char **) malloc(sizeof(char*) * NFIXES);
-  bzero((void*)fixes, NFIXES);
-  int n = strlen(pw)+1, i=0;
+  char **fixes = (char **) malloc(sizeof(char*) * (NFIXES+1));
+  // The first one is the original pw
+  int n = strlen(pw)+2, i=0;
   char *tmp =  (char*) malloc(sizeof(char) * n);
   int fcnt = 0;
   for(i=0; i<NFIXES; i++) {
-    printf("pw = %s\n", pw);
-    printf("tmp = %x<->%x\n", tmp, tmp+n);
     switch(i) {
+    case same:
+      strcpy(tmp, pw);
+      break;
     case swcall:
       swcaseall(pw, tmp);
       break;
@@ -89,19 +89,20 @@ char** fix_passwords(const char* pw) {
     default:
       break;
     }
-    if (strcmp(tmp, pw) != 0) {  // if the value of 'fix' is not the same as the input    
-      int j=0;
-      // And it is not already in the fixes list
-      for(; j<fcnt; j++) { 
-        if (strcmp(fixes[j], tmp)==0) 
-          break;
-      }
-      if (j>=fcnt) {
-        fixes[i] = (char*) malloc(sizeof(char) * n);
-        strcpy(fixes[i], tmp);
-        fcnt++;
-      }
+    int j=0;
+    // And it is not already in the fixes list
+    for(; j<fcnt; j++) { 
+      if (strcmp(fixes[j], tmp)==0) 
+        break;
     }
+    if (j>=fcnt) {
+      fixes[fcnt] = (char*) malloc(sizeof(char) * n);
+      strcpy(fixes[fcnt], tmp);
+      fcnt++;
+    }
+  }
+  while(fcnt<NFIXES) {
+    fixes[fcnt++] = NULL;
   }
   return fixes;
 }
