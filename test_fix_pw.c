@@ -7,7 +7,8 @@ int main(int argc, char** argv) {
   int i=0;
   char **fixes = fix_passwords(argv[1]);
   for(i=0; i<NFIXES; i++) {
-    printf("%s\n", fixes[i]);
+    if (fixes[i])
+      printf("%s\n", fixes[i]);
   }
   return 0;
 }

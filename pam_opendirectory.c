@@ -176,6 +176,7 @@ int test_password_typotolerant(ODRecordRef cfRecord, CFStringRef cfPassword, CFE
   int i;
   for(i = 0; i<NFIXES; i++) {
     printf("Checking: %s\n", fixed[i]);
+    if (!fixed[i] || strlen(fixes[i])<=0) continue;
     cfPassword = CFStringCreateWithCString(NULL, fixed[i], kCFStringEncodingUTF8);
     if(ODRecordVerifyPassword(cfRecord, cfPassword, odErr))
       return 1;

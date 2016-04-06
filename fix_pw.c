@@ -23,8 +23,10 @@ char swapshift(char c) {
 }
 
 void swcaseall(const char *pw, char *ret){
-  while(*pw) 
+  while(*pw){
+    printf(">>> %s <-> %s\n", pw, ret);
     *ret++ = swapcase(*pw++);
+  }
 }
 
 void swcasefirst(const char *pw, char *ret){
@@ -58,33 +60,49 @@ void swslastone(const char *pw, char *ret) {
 
 char** fix_passwords(const char* pw) {
   char **fixes = (char **) malloc(sizeof(char*) * NFIXES);
+  bzero((void*)fixes, NFIXES);
   int n = strlen(pw)+1, i=0;
+  char *tmp =  (char*) malloc(sizeof(char) * n);
+  int fcnt = 0;
   for(i=0; i<NFIXES; i++) {
-    fixes[i] = (char*) malloc(sizeof(char) * n);
+    printf("pw = %s\n", pw);
+    printf("tmp = %x<->%x\n", tmp, tmp+n);
     switch(i) {
     case swcall:
-      swcaseall(pw, fixes[i]);
+      swcaseall(pw, tmp);
       break;
     case swcfirst:
-      swcasefirst(pw, fixes[i]);
+      swcasefirst(pw, tmp);
       break;
     case rmlast:
-      rmlastch(pw, fixes[i]);
+      rmlastch(pw, tmp);
       break;
     case rmfirst:
-      rmfirstch(pw, fixes[i]);
+      rmfirstch(pw, tmp);
       break;
     case swcfirstl:
-      swcasefirstl(pw, fixes[i]);
+      swcasefirstl(pw, tmp);
       break;
     case swslast:
-      swslastone(pw, fixes[i]);
+      swslastone(pw, tmp);
       break;
     default:
       break;
     }
+    if (strcmp(tmp, pw) != 0) {  // if the value of 'fix' is not the same as the input    
+      int j=0;
+      // And it is not already in the fixes list
+      for(; j<fcnt; j++) { 
+        if (strcmp(fixes[j], tmp)==0) 
+          break;
+      }
+      if (j>=fcnt) {
+        fixes[i] = (char*) malloc(sizeof(char) * n);
+        strcpy(fixes[i], tmp);
+        fcnt++;
+      }
+    }
   }
-  // TODO - remove duplicates, and the original pw
   return fixes;
 }
   
