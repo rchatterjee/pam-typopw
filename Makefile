@@ -1,4 +1,4 @@
-full: pam_typopw
+full: chkpw
 
 pam_unix: pam_unix.c
 	gcc -fPIC -c pam_unix.c

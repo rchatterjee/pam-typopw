@@ -20,7 +20,7 @@ def get_user(pamh, flags, argv):
   try:
     pwdir = pwd.getpwnam(user)
   except KeyError, e:
-    print e
+    print "Cound not fid user:", e
     return pawm.PAM_USER_UNKNOWN
   return user, pwdir
 
