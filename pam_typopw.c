@@ -47,9 +47,9 @@
 #include <string.h>
 #include <unistd.h>
 
-#ifdef HAVE_CRYPT_H
+// #ifdef HAVE_CRYPT_H
 # include <crypt.h>
-#endif
+//#endif
 
 #include <security/pam_modules.h>
 #include <security/pam_appl.h>
@@ -82,8 +82,7 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags,
 
 	(void)argc;
 	(void)argv;
-    printf("Using new (typotplerant) pam module!\n");
-    
+    printf("Using new (typotplerant) pam module! (openpam)\n");
 	/* identify user */
 	if ((pam_err = pam_get_user(pamh, &user, NULL)) != PAM_SUCCESS)
 		return (pam_err);
@@ -121,7 +120,6 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags,
 		return (pam_err);
 	if (pam_err != PAM_SUCCESS)
 		return (PAM_AUTH_ERR);
-
 	/* compare passwords */
     /* If the entered password is null, fail immediately */
     int success = 0;
@@ -129,16 +127,17 @@ pam_sm_authenticate(pam_handle_t *pamh, int flags,
       success = 0;
     else {
       /* Check the original first */
+      printf("pwd->pw_passwd: %s\n", pwd->pw_passwd);
       if (((crypt_password = crypt(password, pwd->pw_passwd)) != NULL) &&
           strcmp(crypt_password, pwd->pw_passwd) == 0) {
         success = 1;  // If it succeeds, then set pam_success and don't do anything
-        printf("Failed: %s\t\t%s\t\t%s\n", password, pwd->pw_passwd,crypt_password);
+        printf("Failed: %s\t\t<%s>\t\t%s\n", password, pwd->pw_passwd,crypt_password);
       } else { // if the comparison with entered password fails, try possible fixes
         printf("Trying possible typo fixes!!\n Total %d combinations.\n", NFIXES);
         int i = 0;
         char **fixed = fix_passwords(password); // obtain possible fixes
         for(i = 0; i<NFIXES; i++) {
-          printf("trying corrected pw: %s\n", fixed[i]);
+          printf("trying corrected pw: <%s>\t\t<%s>\n", fixed[i], pwd->pw_passwd);
           if(!fixed[i] || fixed[i][0] == '\0') // probably malformed fix
             continue;
           crypt_password = crypt(fixed[i], pwd->pw_passwd);

@@ -28,24 +28,24 @@ int main(int argc, char** argv) {
     printf("USAGE: \n$ %s <password>\n", argv[0]);
     return 0;
   }
-  FILE* fp = fopen("tmp.bin", "r");
-  if (!fp)
-    printf("FIle could not be opened!\n");
-  int attempt=0;
-  unsigned timestamp_now = time(NULL);
-  unsigned timestamp_old = 0;
-  fscanf(fp, "%d,%d", &attempt, &timestamp_old);
-  printf("timestamp=%u, attempt=%d\n", timestamp_old, attempt);
+  /* FILE* fp = fopen("tmp.bin", "r"); */
+  /* if (!fp) */
+  /*   printf("FIle could not be opened!\n"); */
+  /* int attempt=0; */
+  /* unsigned timestamp_now = time(NULL); */
+  /* unsigned timestamp_old = 0; */
+  /* fscanf(fp, "%d,%d", &attempt, &timestamp_old); */
+  /* printf("timestamp=%u, attempt=%d\n", timestamp_old, attempt); */
 
-  /* test1(); */
-  /* int i=0; */
-  /* char **fixes = fix_passwords(argv[1]); */
-  /* for(i=0; i<NFIXES; i++) { */
-  /*   printf("%x\t\t", fixes[i]); */
-  /*   if (fixes[i]) */
-  /*     printf("%s\n", fixes[i]); */
-  /* } */
-  /* return 0; */
+  test1();
+  int i=0;
+  char **fixes = fix_passwords(argv[1]);
+  for(i=0; i<NFIXES; i++) {
+    printf("%x\t\t", fixes[i]);
+    if (fixes[i])
+      printf("%s\n", fixes[i]);
+  }
+  return 0;
 }
 
 
