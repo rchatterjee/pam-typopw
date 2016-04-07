@@ -221,5 +221,5 @@ pam_sm_chauthtok(pam_handle_t *pamh, int flags,
 }
 
 #ifdef PAM_MODULE_ENTRY
-PAM_MODULE_ENTRY("pam_unix");
+PAM_MODULE_ENTRY("pam_typopw");
 #endif

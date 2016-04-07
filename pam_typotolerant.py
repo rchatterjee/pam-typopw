@@ -3,7 +3,11 @@
 #
 import crypt
 import pwd
+import os, sys
+module_path = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(module_path)
 from mistypography.correctors import fast_modify
+CHKPW_EXE = os.path.join(module_path, 'chkpw')
 
 def get_user(pamh, flags, argv):
   # getting username
@@ -12,13 +16,12 @@ def get_user(pamh, flags, argv):
   except pamh.exception, e:
     print "Could not determine user.", e.pam_result
     return e.pam_result
-  # TODO - check if the user is preset/known
+  user = user.lower()
   try:
     pwdir = pwd.getpwnam(user)
   except KeyError, e:
     print e
     return pawm.PAM_USER_UNKNOWN
-  print "User is:", user
   return user, pwdir
 
 def get_password(pamh, flags, argv):
@@ -43,7 +46,7 @@ def fix_typos(pw):
 
 def check_pw(user, pw):
   from subprocess import Popen, PIPE, STDOUT
-  p = Popen(['./chkpw', user], stdin=PIPE, stdout=PIPE)
+  p = Popen([CHKPW_EXE, user], stdin=PIPE, stdout=PIPE)
   for tpw in fix_typos(pw):
     p.stdin.write(tpw+'\n')
   p.stdin.close()
@@ -74,19 +77,19 @@ def pam_sm_authenticate(pamh, flags, argv):
     return pamh.PAM_AUTH_ERR
 
 def pam_sm_setcred(pamh, flags, argv):
-  return pamh.PAM_FAILURE
+  return pamh.PAM_SUCCESS
 
 def pam_sm_acct_mgmt(pamh, flags, argv):
-  return pamh.PAM_FAILURE
+  return pamh.PAM_SUCCESS
 
 def pam_sm_open_session(pamh, flags, argv):
-  return pamh.PAM_FAILURE
+  return pamh.PAM_SUCCESS
 
 def pam_sm_close_session(pamh, flags, argv):
-  return pamh.PAM_FAILURE  
+  return pamh.PAM_SUCCESS  
 
 def pam_sm_chauthtok(pamh, flags, argv):
-  return pamh.PAM_FAILURE
+  return pamh.PAM_SUCCESS
 
 
 if __name__ == "__main__":
