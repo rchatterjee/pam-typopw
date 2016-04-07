@@ -1,12 +1,9 @@
 #
 # Duplicates pam_permit.c
 #
-from edits import Edits
 import crypt
 import pwd
-
-E = Edits()
-ALLOWED_EDITS = E.ALLOWED_EDITS[:4]
+from mistypography.correctors import fast_modify
 
 def get_user(pamh, flags, argv):
   # getting username
@@ -40,16 +37,18 @@ def get_password(pamh, flags, argv):
   return 'pw', password
 
 def fix_typos(pw):
-  ret = E.fast_modify(pw, apply_edits=ALLOWED_EDITS)
-  ret.add(pw)
+  ret = fast_modify(pw)
+  ret.add(pw) # Ensure the original `pw` always
   return ret
 
 def check_pw(user, pw):
   from subprocess import Popen, PIPE, STDOUT
-  p = Popen(['chkpw', user], stdin=PIPE)
+  p = Popen(['./chkpw', user], stdin=PIPE, stdout=PIPE)
   for tpw in fix_typos(pw):
-    p.communicate(input=tpw)
-  print "Return code:", p.returncode
+    p.stdin.write(tpw+'\n')
+  p.stdin.close()
+  ret = p.wait()
+  # print "Return code:", p.returncode
   return p.returncode
 
 def pam_sm_authenticate(pamh, flags, argv):
@@ -68,22 +67,27 @@ def pam_sm_authenticate(pamh, flags, argv):
   #   # return crypt_pw and (crypt_pw == pwdir.pw_passwd)
 
   # if any(check(pw) for pw in fix_typos(password)):
-  if check_pw(user, pw):
+  if check_pw(user, password) == 0:
+    print "Returning SUCEESS"
     return pamh.PAM_SUCCESS
   else:
     return pamh.PAM_AUTH_ERR
 
 def pam_sm_setcred(pamh, flags, argv):
-  return pamh.PAM_SUCCESS
+  return pamh.PAM_FAILURE
 
 def pam_sm_acct_mgmt(pamh, flags, argv):
-  return pamh.PAM_SUCCESS
+  return pamh.PAM_FAILURE
 
 def pam_sm_open_session(pamh, flags, argv):
-  return pamh.PAM_SUCCESS
+  return pamh.PAM_FAILURE
 
 def pam_sm_close_session(pamh, flags, argv):
-  return pamh.PAM_SUCCESS
+  return pamh.PAM_FAILURE  
 
 def pam_sm_chauthtok(pamh, flags, argv):
-  return pamh.PAM_SUCCESS
+  return pamh.PAM_FAILURE
+
+
+if __name__ == "__main__":
+  print check_pw('rahul', 'arparchina')

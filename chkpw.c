@@ -29,12 +29,12 @@ int main( int argc, char** argv )
   }
 
   if (argc < 2) {
-    printf("%s username \n", argv[0]);
+    fprintf(stderr, "%s username \n", argv[0]);
     return(EXIT_FAILURE);
   }
 
   if( ( sp = getspnam( argv[1] ) ) == (struct spwd*)0) {
-    fprintf( stderr, "getspnam: unknown %s\n",
+    fprintf( stderr, "getspnam: unknown <%s>\n",
              argv[1] );
     return( EXIT_FAILURE );
   }
@@ -43,10 +43,13 @@ int main( int argc, char** argv )
   char pw[1000+1];
   while(scanf("%s", pw)>0) {
       const char *crypt_password;      
+      printf("Trying: <%s>\n", pw);
       if (((crypt_password = crypt(pw, sp->sp_pwdp)) != NULL) &&
           strcmp(crypt_password, sp->sp_pwdp) == 0) {
+        printf("This one worked! %s\n", pw);
         return (EXIT_SUCCESS);  // If it succeeds, then set pam_success and don't do anything
       }
     }
+  printf("Failed!!!\n");
   return( EXIT_FAILURE );
 }
