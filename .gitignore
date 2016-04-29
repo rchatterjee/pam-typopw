@@ -34,3 +34,6 @@
 
 # Python files
 *.pyc
+
+# CLion
+.idea/

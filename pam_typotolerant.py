@@ -44,10 +44,10 @@ def fix_typos(pw):
   ret.add(pw) # Ensure the original `pw` always
   return ret
 
-def check_pw(user, pw):
+def check_pw(user, pws):
   from subprocess import Popen, PIPE, STDOUT
   p = Popen([CHKPW_EXE, user], stdin=PIPE, stdout=PIPE)
-  for tpw in fix_typos(pw):
+  for tpw in fix_typos(pws):
     p.stdin.write(tpw+'\n')
   p.stdin.close()
   ret = p.wait()

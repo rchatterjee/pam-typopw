@@ -1,9 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <pwd.h>
+#include <string.h>
 #include <shadow.h>
 #include <crypt.h>
-#include <signal.h>
 #include <unistd.h>
 
 int main( int argc, char** argv ) 
