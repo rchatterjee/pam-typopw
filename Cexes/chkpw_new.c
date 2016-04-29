@@ -1,6 +1,6 @@
 /*
  * This is a experimental software for creating adaptive typo tolerant password checking system.
- * 
+ *
  */
 
 #include <stdio.h>
@@ -17,8 +17,8 @@
 struct pwcacheentry {
     char *tp_pw;
     char *count;
-
 };
+
 struct pwcache {
     char *tp_namp;
     struct cache tp_cache[CACHE_SIZE];

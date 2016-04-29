@@ -6,7 +6,8 @@ import pwd
 import os, sys
 module_path = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(module_path)
-from mistypography.correctors import fast_modify
+from mistypography.typofixer.checker import BUILT_IN_CHECKERS
+mychecker = BUILT_IN_CHECKERS['ChkBl_keyedit']
 CHKPW_EXE = os.path.join(module_path, 'chkpw')
 
 def get_user(pamh, flags, argv):
@@ -40,7 +41,8 @@ def get_password(pamh, flags, argv):
   return 'pw', password
 
 def fix_typos(pw):
-  ret = fast_modify(pw)
+  # ret = fast_modify(pw)
+  ret = mychecker.check(pw)
   ret.add(pw) # Ensure the original `pw` always
   return ret
 
@@ -93,4 +95,4 @@ def pam_sm_chauthtok(pamh, flags, argv):
 
 
 if __name__ == "__main__":
-  print check_pw('rahul', 'arparchina')
+  print check_pw('rahul', 'KiJataSob')

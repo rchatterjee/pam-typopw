@@ -41,3 +41,5 @@ the line before `pam_unix`.
 
 #### Python implementation
 
+#### Issues
+To implement `mistypography` you have to install pwmodels, and make a symlink of `pwmodels/pwmodel/helper.py` in the `typofixer/` folder
