@@ -4,8 +4,6 @@
 import crypt
 import pwd
 import os, sys
-module_path = os.path.dirname(os.path.abspath(__file__))
-sys.path.append(module_path)
 from mistypography.typofixer.checker import BUILT_IN_CHECKERS
 mychecker = BUILT_IN_CHECKERS['ChkBl_keyedit']
 CHKPW_EXE = os.path.join(module_path, 'chkpw')

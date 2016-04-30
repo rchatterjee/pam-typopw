@@ -2,72 +2,28 @@
  * This is a experimental software for creating adaptive typo tolerant password checking system.
  *
  */
-
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
-#include <crypt.h>
 #include <unistd.h>
+#include <string.h>
 
-// 10 extra passwords will be stored in the cache excluding the original password.
-// The cache will be initialized with junk, and latter, it will be replaced with
-// recent/more frequent typos.
-#define CACHE_SIZE 11  // this must be greater than or equal to 1
-
-struct pwcacheentry {
-    char *tp_pw;
-    char *count;
-};
-
-struct pwcache {
-    char *tp_namp;
-    struct cache tp_cache[CACHE_SIZE];
-
-};
-int main( int argc, char** argv )
+char *script_location = "./adaptive_typocheck.py";
+int main(int argc, char *argv[])
 {
-  struct spwd* sp;
-
-  // setup_signals();
-  /*
-   * we establish that this program is running with non-tty stdin.
-   * this is to discourage casual use. It does *NOT* prevent an
-   * intruder from repeatadly running this program to determine the
-   * password of the current user (brute force attack, but one for
-   * which the attacker must already have gained access to the user's
-   * account).
-   */
-
-  if (isatty(STDIN_FILENO) || argc != 2 ) {
-    fprintf(stderr
-            ,"This binary is not designed for running in this way\n"
-            "-- the system administrator has been informed\n");
-    sleep(10);  /* this should discourage/annoy the user */
-    return EXIT_FAILURE;
-  }
-
-  if (argc < 2) {
-    fprintf(stderr, "%s username \n", argv[0]);
-    return(EXIT_FAILURE);
-  }
-
-  if( ( sp = getspnam( argv[1] ) ) == (struct spwd*)0) {
-    fprintf( stderr, "getspnam: unknown <%s>\n",
-             argv[1] );
-    return( EXIT_FAILURE );
-  }
-  /* printf( "login name  %s\n", sp->sp_namp ); */
-  /* printf( "password    %s\n", sp->sp_pwdp ); */
-  char pw[1000+1];
-  while(scanf("%s", pw)>0) {
-      const char *crypt_password;
-      printf("Trying: <%s>\n", pw);
-      if (((crypt_password = crypt(pw, sp->sp_pwdp)) != NULL) &&
-          strcmp(crypt_password, sp->sp_pwdp) == 0) {
-        printf("This one worked! %s\n", pw);
-        return (EXIT_SUCCESS);  // If it succeeds, then set pam_success and don't do anything
-      }
+    setuid( 0 );
+    if (argc!=3) {
+        printf("I need 3 arguments. You gave me %d!\n", argc);
+        exit(1);
     }
-  printf("Failed!!!\n");
-  return( EXIT_FAILURE );
+    //          pythons script     +   username      +  password
+    int t= strlen(script_location) + strlen(argv[1]) + strlen(argv[2]);
+    char *script_arg = malloc(sizeof(char)*t);
+    strcpy(script_arg, script_location);
+    strcat(script_arg, " ");
+    strcat(script_arg, argv[1]);
+    strcat(script_arg, " ");
+    strcat(script_arg, argv[2]);
+    printf("%s\n", script_arg);
+    system( script_arg );
+    return 0;
 }
