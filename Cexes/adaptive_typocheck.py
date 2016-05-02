@@ -4,82 +4,98 @@ import os
 import crypt # , getpass, pwd
 import socket
 import string
-import time
-import json
+import spwd
+########## CONSTANTS ##################################################
 
-PWFILE = "pwcache_file.json"
-CAHCE_SIZE = 11
+"""
+Each user's entry will be as follows; key=username
+{
+'user1': [(real_pw_hash, count), (typopw_1_hash, count_1), (typopw_2_hash, count_2),
+          (typopw_3_hash, count_3)]
+}
+"""
 
-# This file is a dictionary from username to the list of apasswords
-# LOG_FL = sys.stderr if __name__ == "__main__" else open('typoauth.log', 'a+')
-LOG_FL = open('typoauth.log', 'a+')
 def log(*args):
     LOG_FL.write("{}: {}\n".format(time.time(), args))
 
-in_mem_db = {}
-
 def read_shadow_file(username):
-    shadow_file = '/etc/shadow'
-    with open(shadow_file, 'rb') as shf:
-        for line in shf:
-            if line.startswith(username):
-                return line.split(':')[1]
-    raise ValueError("UserNotFound")
+    cryptedpasswd = spwd.getspnam(username)[1]
+    if not cryptedpasswd:
+        raise ValueError("UserNotFound")
+    return cryptedpasswd
 
-def get_user_data(username):
+def write_user_data(new_user_dict):
     try:
         with open(PWFILE) as pwf:
-            return json.load(pwf).get(username, {})
-    except IOError, e:
-        log(e)
-        return {}
-
-def write_user_data(cahce_dict):
-    try:
-        with open(PWFILE) as pwf:
-            D = json.load(pwf).update(new_pw_dict)
+            D = json.load(pwf).update(new_user_dict)
         with open(PWFILE, 'wb') as pwfw:
             json.dump(D, pwfw, indent=2)
         return 0
     except:
         log("Something went wrong. Can you check the file {}".format(PWFILE))
         return -1
-        
-def salt(n=83):
-    """returns n charater long salt, from [a-zA-Z0-9]
-    """
-    s = string.ascii_letters + string.digits
-    return ''.join(s[ord(t) % len(s)] for t in os.urandom(n))
 
-def login():
-    username = raw_input('Python login:')
+
+def login(username, password):
     cryptedpasswd = pwd.getpwnam(username)[1]
     if cryptedpasswd:
         if cryptedpasswd == 'x' or cryptedpasswd == '*':
             raise NotImplementedError(
                 "Sorry, currently no support for shadow passwords")
-        cleartext = getpass.getpass()
-        return crypt.crypt(cleartext, cryptedpasswd) == cryptedpasswd
+        return crypt.crypt(password, cryptedpasswd) == cryptedpasswd
     else:
-        return 1
+        log("user={!r} not found".format(username))
+        raise Exception("UserNotFound")
+
+def put_in_cache_file(username, password):
+    """Insert this user in the PWCACHE file. If the user changes it's
+    password, just evict all the cache entries
+    """
+    pass
+
+
+
+def flush_inmem_cache(username):
+    """Store the passwords in INMEM_CACHE[username] into the password
+    cache file. This function should be called only after a successful
+    password submission.
+    """
+    passwords = INMEM_DB.get(username, [])
+    if not passwords: return
+    # TODO - reconcile
+    
+    del INMEM_DB[username]
+    gc.collect()
 
 def authenticate(username, password):
     """
     The Magic function!
     """
     r = get_user_data(username)
+    orig_shadow = ''
     if r:
-        shadow_pw = r.get('pw')
-    else:
-        try:
-            shadow_pw = read_shadow_file(username)
-        except IOError:
-            log("I could not open the shadow file")
-            return False
-        except ValueError: 
-            log("I could not find the user {!r}.".format(username))
-            return False
-    ret = test_equality(password, shadow_pw)
+        orig_shadow = r[0][0]
+        for shadow_pw in shadow_pw,c in sorted(r, key=lambda x: x[1], reverse=True):
+            ret = test_equality(password, shadow_pw)
+            if ret:
+                if r[0][0] == shadow_pw: # authenticated with original password
+                    flush_inmem_cache(username)
+                return ret
+    try:
+        shadow_pw = read_shadow_file(username)
+        if orig_shadow and shadow_pw != orig_shadow:
+            # real password has changed, start afresh, purge all cache
+            
+        ret = test_equality(password, shadow_pw)
+        if not ret: # if the authetication fails, store the wrong entry for 30 sec
+            put_in_inmem_cache(usernme, test_equality(password))
+    except IOError:
+        log("I could not open the shadow file")
+        return False
+    except ValueError: 
+        log("I could not find the user {!r}.".format(username))
+        return False
+            
     log("Authenricating {}: {}".format(username, ret))
     return ret
 
@@ -96,7 +112,7 @@ def daemon():
     try:
         log("Starting daemon..")
         sock.bind(server_address)
-        sock.listen(1) # check this 1
+        sock.listen(5) # Can listen to at most 5 clients 
         sock.settimeout(100) # die after 30 second
         while True: 
             connection, client_addr = sock.accept()
