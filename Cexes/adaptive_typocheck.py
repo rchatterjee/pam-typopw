@@ -5,6 +5,7 @@ import crypt # , getpass, pwd
 import socket
 import string
 import spwd
+from pwcache import PwCache
 ########## CONSTANTS ##################################################
 
 """
@@ -14,6 +15,7 @@ Each user's entry will be as follows; key=username
           (typopw_3_hash, count_3)]
 }
 """
+pwcache = PwCache()
 
 def log(*args):
     LOG_FL.write("{}: {}\n".format(time.time(), args))
@@ -46,26 +48,6 @@ def login(username, password):
     else:
         log("user={!r} not found".format(username))
         raise Exception("UserNotFound")
-
-def put_in_cache_file(username, password):
-    """Insert this user in the PWCACHE file. If the user changes it's
-    password, just evict all the cache entries
-    """
-    pass
-
-
-
-def flush_inmem_cache(username):
-    """Store the passwords in INMEM_CACHE[username] into the password
-    cache file. This function should be called only after a successful
-    password submission.
-    """
-    passwords = INMEM_DB.get(username, [])
-    if not passwords: return
-    # TODO - reconcile
-    
-    del INMEM_DB[username]
-    gc.collect()
 
 def authenticate(username, password):
     """

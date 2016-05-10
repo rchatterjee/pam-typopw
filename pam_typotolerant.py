@@ -4,7 +4,11 @@
 import crypt
 import pwd
 import os, sys
-from mistypography.typofixer.checker import BUILT_IN_CHECKERS
+
+module_path = os.path.dirname(os.path.abspath(__file__))
+# sys.path.insert(0, module_path)))
+# print sys.path
+from typofixer.checker import BUILT_IN_CHECKERS
 mychecker = BUILT_IN_CHECKERS['ChkBl_keyedit']
 CHKPW_EXE = os.path.join(module_path, 'chkpw')
 
@@ -48,6 +52,7 @@ def check_pw(user, pws):
   from subprocess import Popen, PIPE, STDOUT
   p = Popen([CHKPW_EXE, user], stdin=PIPE, stdout=PIPE)
   for tpw in fix_typos(pws):
+    # print >>sys.stderr, tpw
     p.stdin.write(tpw+'\n')
   p.stdin.close()
   ret = p.wait()
@@ -64,12 +69,7 @@ def pam_sm_authenticate(pamh, flags, argv):
   if isinstance(ret, tuple) and len(ret) != 2 and ret[0] != 'pw':
     return ret
   _, password = ret
-  # def check(pw):
-  #   print "*** Trying password: (REMOVE THIS LINE)", pw, pwdir.pw_passwd
-  #   # crypt_pw = crypt.crypt(pw, pwdir.pw_passwd)
-  #   # return crypt_pw and (crypt_pw == pwdir.pw_passwd)
-
-  # if any(check(pw) for pw in fix_typos(password)):
+  print "You typed:", password
   if check_pw(user, password) == 0:
     print "Returning SUCEESS"
     return pamh.PAM_SUCCESS

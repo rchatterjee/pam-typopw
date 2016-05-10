@@ -38,3 +38,9 @@
 # CLion
 .idea/
 .env
+
+
+# Extra library symlinks
+typofixer
+pwmodel
+ 

@@ -1,9 +1,9 @@
 import PAM
 p = PAM.pam()
 p.start('test')
-
 try:
-    print p.authenticate()
+    p.authenticate()
+    print "Successfully logged in!"
 except PAM.error,e:
     print "Login Failure"
     print e

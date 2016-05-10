@@ -38,7 +38,6 @@ files (found in /etc/pam.d) where you wish to use typo tolerance. Add
 the line before `pam_unix`.
 
 
-
 #### Python implementation
 
 #### Issues
