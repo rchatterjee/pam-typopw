@@ -11,13 +11,13 @@ I am still wokring on figuring out the details.
 
 Assuming you have `make` and `gcc`, additionally you have to
 install the following libraries, 
-    >1. `libpam0g-dev`, for security/pam_modules.h etc.
-	>2. `libpam-python`, to write pam modules in Python. (Trust me much easier than C!)
+>1. `libpam0g-dev`, for security/pam_modules.h etc.
+>2. `libpam-python`, to write pam modules in Python. (Trust me much easier than C!)
 
 Both of these can be installed using standard `apt-get`. (Though not
 sure about non-debian world.)
 
-### How to? 
+<!--### How to? 
 We have two implementation of this module--one in C and another in 
 Python2.7. I shall explain them below in order.
  
@@ -39,6 +39,22 @@ the line before `pam_unix`.
 
 
 #### Python implementation
+-->
+#### Install
+Run `install.sh` to install. This will require super user permission.
+```bash
+$ sudo bash install.sh
+```
+This should install all the depenedencies and setup the PAM config files. Use `uninstall.sh` to uninstall the program. It might uninstall libraries that was previously installed but used by this. Please refer to the script (pretty small one) before running.
+
+Also, this doesn't change your main login procedures. To enable typo-tolernace in all logins, add the following line to the top of your `/etc/pam.d/common-auth` file: `auth include test  # for allowing typo-tolerance`.
+If you are happy with typo-tolernace, you can remove `/etc/pam.d/test`, and replace the above line with the the content of `/etc/pam.d/test`.  
+
+**What if the typo-tolerance PAM module is buggy? Shall I be locked out?**   
+No, your PAM should move onto next correct modules in common-auth, and you will be asked to reenter your credentials.   
+
+Enjoy!
+
 
 #### Issues
 * To implement `mistypography` you have to install pwmodels, and make
