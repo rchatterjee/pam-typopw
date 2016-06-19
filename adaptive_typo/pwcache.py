@@ -11,7 +11,7 @@ import crypt
 
 CACHE_SIZE = 11
 INMEM_CACHE_LIFE = 30 # INMEM cache is puged after 30 sec
-PWFILE = "pwcache_file.json" # This file is a dictionary from username
+PWFILE = "cachepw_file.json" # This file is a dictionary from username
                              # to the list of apasswords
 LOG_FL = open('typoauth.log', 'a+')
 DEBUG = True 
