@@ -1,5 +1,12 @@
 """
-This file will contian the class PwCache, which basically takes care of in memory and in file cache management. 
+** NOTE **
+I am rewriting the cache management using sqlite3 in the
+file new_pwcache.py. Unless this note is removed don't use this file.
+
+
+This file will contian the class PwCache, which basically takes care
+of in memory and in file cache management.
+
 """
 import time
 import json
