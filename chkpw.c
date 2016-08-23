@@ -40,13 +40,15 @@ int main( int argc, char** argv )
   /* printf( "login name  %s\n", sp->sp_namp ); */
   /* printf( "password    %s\n", sp->sp_pwdp ); */
   char pw[1000+1];
-  while(scanf("%s", pw)>0) {
+  while(fgets(pw, 1000, 0) != NULL) { // 0 is fileno of stdin, at most
+                                      // 1000 chars
       const char *crypt_password;      
       printf("Trying: <%s>\n", pw);
       if (((crypt_password = crypt(pw, sp->sp_pwdp)) != NULL) &&
           strcmp(crypt_password, sp->sp_pwdp) == 0) {
         printf("This one worked! %s\n", pw);
-        return (EXIT_SUCCESS);  // If it succeeds, then set pam_success and don't do anything
+        return (EXIT_SUCCESS);  // If it succeeds, then set
+                                // pam_success and don't do anything
       }
     }
   printf("Failed!!!\n");
