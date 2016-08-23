@@ -43,4 +43,6 @@
 # Extra library symlinks
 typofixer
 pwmodel
- 
+
+# Jupyter sh**
+.ipynb_checkpoints/
