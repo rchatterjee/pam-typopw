@@ -15,10 +15,10 @@ chmod g+s ./chkpw
 # install libpam_python, and python-dawg
 apt-get install libpam-python libdawgdic-dev
 
-# instal dawg, pwmodel and mistypogrpahy
-pip install dawg
-pip install git+https://github.com/rchatterjee/pwmodels.git
-pip install git+https://github.com/rchatterjee/mistypography.git
+# instal dawg, pwmodel and mistypogrpahy (REMOVING THESE DEPENDENCIES)
+# pip install --upgrade dawg
+# pip install --upgrade git+https://github.com/rchatterjee/pwmodels.git
+# pip install --upgrade git+https://github.com/rchatterjee/mistypography.git
 
 
 # Test whether the installation was correct or not

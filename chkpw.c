@@ -33,15 +33,16 @@ int main( int argc, char** argv )
   }
 
   if( ( sp = getspnam( argv[1] ) ) == (struct spwd*)0) {
-    fprintf( stderr, "getspnam: unknown <%s>\n",
+    fprintf( stderr, "ERROR (getspnam): Unknown user: <%s>\n",
              argv[1] );
     return( EXIT_FAILURE );
   }
   /* printf( "login name  %s\n", sp->sp_namp ); */
   /* printf( "password    %s\n", sp->sp_pwdp ); */
   char pw[1000+1];
-  while(fgets(pw, 1000, 0) != NULL) { // 0 is fileno of stdin, at most
+  while(fgets(pw, 1000, stdin) != NULL) { // 0 is fileno of stdin, at most
                                       // 1000 chars
+      pw[strlen(pw)-1]='\0';
       const char *crypt_password;      
       printf("Trying: <%s>\n", pw);
       if (((crypt_password = crypt(pw, sp->sp_pwdp)) != NULL) &&

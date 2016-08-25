@@ -4,12 +4,13 @@
 import crypt
 import pwd
 import os, sys
+import datetime
 
 module_path = os.path.dirname(os.path.abspath(__file__))
 # sys.path.insert(0, module_path)))
 # print sys.path
-from typofixer.checker import BUILT_IN_CHECKERS
-mychecker = BUILT_IN_CHECKERS['ChkBl_keyedit']
+# from typofixer.checker import BUILT_IN_CHECKERS
+# mychecker = BUILT_IN_CHECKERS['ChkBl_keyedit']
 CHKPW_EXE = os.path.join(module_path, 'chkpw')
 
 def get_user(pamh, flags, argv):
@@ -44,7 +45,17 @@ def get_password(pamh, flags, argv):
 
 def fix_typos(pw):
   # ret = fast_modify(pw)
-  ret = mychecker.check(pw)
+  def Top5Corrector(pw):
+    if len(pw)<7: return [pw] 
+    return set([
+      pw.capitalize(),
+      pw.swapcase(),
+      pw[:-1],
+      pw[1:],
+      pw.lower(),
+      pw.upper()
+    ])
+  ret = Top5Corrector(pw)
   ret.add(pw) # Ensure the original `pw` always
   return ret
 
@@ -52,11 +63,15 @@ def check_pw(user, pws):
   from subprocess import Popen, PIPE, STDOUT
   p = Popen([CHKPW_EXE, user], stdin=PIPE, stdout=PIPE)
   for tpw in fix_typos(pws):
-    # print >>sys.stderr, tpw
+    print >>sys.stderr, ">>", tpw
     p.stdin.write(tpw+'\n')
   p.stdin.close()
   ret = p.wait()
-  # print "Return code:", p.returncode
+  # with open('/etc/typos-pm_sm_auth.txt', 'a') as f:
+  #   print "Writing to the file: before chek_pw"
+  #   f.write('user: {}, pw: {}, ts: {}\n'.format(user, pws,
+  #                                       datetime.datetime.now()))
+  #   f.write('Return Code: {}'.format(p.returncode))
   return p.returncode
 
 def pam_sm_authenticate(pamh, flags, argv):
@@ -69,7 +84,7 @@ def pam_sm_authenticate(pamh, flags, argv):
   if isinstance(ret, tuple) and len(ret) != 2 and ret[0] != 'pw':
     return ret
   _, password = ret
-  print "You typed:", password
+
   if check_pw(user, password) == 0:
     print "Returning SUCEESS"
     return pamh.PAM_SUCCESS

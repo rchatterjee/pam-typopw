@@ -10,4 +10,4 @@ pip uninstall dawg pwmodels typofixer
 # remove dawg
 sudo apt-get remove libpam-python libdawgdic-dev
 
-rm -rf /etc/pam.d/test
+# rm -rf /etc/pam.d/test
