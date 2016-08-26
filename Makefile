@@ -1,5 +1,10 @@
 full: chkpw
 
+chkpw: chkpw.c
+	gcc -o chkpw chkpw.c -lcrypt
+	sudo chown --reference=/sbin/unix_chkpwd chkpw
+	sudo chmod --reference=/sbin/unix_chkpwd chkpw
+
 pam_unix: pam_unix.c
 	gcc -fPIC -c pam_unix.c
 	gcc -shared -o pam_unix.so pam_unix.o -lpam
@@ -8,11 +13,6 @@ pam_opendirectory: pam_opendirectory.o fix_pw.o
 	gcc -shared -o pam_opendirectory.so pam_opendirectory.o fix_pw.o -F/System/Library/Frameworks/ -framework CoreFoundation -framework OpenDirectory -lpam
 pam_opendirectory.o: pam_opendirectory.c
 	gcc -fPIC -c pam_opendirectory.c
-
-chkpw: chkpw.c
-	gcc -o chkpw chkpw.c -lcrypt
-	sudo chown --reference=/sbin/unix_chkpwd chkpw
-	sudo chmod --reference=/sbin/unix_chkpwd chkpw
 pam_typopw: pam_typopw.o fix_pw.o
 	gcc -shared -o pam_typopw.so pam_typopw.o fix_pw.o -lpam -lcrypt
 pam_typopw.o: pam_typopw.c

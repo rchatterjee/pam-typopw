@@ -1,8 +1,9 @@
-##Update:
+## Update:
 Sample install script (`install.sh`) has been added. You can instal this moduel by just running the following command.
 ```bash
 $ sudo bash install.sh
 ```
+The following is not required, but left here only for information purpose.
 
 ### How to set it up?
 
