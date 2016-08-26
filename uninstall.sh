@@ -1,4 +1,7 @@
 #!/bin/bash
+set -e
+set -u
+
 if [ "$(id -u)" != "0" ]; then 
     echo "You need root priviledge to run this script."
     exit;
