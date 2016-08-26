@@ -59,26 +59,33 @@ class PwRSAKey(object):
 
 
 class PwECCKey(object):
-    """The module is supposed to be the same as simple Crypto.PublicKey.RSA module,
-    except the keys are derived from a password. public key is the same as
-    2^16+1.  This function is kind of slow, takes about 0.5 sec to generate
-    2048-bit keys, and 1.5 sec to generate 4096-bit keys, so be mindful
-    about that.
+    """The module is supposed to be the same as simple
+    Crypto.PublicKey.ECC module, except the keys are derived from a
+    password. The ECC key generation is significantly faster than RSA
+    key generation.
+
+    The curve 'secp256r1' and 'P-256' refer to the same curve,
+    pycryptodome only supports one curve.
     """
-    oid = '1.2.840.113549.1.1.6'
+    oid = '1.2.840.113549.1.2.6'
     @staticmethod
-    def generate(pw, salt, keysize=2048):
+    def generate_from_pw(pw, salt, curve='P-256'):
         """Generates a ECC key pair using the randomness derived from pw, salt. 
         """
         rand_seed = PBKDF2(pw, salt, dkLen=16, count=10000)
-        rand_num_generator = RandomWSeed(rand_seed, keysize*5)
-        return ECC.generate(curve='secp256r1', randfunc=rand_num_generator.get_random_bytes)
+        rand_num_generator = RandomWSeed(rand_seed, 1024)
+        return ECC.generate(curve=curve, randfunc=rand_num_generator.get_random_bytes)
 
+    def generate(pwhash, curve='secp256r1'):
+        rand_num_generator = RandomWSeed(pwhash, 1024)
+        return ECC.generate(curve=curve, randfunc=rand_num_generator.get_random_bytes)
+        
     def construct(rsa_components, consistency_check=True):
         return ECC.construct(rsa_components, consistency_check)
 
     def import_key(extern_key, passphrase=None):
         return ECC.import_key(extern_key, passphrase)
+
 
 def encrypt_with_ecc(public_ecc_key, message, nonce=None):
     """Takes elliptic curve isntance (public_ecc_key) and a byte string (message),
