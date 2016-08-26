@@ -21,7 +21,7 @@ bindir=/usr/local/bin/
 if [ ! -e $bindir ]; then
     mkdir -p $bindir
 fi
-mv pam_typotolerant.py chkpw ${bindir}
+cp pam_typotolerant.py chkpw ${bindir}
 
 # install libpam_python, and python-dawg
 apt-get install libpam-python libdawgdic-dev

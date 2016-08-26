@@ -10,7 +10,7 @@ fi
 # remove dawg
 
 common_auth_file=/etc/pam.d/common-auth
-if [ ! -e ${common_auth_file}.orig]; then
+if [ ! -e ${common_auth_file}.orig ]; then
     mv ${common_auth_file}.orig ${common_auth_file}
 fi
 
