@@ -1,4 +1,11 @@
 #!/usr/bin/python
+
+"""Old script, when I was thinking of adaptive typo will be a daemon
+running to capture all the password in one session. But I realize that's
+overkill for the very very narrow threat model. Let's do it in simple way.
+
+"""
+
 import sys
 import os
 import crypt # , getpass, pwd
