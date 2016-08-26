@@ -4,11 +4,15 @@ from Crypto.Cipher import AES
 from Crypto.Hash import SHA256, HMAC
 import os
 
+HASH_CNT = 10000 # Number of hashes to compute one SHA256 takes 15 microsec,
+
 class RandomWSeed(object):
     """Generates pseudo-random numbers seeded with a value @seed.
     """
     def __init__(self, seed, buff_limit=10240):
-        self._pw_h = SHA256.new(seed)
+        # May be unnecessary to have double hash, just for safety. Need to check can someone back
+        # track from the random bits to the seed.
+        self._pw_h = SHA256.new(SHA256.new(seed).digest()) 
         self._cnt = 1
         self._buff_limit = buff_limit
         self._rand_buff  = ''
@@ -47,7 +51,7 @@ class PwRSAKey(object):
     def generate(pw, salt, keysize=2048):
         """Generates a RSA key pair using the randomness derived from pw, salt. 
         """
-        rand_seed = PBKDF2(pw, salt, dkLen=16, count=10000)
+        rand_seed = PBKDF2(pw, salt, dkLen=16, count=HASH_CNT)
         rand_num_generator = RandomWSeed(rand_seed, keysize*5)
         return RSA.generate(keysize, randfunc=rand_num_generator.get_random_bytes)
 
@@ -72,7 +76,7 @@ class PwECCKey(object):
     def generate_from_pw(pw, salt, curve='P-256'):
         """Generates a ECC key pair using the randomness derived from pw, salt. 
         """
-        rand_seed = PBKDF2(pw, salt, dkLen=16, count=10000)
+        rand_seed = PBKDF2(pw, salt, dkLen=16, count=HASH_CNT)
         rand_num_generator = RandomWSeed(rand_seed, 1024)
         return ECC.generate(curve=curve, randfunc=rand_num_generator.get_random_bytes)
 
@@ -86,6 +90,86 @@ class PwECCKey(object):
     def import_key(extern_key, passphrase=None):
         return ECC.import_key(extern_key, passphrase)
 
+
+def update_cipher(pk_dict, msg, ctx):
+    """
+    Update the ciphertext with the keys only in pk_dict. To make sure ctx is 
+    decyptable by all the secret keys corresponding to the pk's in pk_dict.
+    @pk_dict (dict): is a dictionary of id->pk, which will be used to encrypt 
+                     a message.
+    @msg (byte string): the underlying message of ctx
+    @ctx (byte string): cipher text to be updated
+    """
+    pass
+
+
+def encrypt(pk_dict, msg):
+    """
+    @pk_dict (dict): is a dictionary of id->pk, which will be used to encrypt 
+                     a message.
+    @msg (byte string): a message to be encrypted
+    """
+    pass
+
+
+def decrypt(sk_dict, ctx):
+    """
+    @sk_dict (dict): a dictionary of id->sk, it will try from the "first" element
+                     via (sk_dict.pop()) and try to decrypt and if fails will use 
+                     the next one. Will fail if none of the id belong to the ctx
+    @ctx (byte string): decrypts the ciphertext string
+    """
+    pass
+
+
+def derive_public_key(pw, sa):
+    """
+    derive the public key from a password (pw) and salt (sa).
+    @pw (bytes): password
+    @sa (bytes): salt
+    """
+    pwhash, ec_elem = _derive_key(pw, sa)
+    return pwhash, serialize_pub_key(ec_elem.publickey())
+
+
+def derive_secret_key(pw, sa):
+    """
+    Derive the secret keey from the password (pw) and the salt
+    """
+    pwhash, ec_elem = _derive_key(pw, sa)
+    return pwhash, ec_elem.d
+
+
+def _derive_key(pw, sa):
+    """derives the ECC public key from the password using the salt.
+    @pw (byte string): password
+    @sa (byte string): salt (must be 16 byte long)
+    """
+    rand_seed = PBKDF2(pw, sa, dkLen=16, count=HASH_CNT) # SLOW
+    rand_num_generator = RandomWSeed(rand_seed, 1024)
+    pwhash = SHA256.new(rand_seed).digest() # The last hash to be stored in the cache
+    ec_elem = ECC.generate(curve=curve, randfunc=rand_num_generator.get_random_bytes)
+    return pwhash, ec_elem # ec_elem can be used to find pk or sk. 
+
+
+def serialize_pub_key(pk):
+    """
+    Returns the serialized public key of the ec_elem
+    @pk (ECC.EccKey): The ec_element you got from derive_key
+    """
+    assert isinstance(pk, ECC.EccKey),\
+        "expecting ECC.EccKey instance got ({})".format(type(ECC.EccKey))
+    return pk.export_key(format='OpenSSH')
+
+
+def compute_id(pwtypo, sk_dict, saltctx):
+    """
+    Computes an ID for pwtypo. 
+    @pwtypo (byte string): mistyped (or correct) password
+    @sk_dict (dict): {id->sk} dict
+    @saltctx (byte string): Ciphertext of the salt
+    """
+    pass
 
 def encrypt_with_ecc(public_ecc_key, message, nonce=None):
     """Takes elliptic curve isntance (public_ecc_key) and a byte string (message),
