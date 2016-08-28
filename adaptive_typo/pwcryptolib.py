@@ -8,26 +8,28 @@ from Crypto.PublicKey import RSA, ECC
 from Crypto.Cipher import AES
 from Crypto.Hash import SHA256, HMAC
 import os
-
+import struct
 HASH_CNT = 10000 # Number of hashes to compute one SHA256 takes 15 microsec,
 class RandomWSeed(object):
     """Generates pseudo-random numbers seeded with a value @seed.
     """
     def __init__(self, seed, buff_limit=10240):
-        # May be unnecessary to have double hash, just for safety. Need to check can someone back
-        # track from the random bits to the seed.
-        self._pw_h = SHA256.new(SHA256.new(seed).digest()) 
-        self._cnt = 1
+        # May be unnecessary to have double hash, just for safety. Need to check
+        # can someone back track from the random bits to the seed.
+        seed_h = SHA256.new(seed).digest())
+        self._pw_h = SHA256.new(seed_h)
+        self._cnt = struct.pack('<I', seed_h[:4])
         self._buff_limit = buff_limit
         self._rand_buff  = ''
         self._buff_idx = 0
 
     def _next_hash(self):
         """Append the current hash with new @cnt, and recompute the hash
-        as new list of random bytes.
+        as new list of random bytes. The `self._cnt` value acts as delimiter between
+        the update calls (to prevent length extension attack).
         """
         self._cnt += 1
-        self._pw_h.update('%d' % self._cnt)
+        self._pw_h.update(str(self._cnt) + self._pw_h.digest())
         return self._pw_h.digest()
 
     def get_random_bytes(self, n):
@@ -104,7 +106,7 @@ def encrypt_with_ecc(public_ecc_key, message, nonce=None):
     random_ecc_key = ECC.generate(curve=public_ecc_key.curve)
     new_point = public_ecc_key.pointQ * random_ecc_key.d
     h = SHA256.new(str(new_point.x))
-    h.update(str(new_point.y))
+    h.update('XXX' + str(new_point.y)) # 'XXX' is a delimiter
     key = h.digest()
     if not nonce:
         nonce = os.urandom(16)
