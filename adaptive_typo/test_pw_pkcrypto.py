@@ -3,7 +3,7 @@ import os
 from pw_pkcrypto import (
     encrypt, decrypt, derive_public_key,
     derive_secret_key, serialize_pub_key,
-    compute_id, hash_pw
+    compute_id, hash_pw, match_hashes
 )
 
 def test_hash_pw():
@@ -13,6 +13,13 @@ def test_hash_pw():
     pwhash, pk = derive_public_key(pw, sa)
     assert pwhash_h == pwhash
 
+
+def test_match_hashes():
+    salts = [os.urandom(16) for _ in xrange(10)]
+    pws = [os.urandom(10) for _ in xrange(10)]
+    hashes = [hash_pw(pw, sa) for pw,sa in zip(pws, salts)]
+    i = 4
+    assert match_hashes(pws[i], hashes, salts)==i
 
 def test_functionality():
     # generate a set of pk,sk pairs
@@ -28,6 +35,14 @@ def test_functionality():
         _msg = decrypt(sk_dict, ctx)
         assert msg == _msg, "\n_msg={}\n msg={}\n".format(_msg, msg)
 
+def test_encrypt_with_string_keys():
+    pw = 'aflashdfhaasdfadsf'
+    sa = 'asdfkjashdflkashld'[:16]
+    m = 'The best secret message'
+    pwhash, pk = derive_public_key(pw, sa)
+    pwhash_, sk = derive_secret_key(pw, sa)
+    assert decrypt({'abc': sk}, encrypt({'abc': pk}, m)) == m
+    
 def test_derive_key():
     pw = 'thebest ever secret'
     sa = '12345678'*2
@@ -49,3 +64,5 @@ def test_compute_id():
     id1 = compute_id(pwtypo, dict([list_keys.popitem()]), saltctx)
     id2 = compute_id(pwtypo, dict([list_keys.popitem()]), saltctx)
     assert id1 == id2
+
+test_functionality()
