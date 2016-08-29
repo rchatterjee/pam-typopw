@@ -2,15 +2,16 @@ import dataset
 import sys
 import time
 from Crypto.Random import random
+from pw_pkcrypto import *
 
 # will be REMOVED
+'''
 from Crypto.Hash import SHA3_512
 from Crypto.Hash import SHA1
 from Crypto.Cipher import AES
 from Crypto.Util import strxor
+    '''
 
-
-    
 dbName = "typoToler"
 logT = 'LogTable'
 hashCachT = 'HashCachTable'
@@ -59,20 +60,6 @@ def decryptSym(cipher,key):
 def genByteStr(bitslength):   # TODO - will change to something else?
     return random.long_to_bytes(random.getrandbits(bitslength))
 
-
-def encrypt (dic = {}, m = ""):
-    pass
-
-def decrypt(dic = {}, c = ""):
-    pass
-
-def deriveKey(pw,sa):
-    pass
-
-def compute_id(pw,dic = {},ctxsalt):
-    pass
-
-
 class UserTypoDB:
     
     def __init__(self,user):
@@ -82,7 +69,7 @@ class UserTypoDB:
         return dataset.connect("sqlite:////home/{}/{}.db"\
                                .format(self.user,dbName))
 
-    def initTables(self,psw):
+    def init_tables(self,psw):
         db = self.getDB()
         db[logT]
         db[auxT]
@@ -92,24 +79,31 @@ class UserTypoDB:
         #db[hashCachT].insert(dict
             
         
-    def isInCach(self,typo):
+    def is_in_cach(self,typo,increaseCount=True):
         '''
         returns the pk of typo if it's in HashCach and it's ID
         if not - returns an emoty string
+        By default: increase the typo count as well
         ''' # in python2.7 hex is a string
         db = self.getDB()
         cachT = db[hashCachT]
         for CachLine in cachT:
             sa = CachLine[salt]
-            hs,pk,sk = deriveKey(typo,sa)
+            hs,sk = derive_secret_key(typo,sa)
             hsInTable = CachLine[H_typo]
             typo_id = CachLine[t_id]
+            typo_count = CachLine[count]
             if hsInTable == hs:
+                # update table with new count
+                if increaseCount:
+                    typo_count += 1
+                    cachT.update(dict(t_id = typo_id,count = typo_count),['count'])
+
                 return sk,typo_id
 
         return '',''
 
-    def sortCach(self):
+    def sort_cach(self):
         pass
         # when we sort the cach we need to reCalc the pwd encryption and reCalc the keysTable
 
@@ -121,7 +115,7 @@ class UserTypoDB:
             raise Exception('{} results found, 1 expected. key finding'.format(len(res)))
         return decrypt(res[key],sk)'''
 
-    def getApprovedTypoPkDict(self):
+    def get_approved_pk_dict(self):
         db = self.getDB()
         cachT = db[hashCachT]
         dic = {}
@@ -130,21 +124,52 @@ class UserTypoDB:
             typo_pk = cachLine[pk]
             dic[typo_id] = typo_pk
         return dic
-
-    def getTimeStr(self):
+    
+    def get_time_str(self):
         return str(time.time())
     
-    def addNewTypoToWaitList(self,typo):
-        sa = genByteStr(128)
+    def add_typo_to_waitlist(self,typo):
+        sa = os.urandom(16)
         typo_hs, typo_pk,_ = deriveKey(typo,sa)
-        ts = 
-        ctx = encrypt(self.getApprovedTypoPkDict(),typo)
+        ts = self.get_time_str()
+        typo_ctx = encrypt(self.get_approved_pk_dict(),typo)
 
         db = self.getDB()
         w_list_T = db[waitlistT]
+
+        w_lis_T.insert(dict(ctx = typo_ctx,timestamp = ts))
+
+    def printCachHash(self):
         
+        db = self.getDB()
+        cachT = db[hashCachT]
+        print cachT.columns
+        for line in cachT:
+            print line
+
+    def cach_insert_policy(self):
+        return True
+    
+    def add_to_hash_cach(self,typo,typo_count = 1,
+                         (typo_hash,typo_pk) = ("",""),typo_id = ''):
+
+        if typo_hash == "" or typo_pk == "":
+            salt = os.urandom(16)
+            typo_hash,typo_pk = derive_public_key(typo,salt)
+
+        if cach_insert_policy():
+            pass
+        pass
+
+    INIT_PW_COUNT = 1000 # we'll want to change that
+    # to ensure the pw protectation actually works
+    # and that we won't delete the user's password if he typo-s too much
+    def _insert_first_password (self, pw):
+        pw_count = 1000
+        pass
         
-        
+            
+    
         
     
             
@@ -161,7 +186,7 @@ def main():
     user = args[0]
     myDB = UserTypoDB(user)
     DB = myDB.getDB()
-    myDB.initTables("pass")
+    myDB.init_tables("pass")
     ss = slowHash(user,"salt")
     print ss
     print type(ss)
