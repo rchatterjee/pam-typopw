@@ -26,7 +26,7 @@ def update_ctx(pk_dict, sk_dict, ctx):
 def encrypt(pk_dict, msg):
     """
     @pk_dict (dict): is a dictionary of id->pk, which will be used to encrypt 
-                     a message.
+                     a message. pk's in the dict can be EccKey or basestring
     @msg (byte string): a message to be encrypted
     """
     # First AES-128 encrypt the message with a random key
@@ -39,6 +39,10 @@ def encrypt(pk_dict, msg):
                   .encrypt_and_digest(msg)
     serialized_msgctx = nonce + tag + ctx
 
+    # In case pks are serialized, convert them to ecc keys
+    for k, v in pk_dict.items():
+        if not isinstance(v, ECC.EccKey):
+            pk_dict[k] = ECC.import_key(v)
     # Now encrypt the key with pks in pk_dict
     assert len(pk_dict)>0
     assert len(set((pk.curve for pk in pk_dict.values())))==1

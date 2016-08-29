@@ -35,6 +35,14 @@ def test_functionality():
         _msg = decrypt(sk_dict, ctx)
         assert msg == _msg, "\n_msg={}\n msg={}\n".format(_msg, msg)
 
+def test_encrypt_with_string_keys():
+    pw = 'aflashdfhaasdfadsf'
+    sa = 'asdfkjashdflkashld'[:16]
+    m = 'The best secret message'
+    pwhash, pk = derive_public_key(pw, sa)
+    pwhash_, sk = derive_secret_key(pw, sa)
+    assert decrypt({'abc': sk}, encrypt({'abc': pk}, m)) == m
+    
 def test_derive_key():
     pw = 'thebest ever secret'
     sa = '12345678'*2
