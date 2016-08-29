@@ -1,6 +1,7 @@
 import dataset
 import sys
 import time
+import json
 from Crypto.Random import random
 from pw_pkcrypto import *
 
@@ -17,11 +18,13 @@ logT = 'LogTable'
 hashCachT = 'HashCachTable'
 ' col: H_typo, salt, count, pk, t_id, '
 auxT = 'AuxTable'
+' col: data, d_hash, pk'
+# will have the ps and the global sa (for HMAM for id computation)
 waitlistT = 'WaitlistTable'
 #allData = 'allData'
 orgP_T = "Org_P_Table"
 
-
+ORG_PWD = 'org_pwd'
 # col: key_id,key. when key_id is the Id of the sk the decrypts the key
 
 # the HashCach will hold the pk as well
@@ -161,12 +164,39 @@ class UserTypoDB:
             pass
         pass
 
-    INIT_PW_COUNT = 1000 # we'll want to change that
-    # to ensure the pw protectation actually works
-    # and that we won't delete the user's password if he typo-s too much
-    def _insert_first_password (self, pw):
-        pw_count = 1000
-        pass
+
+    def _insert_first_password_and_global_salt (self, pw):
+        
+        salt_pk = os.urandom(16)
+        
+        pw_hash,pw_pk = derive_public_key(pw,salt_pk)
+        #_,pw_sk = derive_secret_key(pw,salt_pk)
+        
+        glob_salt_hmac = os.urandom(16)
+        typo_plaintxt = json.dump({'desc':'pwd','data':pw,'pk':pw_pk,'sa':salt_pk})
+        salt_plaintxt = json.dump({'desc':'salt','data':salt_pk})
+        # tas the pk needs to be available it's a bit redundant
+        # might change
+        
+        pk_dict = {ORG_PWD:pw_pk}
+        typo_cipher = encrypt(pk_dict,typo_plaintxt)
+        # leakes somewhat the size of the pwd
+        glob_salt_cipher = encrypt(pk_dict,salt_plaintxt)
+
+        db = self.getDB()
+        info_t = db[auxT]
+        info_t.insert(dict(ctx=typo_cipher,pk=pw_pk))
+        info_t.insert(dict(ctx=salt_ciphar))
+
+        return
+
+        
+        
+        
+        
+
+        
+        
         
             
     
