@@ -9,19 +9,44 @@ from Crypto.Cipher import AES
 from Crypto.Hash import SHA256, HMAC
 import os
 import struct
-HASH_CNT = 10000 # Number of hashes to compute one SHA256 takes 15 microsec,
+HASH_CNT = 1000 # Number of hashes to compute one SHA256 takes 15 microsec,
+
+def hash256(*args):
+    """short function for Hashing the arguments with SHA-256"""
+    assert len(args)>0, "Should give at least 1 message"
+    h = SHA256.new(bytes(len(args)) + bytes(args[0]))
+    for m in args[1:]:
+        h.update(bytes(m))
+    h.update(bytes(len(args)))
+    return h.digest()
+
+def hmac256(secret, m):
+    return HMAC.new(key=secret, msg=m, digestmod=SHA256).digest()
+
+def aes1block(key, msg, iv=bytes(bytearray(16)), op='encrypt'):
+    """Encrypt oneblock of message with AES-256"""
+    assert len(key) in (32,), \
+        "Only AES-256 is supported. Key size: {}".format(len(key))
+    assert len(msg) == len(key), \
+        "Can encrypt only one block of data. len(msg)={}".format(len(msg))
+    assert op in ('encrypt', 'decrypt')
+    if op=='encrypt':
+        return AES.new(key=key, mode=AES.MODE_CBC, iv=iv)\
+                  .encrypt(msg)
+    else: # for sure op=='decrypt'
+        return AES.new(key=key, mode=AES.MODE_CBC, iv=iv)\
+                  .decrypt(msg)
+
 class RandomWSeed(object):
     """Generates pseudo-random numbers seeded with a value @seed.
     """
     def __init__(self, seed, buff_limit=10240):
-        # May be unnecessary to have double hash, just for safety. Need to check
-        # can someone back track from the random bits to the seed.
-        seed_h = SHA256.new(seed).digest())
-        self._pw_h = SHA256.new(seed_h)
-        self._cnt = struct.pack('<I', seed_h[:4])
+        self.seed_h = hash256(seed)
+        self._cnt = 0
         self._buff_limit = buff_limit
         self._rand_buff  = ''
         self._buff_idx = 0
+        self._digest_size = len(self._next_hash())
 
     def _next_hash(self):
         """Append the current hash with new @cnt, and recompute the hash
@@ -29,17 +54,18 @@ class RandomWSeed(object):
         the update calls (to prevent length extension attack).
         """
         self._cnt += 1
-        self._pw_h.update(str(self._cnt) + self._pw_h.digest())
-        return self._pw_h.digest()
+        return hmac256(self.seed_h, bytes(self._cnt))
 
     def get_random_bytes(self, n):
         """Returns n random bytes.
         """
-        assert n<self._buff_limit, "You are asking something larger than buffer size, "\
-            "increase the buffer size"
+        assert n<self._buff_limit, "You are asking something larger than buffer "\
+            "size. Please increase the buffer size."
         if self._buff_idx+n>len(self._rand_buff):
-            self._rand_buff = ''.join(self._next_hash() for _ in \
-                                      xrange(self._buff_limit/self._pw_h.digest_size + 1))
+            self._rand_buff = ''.join(
+                self._next_hash() for _ in \
+                xrange(self._buff_limit/self._digest_size + 1)
+            )
             self._buff_idx = 0
         t, self._buff_idx = self._buff_idx, self._buff_idx + n
         return self._rand_buff[t:self._buff_idx]

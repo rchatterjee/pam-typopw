@@ -1,35 +1,11 @@
 from Crypto.Protocol.KDF import PBKDF2
 from Crypto.PublicKey import ECC
 from Crypto.Cipher import AES
-from Crypto.Hash import SHA256, HMAC
 import os, struct
-from pwcryptolib import HASH_CNT, RandomWSeed
+from pwcryptolib import (HASH_CNT, RandomWSeed, hash256, hmac256, aes1block)
 
 # All Crypto operation parameters are of length 32 bytes (256 bits)
 # However AES block size is ALWAYS 16 bytes. (That's the standard!)
-
-def hash256(*args):
-    """short function for Hashing the arguments with SHA-256"""
-    assert len(args)>0, "Should give at least 1 message"
-    h = SHA256.new(bytes(args[0]))
-    for m in args[1:]:
-        h.update(bytes(m))
-    return h.digest()
-
-def aes1block(key, msg, iv=bytes(bytearray(16)), op='encrypt'):
-    """Encrypt oneblock of message with AES-256"""
-    assert len(key) in (32,), \
-        "Only AES-256 is supported. Key size: {}".format(len(key))
-    assert len(msg) == len(key), \
-        "Can encrypt only one block of data. len(msg)={}".format(len(msg))
-    assert op in ('encrypt', 'decrypt')
-    if op=='encrypt':
-        return AES.new(key=key, mode=AES.MODE_CBC, iv=iv)\
-                  .encrypt(msg)
-    else: # for sure op=='decrypt'
-        return AES.new(key=key, mode=AES.MODE_CBC, iv=iv)\
-                  .decrypt(msg)
-
 
 def update_ctx(pk_dict, sk_dict, ctx):
     """
@@ -164,7 +140,7 @@ def _derive_key(pw, sa):
     curve = 'secp256r1' # 
     rand_seed = PBKDF2(pw, sa, dkLen=16, count=HASH_CNT) # SLOW
     rand_num_generator = RandomWSeed(rand_seed, 1024)
-    pwhash = SHA256.new(rand_seed).digest() # The last hash to be stored in the cache
+    pwhash = hash256(rand_seed) # The last hash to be stored in the cache
     ec_elem = ECC.generate(curve=curve, randfunc=rand_num_generator.get_random_bytes)
     return pwhash, ec_elem # ec_elem can be used to find pk or sk. 
 
@@ -189,7 +165,6 @@ def compute_id(pwtypo, sk_dict, saltctx):
     Returns an integer ID of the pwtypo
     """
     salt = decrypt(sk_dict, saltctx)
-    h = HMAC.new(salt)
-    h.update(hash256(pwtypo))
-    return struct.unpack('<I', h.digest()[:4])
+    h = hmac256(salt, pwtypo)
+    return struct.unpack('<I', h[:4])
 

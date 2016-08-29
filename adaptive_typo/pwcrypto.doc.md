@@ -1,5 +1,6 @@
-# Multi-password Encryption Scheme  
-`contact: rahul@cs.cornell.edu`  
+# Multi-password Encryption Scheme
+`contact: rahul@cs.cornell.edu`
+
 
 We are using multiple passwords to encrypt a message, such that any of the valid
 passwords can recover the message from the ciphertext.
@@ -15,9 +16,9 @@ in `pk_pkcrypto.py`.
   is still 16.
 
 
-### Creating a PRG from a seed
-`s`: Seed, `H`: SHA-256 hash
-`G(s) : h0=H(s) || h1=H(h0|1) || h2=H(h1|2) || .....`
+### Creating a PRG from a PRF
+`s`: Seed, `HMAC`: HMAC with SHA-256
+`G(s) : h0=HMAC(s,0) || h1=HMAC(s,1) || h2=HMAC(s,2) || ...`
 
 
 ## Deriving public- and private-key pair from a password
