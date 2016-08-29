@@ -3,6 +3,7 @@ from Crypto.PublicKey import ECC
 from Crypto.Cipher import AES
 import os, struct
 from pwcryptolib import (HASH_CNT, RandomWSeed, hash256, hmac256, aes1block)
+import joblib
 
 # All Crypto operation parameters are of length 32 bytes (256 bits)
 # However AES block size is ALWAYS 16 bytes. (That's the standard!)
@@ -46,7 +47,7 @@ def encrypt(pk_dict, msg):
 
     # It is always 161 bytes, extra few bytes in case we runinto issues
     serialized_rand_point = serialize_pub_key(rand_point.public_key())
-    def _encrpt_w_one_pk(pk):
+    def _encrypt_w_one_pk(pk):
         if isinstance(pk, basestring):
             pk = ECC.import_key(pk)
         new_point = pk.pointQ * rand_point.d
@@ -55,7 +56,7 @@ def encrypt(pk_dict, msg):
 
     # Hash the ids and take first four bytes, just in case ids are too big.
     # CAUTION: this is valid only if the size of pk_dict is <= 65536
-    pkctx = { hash256(_id)[:4]: _encrpt_w_one_pk(pk) for _id, pk in pk_dict.items()}
+    pkctx = { hash256(_id)[:4]: _encrypt_w_one_pk(pk) for _id, pk in pk_dict.items()}
     assert all(map(lambda v: len(v)==32, pkctx.values()))
     serialized_pkctx = ''.join(k+v for k,v in pkctx.items())
 
@@ -177,9 +178,26 @@ def compute_id(pwtypo, sk_dict, saltctx):
     return struct.unpack('<I', h[:4])
 
 
-def match_hashes(hashlist, saltlist, pw):
+
+
+def _match_hash(i, pw, h, sa):
+    if hash_pw(pw, sa)==h:
+        return i
+    return -1
+
+def match_hashes(pw, hashlist, saltlist):
     """Check parallely which of the hash matches with hash of pw with the
     corresponding salt.
-    returns the index if found else -1
+    returns the @index if found else -1
     """
-    pass
+    with joblib.Parallel(n_jobs=4) as parallel:
+        ret = filter(
+            lambda x: x!= -1,
+            parallel(joblib.delayed(_match_hash)(i, pw, h, sa)
+                     for i, (h,sa) in enumerate(zip(hashlist, saltlist)))
+        )
+    assert len(ret)<=1, "There are multiple hashes with the same underlying password"
+    if ret:
+        return ret[0]
+    else:
+        return -1
