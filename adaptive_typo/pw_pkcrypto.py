@@ -112,6 +112,14 @@ def decrypt(sk_dict, ctx):
         raise ValueError("None of the secret keys could decrypt the ciphertext")
     return msg
 
+def hash_pw(pw, sa):
+    """
+    Compute the slow hash of the password
+    @pw (bytes): password
+    @sa (bytes): salt (must be >= 16 bytes long)
+    ## SLOW
+    """
+    return hash256(PBKDF2(pw, sa, dkLen=16, count=HASH_CNT)) # SLOW
 
 def derive_public_key(pw, sa):
     """
@@ -168,3 +176,10 @@ def compute_id(pwtypo, sk_dict, saltctx):
     h = hmac256(salt, pwtypo)
     return struct.unpack('<I', h[:4])
 
+
+def match_hashes(hashlist, saltlist, pw):
+    """Check parallely which of the hash matches with hash of pw with the
+    corresponding salt.
+    returns the index if found else -1
+    """
+    pass
