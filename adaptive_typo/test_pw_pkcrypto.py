@@ -3,8 +3,16 @@ import os
 from pw_pkcrypto import (
     encrypt, decrypt, derive_public_key,
     derive_secret_key, serialize_pub_key,
-    compute_id
+    compute_id, hash_pw
 )
+
+def test_hash_pw():
+    pw = 'asdfasfasdfasdf'
+    sa = 'asdfasdfasdfasdf'[:16]
+    pwhash_h = hash_pw(pw, sa)
+    pwhash, pk = derive_public_key(pw, sa)
+    assert pwhash_h == pwhash
+
 
 def test_functionality():
     # generate a set of pk,sk pairs
