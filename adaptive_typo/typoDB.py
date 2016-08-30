@@ -5,28 +5,31 @@ import json
 from Crypto.Random import random
 from pw_pkcrypto import *
 import binascii
-
+import editdistance # WILL CHANGE to kb distance
 
 DB_NAME = "typoToler"
 logT = 'LogTable'
 hashCachT = 'HashCachTable'
-' col: H_typo, salt, count, pk, t_id, '
+' col: H_typo, salt, count, pk, t_id ' # nedd to add isTop5
 auxT = 'AuxTable'
 ' col: data, d_hash, pk'
 # will have the ps and the global sa (for HMAM for id computation)
 waitlistT = 'WaitlistTable'
-' col: base64(enc(typo)),ts
+' col: base64(enc(typo)),ts'
 #allData = 'allData'
-orgP_T = "Org_P_Table"
 
-ORG_PWD = 'org_pwd'.encode('utf-8') 
+ORG_PWD = 'org_pwd'
 GLOB_SALT = 'glob_salt'
+MAX_EDIT_DIST_INCLUDED = 1
 # col: key_id,key. when key_id is the Id of the sk the decrypts the key
+
+
+
 
 # the HashCach will hold the pk as well
 
 class UserTypoDB:
-    
+    glob_salt_tmp = 'para'
     def __init__(self,user,N):
         self.user = user
         self.N = N
@@ -113,35 +116,72 @@ class UserTypoDB:
         # should ts be encrypted as well?
         sa = os.urandom(16)
         typo_hs, typo_pk = derive_public_key(typo,sa)
+        hs_b64 = binascii.b2a_base64(typo_hs)
+        pk_b64 = binascii.b2a_base64(typo_pk)
+        sa_b64 = binascii.b2a_base64(sa)
+        
         ts = self.get_time_str()
-        typo_ctx = binascii.b2a_base64(encrypt(self.get_approved_pk_dict(),typo))
+        plainInfo = json.dumps({"typo_hs":hs_b64,"typo_pk":pk_b64,
+                                "typo_pk_salt":sa_b64,
+                                "timestamp":ts,"typo":typo})
+        info_ctx = binascii.b2a_base64(encrypt(self.get_approved_pk_dict(),
+                                               plainInfo))
 
         db = self.getDB()
         w_list_T = db[waitlistT]
 
-        w_list_T.insert(dict(ctx = typo_ctx,timestamp = ts))
+        w_list_T.insert(dict(ctx = info_ctx))
 
     def decrypt_waitlist(self, t_id,t_sk):
+        '''
+        returns a dictionary of the typos in waitlist
+        '''
         new_typo_dic = {}
         sk_dic = {t_id:t_sk}
         for line in self.getDB()[waitlistT].all():
             bin_ctx = binascii.a2b_base64(line['ctx'])
-            typo = decrypt(sk_dic,bin_ctx)
-            ts = line['timestamp']
+            typo_info = json.loads(decrypt(sk_dic,bin_ctx))
+            ts = typo_info['timestamp']
+            typo = typo_info['typo']
+            typo_hs = binascii.a2b_base64(typo_info['typo_hs'])
+            typo_pk = binascii.a2b_base64(typo_info['typo_pk'])
+            typo_pk_salt = binascii.a2b_base64(typo_info["typo_pk_salt"])
             if typo not in new_typo_dic:
-                new_typo_dic[typo] = (typo,1,[ts])
+                new_typo_dic[typo] = (typo,1,[ts],typo_hs,typo_pk,typo_pk_salt)
             else:
-                _, t_count, ts_list = new_typo_dic[typo]
+                _, t_count, ts_list,_,_,_ = new_typo_dic[typo]
                 ts_list.append(ts)
                 t_count += 1
-                new_typo_dic[typo]=(typo,t_count,ts_list)
+                new_typo_dic[typo]=(typo,t_count,ts_list,
+                                    typo_hs,typo_pk,typo_pk_salt)
 
         return new_typo_dic
                 
-    def get_top_legit_N_typos(self,typoDic,pwd):
+    def get_top_N_typos_within_editdistance(self,typoDic,pwd,t_id,t_sk):
+        '''
+        Will also update log TODO
+        '''
+        glob_salt_ctx = self.get_glob_hmac_salt_ctx()
+        print "in get top N"
+        print "salt ctx:"
+        print glob_salt_ctx
+        print "#"*24
+        typo_list = []
+        
         for typo in typoDic.keys():
-            _, count, ts_list = typoDic[typo]
-            editDist = 
+            _, count, ts_list,typo_hs,typo_pk,typo_pk_salt = typoDic[typo]
+            editDist = editdistance.eval(pwd,typo) # WILL CHANGE
+            typo_id = compute_id(typo.encode('utf-8'),{t_id:t_sk},glob_salt_ctx) #TODO
+            # typo_id = 'fake_id_fix_line_above:' + typo
+            # calc isTop5Fixer # TODO
+            # add it to the information inserted in the list append
+            # writing into log for each ts
+            if editDist <= MAX_EDIT_DIST_INCLUDED:
+                typo_list.append((typo_id, count, typo_hs, typo_pk, typo_pk_salt))
+
+        #                                    x:x[1] = count field
+        return sorted(typo_list,key = lambda x:x[1])[:self.N]
+            
         
 
     def clear_waitlist(self):
@@ -199,10 +239,11 @@ class UserTypoDB:
         pwd_ctx = binascii.a2b_base64(pwdLine['ctx'])
         return decrypt({t_id:t_sk},pwd_ctx)
 
-    def get_glob_hmac_salt(self,t_id,t_sk):
+    def get_glob_hmac_salt_ctx(self):#,t_id,t_sk): #compute_id get a saltctx
         saltLine = self.getDB()[auxT].find_one(desc = GLOB_SALT)
         salt_ctx = binascii.a2b_base64(saltLine['ctx'])
-        return decrypt({t_id:t_sk},pwd_ctx)
+        #return decrypt({t_id:t_sk},pwd_ctx) #compute_id get a saltctx
+        return salt_ctx
         
     def cach_insert_policy(self):
         return True
@@ -234,8 +275,10 @@ class UserTypoDB:
         #_,pw_sk = derive_secret_key(pw,salt_pk)
         
         glob_salt_hmac = os.urandom(16)
+        self.glob_salt_tmp = glob_salt_hmac # TODO REMOVE
 
         pwd_salt_base64 = binascii.b2a_base64(pwd_salt_pk)
+        
         # typo_plaintxt = json.dump({'desc':'pwd','data':pw,'pk':pw_pk,'sa':salt_pk})
         # salt_plaintxt = json.dump({'desc':'salt','data':salt_pk})
         
@@ -279,27 +322,45 @@ def main():
         print str(r)
 
     user = args[0]
-    myDB = UserTypoDB(user)
+    myDB = UserTypoDB(user,2) # N=2
     DB = myDB.getDB()
     myDB.clear_waitlist()
-    pwd = 'pass'
+    pwd = 'dlue'
     myDB.init_tables(pwd)
-
+    
+    
     pwd_pk_salt = myDB.get_pwd_pk_salt()
     print "pwd_pk_salt: {}".format(pwd_pk_salt)
     _,pwd_sk = derive_secret_key(pwd,pwd_pk_salt)
     getPwd = myDB.get_org_pwd(ORG_PWD,pwd_sk)
     print "{} is the pwd we got".format(getPwd)
     print "{} is org pwd".format(pwd)
+    '''
+    glob_salt_ctx = myDB.get_glob_hmac_salt_ctx()
+    check_glob_salt = decrypt({ORG_PWD:pwd_sk},glob_salt_ctx)
+    print "real glob salt: {}".format(myDB.glob_salt_tmp)
+    print "decrypted glob salt: {}".format(check_glob_salt)
+    '''
     
     
-    
-
     myDB.add_typo_to_waitlist("blae")
     myDB.add_typo_to_waitlist("blue")
     myDB.add_typo_to_waitlist("clue")
+    myDB.add_typo_to_waitlist("blue")
+    myDB.add_typo_to_waitlist("clue")
+    myDB.add_typo_to_waitlist("blue")
+    myDB.add_typo_to_waitlist("clue")
+    myDB.add_typo_to_waitlist("clue")
+    myDB.add_typo_to_waitlist("shoe")
 
-    myDB.printAllWaitlist()
+    dic = myDB.decrypt_waitlist(ORG_PWD,pwd_sk)
+    top_N_list = myDB.get_top_N_typos_within_editdistance(dic,pwd,ORG_PWD,pwd_sk)   
+    print "dic:"
+    print dic
+    print "top N:"
+    print top_N_list
+
+    # myDB.printAllWaitlist()
 
     
     myDB.clear_waitlist()
