@@ -63,6 +63,7 @@ def test_compute_id():
     saltctx = encrypt(pk_dict, salt)
     id1 = compute_id(pwtypo, dict([list_keys.popitem()]), saltctx)
     id2 = compute_id(pwtypo, dict([list_keys.popitem()]), saltctx)
+    assert isinstance(id1, int)
     assert id1 == id2
 
 test_functionality()
