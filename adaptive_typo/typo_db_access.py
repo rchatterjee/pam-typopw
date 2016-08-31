@@ -49,7 +49,7 @@ class UserTypoDB:
         if dataLineN != None:
             print "N already in DB" # TODO REMOVE
             self.N = int(dataLineN['data'])
-        dataLine_IsON = info_t.find(desc = 'AllowedTypoLogin')
+        dataLine_IsON = info_t.find_one(desc = 'AllowedTypoLogin')
         if dataLine_IsON != None:
             self.isON = bool(dataLine_IsON['data'])
         
@@ -60,13 +60,13 @@ class UserTypoDB:
     def init_tables(self,pwd,N):
         db = self.getDB()
         db[logT]
-        db[auxT].delete() #
-        self.init_aux_data(N)
+        #db[auxT].delete() #
+        #self.init_aux_data(N)
         
-        db[waitlistT].delete() #
-        self._insert_first_password_and_global_salt(pwd)
+        #db[waitlistT].delete() #
+        #self._insert_first_password_and_global_salt(pwd)
         
-        db[hashCachT].delete() #
+        #db[hashCachT].delete() #
 
     def init_aux_data(self,N,typoTolerOn = True,maxEditDist=1):
         db = self.getDB()
@@ -113,9 +113,8 @@ class UserTypoDB:
         return '','','',
 
     def update_log(self,ts,typoID_or_msg,editDist,isInHash,allowedLogin):
-        log_t = db[logT]
-                    log_t.insert(dict(t_id=typoID,timestamp=ts,
-                                      edit_dist=editDist
+        log_t = self.getDB()[logT]
+        log_t.insert(dict(t_id=typoID_or_msg,timestamp=ts,edit_dist=editDist,
                                       is_in_hash=isInHash,
                                       allowed_login=allowedLogin))
                     
