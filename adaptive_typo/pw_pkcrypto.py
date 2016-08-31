@@ -179,7 +179,7 @@ def compute_id(pwtypo, sk_dict, saltctx):
     """
     salt = decrypt(sk_dict, saltctx)
     h = hmac256(salt, pwtypo)
-    return struct.unpack('<I', h[:4])
+    return struct.unpack('<I', h[:4])[0]
 
 
 
