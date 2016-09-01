@@ -74,6 +74,15 @@ class UserTypoDB:
                                .format(self.user,DB_NAME))
         return self.DB_obj
 
+    def is_aux_init(self):
+        infoT = self.getDB()[auxT]
+        encPwd = infoT.find_one(desc=ORG_PWD)
+        globSalt = infoT.find_one(desc=GLOB_SALT)
+        if (globSalt == None) != (encPwd == None):
+            # if glob and pwd aren't in the same initialization state
+            raise Exception("{} is corrupted!".format(auxT))
+        return encPwd != None
+        
     def init_tables(self,pwd,N):
         """
         Initiate the tables of the db, most importantly - the aux-info
@@ -102,7 +111,7 @@ class UserTypoDB:
         
         
         
-    def is_in_cach(self,typo,increaseCount=True,updateLog = True):
+    def fetch_from_cache(self,typo,increaseCount=True,updateLog = True):
         '''
         Returns the typo's pk and ID if it's in HashCach
         If not - returns an empty strings "",""
@@ -133,7 +142,7 @@ class UserTypoDB:
                     self.update_log(ts,typo_id,editDist,'True',str(self.isON))
                 return sk,typo_id
 
-        return '','','',
+        return '',''
 
     def update_log(self,ts,typoID_or_msg,editDist,isInHash,allowedLogin):
         log_t = self.getDB()[logT]
@@ -289,11 +298,6 @@ class UserTypoDB:
 
         return sorted(typo_list,key = lambda x:x['count'],reverse=True)[:self.N]
 
-    def clear_waitlist(self):
-        db = self.getDB()
-        w_list_T = db[waitlistT]
-        w_list_T.delete()
-
     #tmp
     def printAllWaitlist(self):
         db = self.getDB()
@@ -369,7 +373,7 @@ class UserTypoDB:
         return result
 
 
-    def add_top_N_typo_list_to_hash_cach(self,typo_list):
+    def add_top_N_typo_list_to_hash_cach(self,typo_list,t_id,t_sk):
         # TODO - make sure that i updates the way it should
         '''
         updates the hashCachTable according to the update scheme
@@ -404,8 +408,47 @@ class UserTypoDB:
                 hashT.delete(t_id = oldLine['t_id']) # maybe use update instead TODO
                 hashT.insert(typoDict)     # later on maybe use add_many to fasten TODO
 
+        # update the ctx of the original password and the global salt
+        # because cachHash hash Changed
+        self.update_aux_ctx(t_id,t_sk)
+
+    def update_aux_ctx(self,t_id,t_sk):
+        """
+        Assumes that the auxT is ok with both password and global salt
+        """
+        infoT = self.getDB()[auxT]
+        pwdCtx = binascii.a2b_base64(infoT.find_one(desc=ORG_PWD)['ctx'])
+        globSaltCtx = binascii.a2b_base64(infoT.find_one(desc=GLOB_SALT)['ctx'])
+        pk_dict = self.get_approved_pk_dict()
+        sk_dict = {t_id:t_sk}
+        newPwdCtx = binascii.b2a_base64(update_ctx(pk_dict,sk_dict,pwdCtx))
+        newGlobSaltCtx = binascii.b2a_base64(update_ctx(pk_dict,
+                                                        sk_dict,globSaltCtx))
+        infoT.update(dict(desc=ORG_PWD,ctx=newPwdCtx),['desc'])
+        infoT.update(dict(desc=GLOB_SALT,ctx=newGlobSaltCtx),['desc'])
+        
+        
+        
     def clear_waitlist(self):
         self.getDB()[waitlistT].delete()
+
+    def update_hash_cach_by_waitlist(self,t_id,t_sk,updateLog = True):
+        """
+        Updates the hash cache according to waitlist.
+        It also updates the log accordingly (if updateLog is set)
+        and clears waitlist
+
+        @updateLog (bool) : whether to update in the log, set to True
+        """
+        # we might want to avoid saving those obj.. or some other comp. improv.
+        waitlistTypoDict = self.decrypt_waitlist(t_id,t_sk)
+        orig_pwd = self.get_org_pwd(t_id,t_sk)
+        topNList = self.get_top_N_typos_within_editdistance(waitlistTypoDict,
+                                                            orig_pwd,t_id,t_sk,
+                                                            updateLog)
+        self.add_top_N_typo_list_to_hash_cach(topNList,t_id,t_sk)
+        self.clear_waitlist()
+        
         
     def _insert_first_password_and_global_salt (self, pw):
         # TODO - insert log entry
@@ -459,8 +502,11 @@ def main():
     DB = myDB.getDB()
     myDB.clear_waitlist()
     pwd = 'dlue'
-    #myDB.init_tables(pwd,3)
-
+    print " $$$$$$$$$ IS INIT $$$$$$$$$$$$"
+    print str(myDB.is_aux_init())
+    myDB.init_tables(pwd,3)
+    print " $$$$$$$$$ IS INIT $$$$$$$$$$$$"
+    print (myDB.is_aux_init())
 
     pwd_pk_salt = myDB.get_pwd_pk_salt()
     print "pwd_pk_salt: {}".format(pwd_pk_salt)
@@ -495,8 +541,10 @@ def main():
     
     myDB.add_typo_to_waitlist("dlum")
     myDB.add_typo_to_waitlist("dluep")
-    
-    
+
+
+    print myDB.get_org_pwd(ORG_PWD,pwd_sk)
+    '''
     dic = myDB.decrypt_waitlist(ORG_PWD,pwd_sk)
     top_N_list = myDB.get_top_N_typos_within_editdistance(dic,pwd,ORG_PWD,pwd_sk)
     print "dic:"
@@ -506,18 +554,18 @@ def main():
 
     print "#" * 34
     myDB.printCachHash()
-    myDB.add_top_N_typo_list_to_hash_cach(top_N_list)
+    myDB.add_top_N_typo_list_to_hash_cach(top_N_list,ORG_PWD,pwd_sk)
     myDB.clear_waitlist()
-    print "~" * 34
+    print "~" * 34'''
+    myDB.update_hash_cach_by_waitlist(ORG_PWD,pwd_sk)
     myDB.printCachHash()
     allPks = myDB.get_approved_pk_dict()
     print "approved pk dict:"
     print allPks
 
-    # myDB.printAllWaitlist()
-
-
-    myDB.clear_waitlist()
+    t_sk,t_id = myDB.fetch_from_cache('blue',False,False)
+    print "fetching pwd: {}".format(myDB.get_org_pwd(t_id,t_sk))
+    
 
 
     return 0
