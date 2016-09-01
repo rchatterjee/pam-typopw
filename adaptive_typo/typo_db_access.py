@@ -2,48 +2,59 @@ import dataset
 import sys
 import time
 import json
-from Crypto.Random import random
-from pw_pkcrypto import *
+import os
+from pw_pkcrypto import encrypt,decrypt,derive_public_key,\
+     derive_secret_key,update_ctx,compute_id
+# TODO - check whether I should switch somewhere to "hash_pw"
+# TOTO - the same with "match_hashes - ot make it faster
+
 import binascii
 import editdistance # WILL CHANGE to kb distance
 import random # maybe something else?
 import itertools
 
 DB_NAME = "typoToler"
-logT = 'LogTable'
-hashCachT = 'HashCachTable'
-' col: H_typo, salt, count, pk, t_id ' # need to add isTop5
-auxT = 'AuxTable'
-' col: data, d_hash, pk'
-# will have the ps and the global sa (for HMAM for id computation)
-waitlistT = 'WaitlistTable'
-' col: base64(enc(json(typo,ts,hash,salt)))'
-#allData = 'allData'
-
-ORG_PWD = 'org_pwd'
-GLOB_SALT = 'glob_salt'
-MAX_EDIT_DIST_INCLUDED = 1 # TODO - connect to update by DB
+ORG_PWD = 'org_pwd'       # original password's t_id
+GLOB_SALT = 'glob_salt'   # global salt's t_id
+MAX_EDIT_DIST_INCLUDED = 1 # TODO - connect/replace it to be updated by DB
 END_OF_SESS = 'END OF SESSION' # for log's use
 
+# Tables' names:
+logT = 'Log'
+hashCachT = 'HashCache'
+# table cols: H_typo, salt, count, pk, t_id '
+# need to add 'isTop5' laterwards TODO
+# TODO - maybe we should have the ctx data in 'data'
+waitlistT = 'Waitlist'
+# table col: base64(enc(json(typo,ts,hash,salt)))'
+auxT = 'AuxSysData' # holds system's setting as well as glob_salt and enc(pwd)
+# table cols: desc, data
+#             pk, pk_salt, ctx
 
 # auxiley info:
 AllowedTypoLogin = "AllowedTypoLogin"
 InstallDate = "InstallDate"
-# LastPwdChange = "LastPwdChange" # not yet implemented
-# PwdTypoPolicy = "PwdTypoPolicy" # not yet implemented
+# LastPwdChange = "LastPwdChange"       # not yet implemented
+# PwdTypoPolicy = "PwdTypoPolicy"       # not yet implemented
 CachSize = "CacheSize"
-# PwdAcceptPolicy = "PwdAcceptPolicy" # not yet implemented
+# PwdAcceptPolicy = "PwdAcceptPolicy"   # not yet implemented
 EditCutoff = "EditCutoff"
 
 
-# the HashCach will hold the pk as well
+
+# GENERAL TODO:
+# - improve computation speed
+# - decide when and whether to check there were no double entries is auxT (pwd&globSalt)
+# note to self -    if the original pwd is given,
+#                   it needs to be updated to log independently
+#                   the def logging in the functions won't do it
+
 
 class UserTypoDB:
-    glob_salt_tmp = 'para' #TODO REMOVE
+    DB_obj = None
     
     def __init__(self,user):
         self.user = user
-        #self.N = N
         info_t = self.getDB()[auxT]
         dataLineN = info_t.find_one(desc = CachSize)
         if dataLineN != None:
@@ -53,20 +64,29 @@ class UserTypoDB:
         if dataLine_IsON != None:
             self.isON = bool(dataLine_IsON['data'])
         
-    def getDB(self): # should we hold the DB connection objectpl as a member?
-        return dataset.connect("sqlite:////home/{}/{}.db"\
+    def getDB(self):
+        """
+        Returns the db
+        If the db hasn't been connected yet - it connects to it
+        """
+        if self.DB_obj == None:
+            self.DB_obj = dataset.connect("sqlite:////home/{}/{}.db"\
                                .format(self.user,DB_NAME))
+        return self.DB_obj
 
     def init_tables(self,pwd,N):
+        """
+        Initiate the tables of the db, most importantly - the aux-info
+        @N (int): the max size of HashCache, based on max computation time
+        @pwd (string): the user's main/original password
+        """
         db = self.getDB()
-        db[logT]
-        #db[auxT].delete() #
-        #self.init_aux_data(N)
-        
-        #db[waitlistT].delete() #
-        #self._insert_first_password_and_global_salt(pwd)
-        
-        #db[hashCachT].delete() #
+        # db[logT].delete()       # we can probably remove it
+        # db[waitlistT].delete()  # we can probably remove it
+        # db[hashCachT].delete()  # we can probably remove it
+        db[auxT].delete()         # make sure there's no old unrelevant data
+        self.init_aux_data(N)
+        self._insert_first_password_and_global_salt(pwd)
 
     def init_aux_data(self,N,typoTolerOn = True,maxEditDist=1):
         db = self.getDB()
@@ -84,12 +104,15 @@ class UserTypoDB:
         
     def is_in_cach(self,typo,increaseCount=True,updateLog = True):
         '''
-        returns the typo's pk and ID if it's in HashCach
-        if not - returns an empty strings "",""
+        Returns the typo's pk and ID if it's in HashCach
+        If not - returns an empty strings "",""
         By default:
-            - increase the typo count as well
+            - increase the typo count
             - write the relevant log    
-        ''' # in python2.7 hex is a string
+        @typo (string) : the given password typo
+        @increaseCount (bool) : whether to update the typo's count if found
+        @updateLog (bool) : whether to insert an update to the log
+        ''' 
         ts = self.get_time_str()
         db = self.getDB()
         cachT = db[hashCachT]
@@ -128,7 +151,7 @@ class UserTypoDB:
         
     def get_approved_pk_dict(self):
         '''
-        returns a dict of pw'->pk
+        Returns a dict of pw'->pk
         for all approved typos and the original pwd
         '''
         db = self.getDB()
@@ -139,16 +162,14 @@ class UserTypoDB:
         for cachLine in cachT:
             typo_id = cachLine['t_id']
             #typo_pk = binascii.a2b_base64(cachLine['pk'])
-            typo_pk = cachLine['pk'] #
+            typo_pk = cachLine['pk']
+            # remember - pk is a string so can be stored as is in the table
             dic[typo_id] = typo_pk
 
-        #print "*"*12," FINISHED TYPOS ","*"*12 # REMOVE
+        
         # original pwd's pk
         info_t = db[auxT]
-        #print "%" * 24                         # REMOVE
-        #print info_t.columns                   # REMOVE
         pwd_info = info_t.find(desc=ORG_PWD)
-        #print "^" * 24                         # REMOVE
         count = 0
         for line in pwd_info:
             # pwd_pk = binascii.a2b_base64(line['pk'])
@@ -162,9 +183,25 @@ class UserTypoDB:
         return dic
 
     def get_time_str(self):
+        """
+        Returns the timestamp in a string, in a consistent format
+        which works in linux and can be stored in the DB
+        (unlike datetime.datetime, for example)
+        """
         return str(time.time())
 
     def add_typo_to_waitlist(self,typo):
+        """
+        Adds the typo to the waitlist.
+        saves the timestamp as well (for logging reasons)
+        **** for now: (might be change from computation time reasons) ****
+        computes an hash for the typo (+sa)
+        encryptes everything in a json format
+        enc(json(dict(...)))
+        dictionary keys: typo_hs,typo_pk,typo_pk_salt,timestamp,typo
+
+        @typo (string) : the user's passwrod typo
+        """
         # should ts be encrypted as well?
         sa = os.urandom(16)
         typo_hs, typo_pk = derive_public_key(typo,sa)
@@ -176,10 +213,8 @@ class UserTypoDB:
         plainInfo = json.dumps({"typo_hs":hs_b64,"typo_pk":typo_pk, #
                                 "typo_pk_salt":sa_b64,
                                 "timestamp":ts,"typo":typo})
-        #print "sign 1" # TODO REMOVE
         info_ctx = binascii.b2a_base64(encrypt(self.get_approved_pk_dict(),
                                                plainInfo))
-        #print "sign 2" # TODO REMOVE
         db = self.getDB()
         w_list_T = db[waitlistT]
 
@@ -187,7 +222,9 @@ class UserTypoDB:
 
     def decrypt_waitlist(self, t_id,t_sk):
         '''
-        returns a dictionary of the typos in waitlist
+        Returns a dictionary of the typos in waitlist, unsorted,
+        Key = typo (string)
+        Value = (typo,t_count,ts_list,typo_hs,t_pk,t_pk_salt)
         '''
         new_typo_dic = {}
         sk_dic = {t_id:t_sk}
@@ -213,17 +250,20 @@ class UserTypoDB:
 
     def get_top_N_typos_within_editdistance(self,typoDic,pwd,t_id,t_sk,
                                             updateLog = True):
-        '''
-        Will also update log TODO
-        '''
+        """
+        Gets a dictionary (from waitlist) of all new typos
+        calculates their editDistance (in the future isTop5 TODO )
+        and returns the top N among them, within the edit distance
 
-        ' col: H_typo, salt, count, pk, t_id ,edit_dist' #isInTop5
+        by defaults - update the log retroactively on each entered typo
 
+        @typoDic (dict) - a dictinary of all typos. see "decrypt_waitlist"
+                            for foramt
+        @pwd (string) - the original password
+        @t_id, t_sk - an approved typo id and it's sk
+        @updateLog (bool) : whether to update the log about each typo
+        """
         glob_salt_ctx = self.get_glob_hmac_salt_ctx()
-        print "in get top N" # TODO REMOVE
-        print "salt ctx:"
-        print glob_salt_ctx
-        print "#"*24
         typo_list = []
 
         for typo in typoDic.keys():
@@ -231,9 +271,8 @@ class UserTypoDB:
             t_hs_bs64 = binascii.b2a_base64(typo_hs)
             #t_pk_bs64 = binascii.b2a_base64(typo_pk) # TODO
             t_sa_bs64 = binascii.b2a_base64(typo_pk_salt)
-            editDist = editdistance.eval(pwd,typo) # WILL CHANGE
+            editDist = editdistance.eval(pwd,typo) # WILL CHANGE to pressDist TODO
             typo_id = compute_id(typo.encode('utf-8'),{t_id:t_sk},glob_salt_ctx) #TODO
-            # typo_id = 'fake_id_fix_line_above:' + typo
             # calc isTop5Fixer # TODO
             # will add it to the information inserted in the list append
 
@@ -243,16 +282,12 @@ class UserTypoDB:
                     # if typo got into waitlist - it's not in cach
                     # and not allowed login
                     self.update_log(typo_id,ts,editDist,'False','False')
-            
             typo_dic_obj = {'H_typo':t_hs_bs64,'salt':t_sa_bs64,'count':count,
                        'pk':typo_pk,'t_id':typo_id,'edit_dist':editDist}
             if editDist <= MAX_EDIT_DIST_INCLUDED:
                 typo_list.append(typo_dic_obj)
 
-        #                                    x:x[1] = count field
         return sorted(typo_list,key = lambda x:x['count'],reverse=True)[:self.N]
-
-
 
     def clear_waitlist(self):
         db = self.getDB()
@@ -268,19 +303,20 @@ class UserTypoDB:
 
     #tmp
     def printCachHash(self):
-
+        print " ^^^^^^^^^ PRINTING HASH CACHE ^^^^^^^^^^ "
         db = self.getDB()
         cachT = db[hashCachT]
         print cachT.columns
         for line in cachT:
             print line
 
+        print " ^^^^^^^^^ END OF PRINTING HASH CACHE ^^^^^^^^^^ "
+
     def get_table_size(self,tableName):
         return self.getDB()[tableName].count()
 
     def get_hash_cach_size(self):
         return self.get_table_size(hashCachT)
-
 
     # might not be used...
     def pwd_and_glob_salt_have_been_initialized(self):
@@ -309,12 +345,15 @@ class UserTypoDB:
         pwd_ctx = binascii.a2b_base64(pwdLine['ctx'])
         return decrypt({t_id:t_sk},pwd_ctx)
 
-    def get_glob_hmac_salt_ctx(self):#,t_id,t_sk): #compute_id get a saltctx
+    def get_glob_hmac_salt_ctx(self):
+        """
+        Returns the global salt ctx used for computing ID for each typo
+        """
         saltLine = self.getDB()[auxT].find_one(desc = GLOB_SALT)
         salt_ctx = binascii.a2b_base64(saltLine['ctx'])
-        #return decrypt({t_id:t_sk},pwd_ctx) #compute_id get a saltctx
         return salt_ctx
 
+    # WILL CHANGE
     def cach_insert_policy(self,old_t_c,new_t_c):
         # TODO
         chance = float(new_t_c)/(int(old_t_c)+1)
@@ -331,6 +370,7 @@ class UserTypoDB:
 
 
     def add_top_N_typo_list_to_hash_cach(self,typo_list):
+        # TODO - make sure that i updates the way it should
         '''
         updates the hashCachTable according to the update scheme
         @typo_list (list of dict): a list of dictionary, each dictionary is a
@@ -345,19 +385,15 @@ class UserTypoDB:
         addNum = min(emptyPlaces,new_typos)
         print "N:{}, ADD_NUM: {} ,cachSize: {}, new typos: {}, empty: {}".format(
             self.N,addNum,hash_cach_size,new_typos,emptyPlaces) # TODO REMOVE
-        print "first:"
-        print typo_list[0] # TODO REMOVE
-
-        print "TRY " * 24
         
         #if addNum > 0:
         nextLines = self.get_lowest_M_line_in_hash_cach(new_typos-addNum)
         db = self.getDB()
         hashT = db[hashCachT]
         if emptyPlaces > 0:
-            ##hashT.insert_many(typo_list[:addNum])
-            for typo_d in typo_list[:addNum]:
-                hashT.insert(typo_d)
+            hashT.insert_many(typo_list[:addNum]) # TODO
+            # for typo_d in typo_list[:addNum]:
+            #    hashT.insert(typo_d)
 
         # need to decide what to do with the rest
         # checking whether the rest are added
@@ -365,8 +401,8 @@ class UserTypoDB:
             oldLine = next(nextLines)
             if self.cach_insert_policy(oldLine['count'],typoDict['count']):
                 typoDict['count'] = oldLine['count'] + 1
-                hashT.delete(t_id = oldLine['t_id']) # maybe use update instead
-                hashT.insert(typoDict)     # later on maybe use add_many
+                hashT.delete(t_id = oldLine['t_id']) # maybe use update instead TODO
+                hashT.insert(typoDict)     # later on maybe use add_many to fasten TODO
 
     def clear_waitlist(self):
         self.getDB()[waitlistT].delete()
@@ -400,24 +436,12 @@ class UserTypoDB:
         # leakes somewhat the size of the pwd
         glob_salt_cipher = binascii.b2a_base64(encrypt(pk_dict,glob_salt_hmac))
 
-
+        # TODO - change it to be 'data' instead of 'ctx'
         info_t.insert(dict(ctx=pw_cipher,pk=pw_pk,pk_salt = pwd_salt_base64,
                            desc=ORG_PWD))
         info_t.insert(dict(ctx=glob_salt_cipher,desc=GLOB_SALT))
 
         return
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -435,7 +459,7 @@ def main():
     DB = myDB.getDB()
     myDB.clear_waitlist()
     pwd = 'dlue'
-    myDB.init_tables(pwd,3)
+    #myDB.init_tables(pwd,3)
 
 
     pwd_pk_salt = myDB.get_pwd_pk_salt()
@@ -451,7 +475,14 @@ def main():
     print "decrypted glob salt: {}".format(check_glob_salt)
     '''
 
-    '''
+    myDB.add_typo_to_waitlist("dlUE")
+    myDB.add_typo_to_waitlist("dlUE")
+    myDB.add_typo_to_waitlist("dlUE")
+    myDB.add_typo_to_waitlist("dlUE")
+    myDB.add_typo_to_waitlist("dlUE")
+    myDB.add_typo_to_waitlist("dlUE")
+    myDB.add_typo_to_waitlist("dlUE")
+    
     myDB.add_typo_to_waitlist("blae")
     myDB.add_typo_to_waitlist("blue")
     myDB.add_typo_to_waitlist("clue")
@@ -461,7 +492,7 @@ def main():
     myDB.add_typo_to_waitlist("clue")
     myDB.add_typo_to_waitlist("clue")
     myDB.add_typo_to_waitlist("shoe")
-    '''
+    
     myDB.add_typo_to_waitlist("dlum")
     myDB.add_typo_to_waitlist("dluep")
     
