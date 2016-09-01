@@ -109,6 +109,11 @@ class UserTypoDB:
         info_t.insert(dict(desc=EditCutoff,data=str(maxEditDist)))
         
         
+    def is_typotoler_on(self):
+        dataLine = self.getDB()[auxt].find_one(desc=AllowedTypoLogin)
+        if dataLine == None: # for example, after install if user enters a typo
+            return False
+        return bool(dataLine['data'])
         
         
     def fetch_from_cache(self,typo,increaseCount=True,updateLog = True):
@@ -432,6 +437,14 @@ class UserTypoDB:
     def clear_waitlist(self):
         self.getDB()[waitlistT].delete()
 
+    def original_password_entered(self,pwd,updateLog = True):
+        if updateLog:
+            typoDB.log_orig_pwd_use()
+        pwd_salt = typoDB.get_pwd_pk_salt()
+        _,pwd_sk = derive_secret_key(pwd,pwd_pk_salt)
+        self.update_hash_cach_by_waitlist(ORG_PWD,pwd_sk,updateLog)
+        
+        
     def update_hash_cach_by_waitlist(self,t_id,t_sk,updateLog = True):
         """
         Updates the hash cache according to waitlist.
