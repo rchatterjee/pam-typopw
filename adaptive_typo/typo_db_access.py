@@ -439,8 +439,8 @@ class UserTypoDB:
 
     def original_password_entered(self,pwd,updateLog = True):
         if updateLog:
-            typoDB.log_orig_pwd_use()
-        pwd_salt = typoDB.get_pwd_pk_salt()
+            self.log_orig_pwd_use()
+        pwd_salt = self.get_pwd_pk_salt()
         _,pwd_sk = derive_secret_key(pwd,pwd_pk_salt)
         self.update_hash_cach_by_waitlist(ORG_PWD,pwd_sk,updateLog)
         
