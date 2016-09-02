@@ -3,7 +3,7 @@ from distutils.core import setup
 # With the help from http://peterdowns.com/posts/first-time-with-pypi.html
 
 setup(
-    name = 'adaptive_typo' # 'loginwitherror',
+    name = 'adaptive_typo', # 'loginwitherror',
     packages = ['adaptive_typo'], # this must be the same as the name above
     version = '1.0',
     description = 'Adaptive Typo Tolerance for Ubuntu login screen',
@@ -18,8 +18,8 @@ setup(
     classifiers = [],
     scripts = ['pam_typotolerant.py', 'chkpw'],
     install_requires=[
-        joblib,
-        pycryptodome
-        python-Levenshtein
+        'joblib',
+        'pycryptodome',
+        'python-Levenshtein'
     ]
 )

@@ -48,6 +48,7 @@ chkpw
 # Jupyter sh**
 .ipynb_checkpoints/
 dist/
+build/
 
 # pytest cracp
 .cache
