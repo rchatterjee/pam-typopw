@@ -110,7 +110,7 @@ class UserTypoDB:
         
         
     def is_typotoler_on(self):
-        dataLine = self.getDB()[auxt].find_one(desc=AllowedTypoLogin)
+        dataLine = self.getDB()[auxT].find_one(desc=AllowedTypoLogin)
         if dataLine == None: # for example, after install if user enters a typo
             return False
         return bool(dataLine['data'])
@@ -118,8 +118,8 @@ class UserTypoDB:
         
     def fetch_from_cache(self,typo,increaseCount=True,updateLog = True):
         '''
-        Returns the typo's pk and ID if it's in HashCach
-        If not - returns an empty strings "",""
+        Returns typo's pk, typo's ID, True if it's in HashCach
+        If not - return "","",False
         By default:
             - increase the typo count
             - write the relevant log    
@@ -145,9 +145,10 @@ class UserTypoDB:
                     cachT.update(dict(t_id = typo_id,count = typo_count),['t_id'])
                 if updateLog:
                     self.update_log(ts,typo_id,editDist,'True',str(self.isON))
-                return sk,typo_id
+                print "in hash cache!" # TODO REMOVE
+                return sk,typo_id,True
 
-        return '',''
+        return '','',False
 
     def update_log(self,ts,typoID_or_msg,editDist,isInHash,allowedLogin):
         log_t = self.getDB()[logT]
@@ -157,7 +158,7 @@ class UserTypoDB:
                     
     def log_orig_pwd_use(self):
         ts = self.get_time_str()
-        self.update_log(ORG_PWD,ts,'0','False','True')
+        self.update_log(ts,ORG_PWD,'0','False','True')
                                   
     def log_end_of_session(self):
         ts = self.get_time_str()
@@ -295,7 +296,7 @@ class UserTypoDB:
                 for ts in ts_list:
                     # if typo got into waitlist - it's not in cach
                     # and not allowed login
-                    self.update_log(typo_id,ts,editDist,'False','False')
+                    self.update_log(ts,typo_id,editDist,'False','False')
             typo_dic_obj = {'H_typo':t_hs_bs64,'salt':t_sa_bs64,'count':count,
                        'pk':typo_pk,'t_id':typo_id,'edit_dist':editDist}
             if editDist <= MAX_EDIT_DIST_INCLUDED:
