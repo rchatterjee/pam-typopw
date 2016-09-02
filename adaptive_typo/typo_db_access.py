@@ -17,7 +17,6 @@ import itertools
 DB_NAME = "typoToler"
 ORG_PWD = 'org_pwd'       # original password's t_id
 GLOB_SALT = 'glob_salt'   # global salt's t_id
-MAX_EDIT_DIST_INCLUDED = 1 # TODO - connect/replace it to be updated by DB
 END_OF_SESS = 'END OF SESSION' # for log's use
 
 # Tables' names:
@@ -39,7 +38,7 @@ InstallDate = "InstallDate"
 # PwdTypoPolicy = "PwdTypoPolicy"       # not yet implemented
 CachSize = "CacheSize"
 # PwdAcceptPolicy = "PwdAcceptPolicy"   # not yet implemented
-EditCutoff = "EditCutoff"
+EditCutoff = "EditCutoff"        # The edit from which (included) it's too far
 
 
 
@@ -54,6 +53,7 @@ EditCutoff = "EditCutoff"
 class UserTypoDB:
     DB_obj = None
     
+    
     def __init__(self,user):
         self.user = user
         info_t = self.getDB()[auxT]
@@ -61,9 +61,10 @@ class UserTypoDB:
         if dataLineN != None:
             print "N already in DB" # TODO REMOVE
             self.N = int(dataLineN['data'])
-        dataLine_IsON = info_t.find_one(desc = 'AllowedTypoLogin')
+        dataLine_IsON = info_t.find_one(desc = AllowedTypoLogin)
         if dataLine_IsON != None:
             self.isON = bool(dataLine_IsON['data'])
+        
         
     def getDB(self):
         """
@@ -107,7 +108,7 @@ class UserTypoDB:
         
         self.init_tables(pwd,N)
         
-    def init_tables(self,pwd,N):
+    def init_tables(self,pwd,N,maxEditDist = 1,typoTolerOn = True):
         """
         Initiate the tables of the db, most importantly - the aux-info
         @N (int): the max size of HashCache, based on max computation time
@@ -118,7 +119,7 @@ class UserTypoDB:
         # db[waitlistT].delete()  # we can probably remove it
         # db[hashCachT].delete()  # we can probably remove it
         db[auxT].delete()         # make sure there's no old unrelevant data
-        self.init_aux_data(N)
+        self.init_aux_data(N,typoTolerOn,maxEditDist)
         self._insert_first_password_and_global_salt(pwd)
 
     def init_aux_data(self,N,typoTolerOn = True,maxEditDist=1):
@@ -133,13 +134,28 @@ class UserTypoDB:
         info_t.insert(dict(desc=EditCutoff,data=str(maxEditDist)))
         
         
+        
     def is_typotoler_on(self):
         dataLine = self.getDB()[auxT].find_one(desc=AllowedTypoLogin)
         if dataLine == None: # for example, after install if user enters a typo
             return False
         return bool(dataLine['data'])
         
-        
+    def is_in_top_5_fixes(self,orig_pwd,typo):
+        if typo.capitalize() == orig_pwd:
+            return True
+        if typo.swapcase() == orig_pwd:
+            return True
+        if typo.lower() == orig_pwd:
+            return True
+        if typo.upper() == orig_pwd:
+            return True
+        if typo[1:] == orig_pwd:
+            return True
+        if typo[:-1] == orig_pwd:
+            return True
+        return False
+    
     def fetch_from_cache(self,typo,increaseCount=True,updateLog = True):
         '''
         Returns typo's pk, typo's ID, True if it's in HashCach
@@ -161,6 +177,7 @@ class UserTypoDB:
             typo_id = CachLine['t_id']
             editDist = CachLine['edit_dist']
             # TODO isInTop5
+            isInTop5 = CachLine['top_5_fixes']
             typo_count = CachLine['count']
             if hsInTable == hs:
                 # update table with new count
@@ -168,21 +185,21 @@ class UserTypoDB:
                     typo_count += 1
                     cachT.update(dict(t_id = typo_id,count = typo_count),['t_id'])
                 if updateLog:
-                    self.update_log(ts,typo_id,editDist,'True',str(self.isON))
+                    self.update_log(ts,typo_id,editDist,isInTop5,'True',str(self.isON))
                 print "in hash cache!" # TODO REMOVE
                 return sk,typo_id,True
 
         return '','',False
 
-    def update_log(self,ts,typoID_or_msg,editDist,isInHash,allowedLogin):
+    def update_log(self,ts,typoID_or_msg,editDist,isInTop5,isInHash,allowedLogin):
         log_t = self.getDB()[logT]
-        log_t.insert(dict(t_id=typoID_or_msg,timestamp=ts,edit_dist=editDist,
-                                      is_in_hash=isInHash,
+        log_t.insert(dict(t_id=typoID_or_msg, timestamp=ts, edit_dist=editDist,
+                                      top_5_fixes=isInTop5, is_in_hash=isInHash,
                                       allowed_login=allowedLogin))
                     
     def log_orig_pwd_use(self):
         ts = self.get_time_str()
-        self.update_log(ts,ORG_PWD,'0','False','True')
+        self.update_log(ts,ORG_PWD,'0','False','False','True')
                                   
     def log_end_of_session(self):
         ts = self.get_time_str()
@@ -302,6 +319,10 @@ class UserTypoDB:
         @t_id, t_sk - an approved typo id and it's sk
         @updateLog (bool) : whether to update the log about each typo
         """
+        dataLine_editDist = self.getDB()[auxT].find_one(desc = EditCutoff)
+        if dataLine_editDist == None:
+            raise Exception("Edit Dist hadn't been set")
+        maxEditDist = int(dataLine_editDist['data']) - 1
         glob_salt_ctx = self.get_glob_hmac_salt_ctx()
         typo_list = []
 
@@ -312,7 +333,7 @@ class UserTypoDB:
             t_sa_bs64 = binascii.b2a_base64(typo_pk_salt)
             editDist = editdistance.eval(pwd,typo) # WILL CHANGE to pressDist TODO
             typo_id = compute_id(typo.encode('utf-8'),{t_id:t_sk},glob_salt_ctx) #TODO
-            # calc isTop5Fixer # TODO
+            isTop5Fixes = str(self.is_in_top_5_fixes(pwd,typo))
             # will add it to the information inserted in the list append
 
             # writing into log for each ts
@@ -320,10 +341,12 @@ class UserTypoDB:
                 for ts in ts_list:
                     # if typo got into waitlist - it's not in cach
                     # and not allowed login
-                    self.update_log(ts,typo_id,editDist,'False','False')
-            typo_dic_obj = {'H_typo':t_hs_bs64,'salt':t_sa_bs64,'count':count,
-                       'pk':typo_pk,'t_id':typo_id,'edit_dist':editDist}
-            if editDist <= MAX_EDIT_DIST_INCLUDED:
+                    self.update_log(ts,typo_id,editDist,isTop5Fixes,'False','False')
+            if editDist <= maxEditDist:
+                typo_dic_obj = {'H_typo':t_hs_bs64,'salt':t_sa_bs64,
+                                'count':count,'pk':typo_pk,
+                                't_id':typo_id,'edit_dist':editDist,
+                                'top_5_fixes':isTop5Fixes}
                 typo_list.append(typo_dic_obj)
 
         return sorted(typo_list,key = lambda x:x['count'],reverse=True)[:self.N]
@@ -434,7 +457,7 @@ class UserTypoDB:
         for typoDict in typo_list[addNum:]:
             oldLine = next(nextLines)
             if self.cach_insert_policy(oldLine['count'],typoDict['count']):
-                typoDict['count'] = oldLine['count'] + 1
+                typoDict['count'] = oldLine['count'] + 1 #
                 hashT.delete(t_id = oldLine['t_id']) # maybe use update instead TODO
                 hashT.insert(typoDict)     # later on maybe use add_many to fasten TODO
 
