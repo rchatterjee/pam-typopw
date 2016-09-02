@@ -2,8 +2,9 @@ import crypt
 import pwd
 import os, sys
 import datetime
-import typo_db_access
+from adaptive_typo import typo_db_access
 module_path = os.path.dirname(os.path.abspath(__file__))
+# CHKPW_EXE = '/sbin/unix_chkpwd'
 CHKPW_EXE = os.path.join(module_path, 'chkpw')
 NN = 5 # hash cache's size
 
@@ -24,10 +25,10 @@ def get_user(pamh, flags, argv):
         pwdir = pwd.getpwnam(user)
     except KeyError, e:
         print "Cound not fid user:", e
-        return pawm.PAM_USER_UNKNOWN
+        return pamh.PAM_USER_UNKNOWN
     return user, pwdir
 
-def get_password(tmpPrompt,pamh, flags, argv):
+def get_password(tmpPrompt, pamh, flags, argv):
     password_prompt = tmpPrompt+";DB pASSWORD:"
     # getting password
     if pamh.authtok:

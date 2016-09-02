@@ -10,7 +10,7 @@ from pw_pkcrypto import encrypt,decrypt,derive_public_key,\
 # TOTO - the same with "match_hashes - ot make it faster
 
 import binascii
-import editdistance # WILL CHANGE to kb distance
+from Levenshtein import distance # WILL CHANGE to kb distance
 import random # maybe something else?
 import itertools
 
@@ -53,7 +53,9 @@ EditCutoff = "EditCutoff"        # The edit from which (included) it's too far
 class UserTypoDB:
     DB_obj = None
     
-    
+    def __str__(self):
+        return "UserTypoDB ({})".format(self.user)
+
     def __init__(self,user):
         self.user = user
         info_t = self.getDB()[auxT]
@@ -331,7 +333,7 @@ class UserTypoDB:
             t_hs_bs64 = binascii.b2a_base64(typo_hs)
             #t_pk_bs64 = binascii.b2a_base64(typo_pk) # TODO
             t_sa_bs64 = binascii.b2a_base64(typo_pk_salt)
-            editDist = editdistance.eval(pwd,typo) # WILL CHANGE to pressDist TODO
+            editDist = distance(unicode(pwd), unicode(typo)) # WILL CHANGE to pressDist TODO
             typo_id = compute_id(typo.encode('utf-8'),{t_id:t_sk},glob_salt_ctx) #TODO
             isTop5Fixes = str(self.is_in_top_5_fixes(pwd,typo))
             # will add it to the information inserted in the list append
