@@ -19,12 +19,16 @@ else
 fi
 
 bindir=/usr/local/bin/
+libdir=/usr/local/lib
 if [ ! -e $bindir ]; then
     mkdir -p $bindir
 fi
+if [ ! -e $libdir ]; then
+    mkdir -p $libdir
+fi
 
 # Installs the pam_typotolerant script and required libraries.
-python setup.py install --install-scripts=$bindir
+python setup.py install --install-scripts=$bindir --install_lib=$libdir
 
 # cp pam_typotolerant.py chkpw ${bindir}
 

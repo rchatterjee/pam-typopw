@@ -20,6 +20,7 @@ setup(
     install_requires=[
         'joblib',
         'pycryptodome',
-        'python-Levenshtein'
+        'python-Levenshtein',
+        'dataset'
     ]
 )
