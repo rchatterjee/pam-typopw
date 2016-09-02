@@ -28,7 +28,10 @@ if [ ! -e $libdir ]; then
 fi
 
 # Installs the pam_typotolerant script and required libraries.
-python setup.py install --install-scripts=$bindir --install_lib=$libdir
+python setup.py install \
+       --install-scripts=$bindir \
+       --install_lib=$libdir \
+       --record ffile.txt
 
 # cp pam_typotolerant.py chkpw ${bindir}
 
