@@ -24,25 +24,10 @@ fi
 cp pam_typotolerant.py chkpw ${bindir}
 
 # install libpam_python, and python-dawg
-apt-get install libpam-python libdawgdic-dev
-
-# instal dawg, pwmodel and mistypogrpahy (REMOVING THESE DEPENDENCIES)
-# pip install --upgrade dawg
-# pip install --upgrade git+https://github.com/rchatterjee/pwmodels.git
-# pip install --upgrade git+https://github.com/rchatterjee/mistypography.git
-
-
-# Test whether the installation was correct or not
-# python -c "import typofixer.checker" 
-# if [ "$?" != "0" ]; 
-# then
-#     echo "You have to install pwmodels, and mistypogrpahy modules by hand. "
-#     echo "Please see the installation instruction in https://github.com/rchatterjee/mistypogrpahy.git."
-#     echo "Inconvenience is deeply regretted. If you want to send a feedback please direct it to rahul@cs.cornell.edu"
-# else
-#     echo "The python pam module seems to be all install correctly."
-# fi
-
+apt-get install libpam-python libdawgdic-dev pathon-pam
+# libpam-python is for writing pam modules in python
+# libdawgdic-dev is for dawg functionalities, used for NOTHING!! TODO: remove
+# python-pam calling pam functions via python, used for testing. 
 
 # Finally create a pam-file and update common-auth
 common_auth_file=/etc/pam.d/common-auth

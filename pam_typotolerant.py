@@ -137,4 +137,4 @@ def pam_sm_chauthtok(pamh, flags, argv):
 
 
 if __name__ == "__main__":
-    print check_pw('rahul', 'KiJataSob')
+    print check_pw('tmp', 'KiJataSob')
