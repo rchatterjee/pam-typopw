@@ -56,15 +56,6 @@ No, your PAM should move onto next correct modules in common-auth, and you will 
 Enjoy!
 
 
-#### Issues
-* To implement `mistypography` you have to install pwmodels, and make
-  a symlink of `pwmodels/pwmodel/helper.py` in the `typofixer/` folder
+### TODO:
+1. Fixing the login screen issue.
 
-### Architecural Decisions
-1.  **How to transperantly move from existing system to the new
-    authentication system?** At the time of installation make a copy of
-    pasword database and populate it's own password entries.
-2.  How to run a daemon for a small period of time? This is a program
-    that stays alive for 30 sec from the last communication, or a
-    successful password submission (whichever is earlier). The process
-    communicates with the caller process via a unix socket. 
