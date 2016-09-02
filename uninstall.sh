@@ -21,3 +21,4 @@ bindir=/usr/local/bin/
 rm -rf ${bindir}/{pam_typotolerant.py,chkpw}
 rm -rf /etc/pam.d/typo_auth
 sudo apt-get remove libpam-python libdawgdic-dev
+rm -i ffile.txt

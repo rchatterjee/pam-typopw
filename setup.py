@@ -1,4 +1,4 @@
-from distutils.core import setup
+from setuptools import setup
 
 # With the help from http://peterdowns.com/posts/first-time-with-pypi.html
 
@@ -20,6 +20,7 @@ setup(
     install_requires=[
         'joblib',
         'pycryptodome',
-        'python-Levenshtein'
+        'python-Levenshtein',
+        'dataset'
     ]
 )

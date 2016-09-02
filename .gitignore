@@ -47,8 +47,12 @@ chkpw
 
 # Jupyter sh**
 .ipynb_checkpoints/
+
+# Build dirs
 dist/
 build/
+adaptive_typo.egg-info/
+ffile.txt
 
 # pytest cracp
 .cache
