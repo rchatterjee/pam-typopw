@@ -3,6 +3,7 @@ import sys
 import time
 import json
 import os
+from pwd import getpwnam
 from pw_pkcrypto import encrypt,decrypt,derive_public_key,\
      derive_secret_key,update_ctx,compute_id
 # TODO - check whether I should switch somewhere to "hash_pw"
@@ -73,7 +74,13 @@ class UserTypoDB:
             self.DB_obj = dataset.connect("sqlite:////home/{}/{}.db"\
                                .format(self.user,DB_NAME))
         return self.DB_obj
-
+    
+    def get_DB_path(self):
+        return "/home/{}/{}.db".format(self.user,DB_NAME)
+    
+    def is_typotoler_init(self):
+        return self.is_aux_init()
+    
     def is_aux_init(self):
         infoT = self.getDB()[auxT]
         encPwd = infoT.find_one(desc=ORG_PWD)
@@ -82,6 +89,23 @@ class UserTypoDB:
             # if glob and pwd aren't in the same initialization state
             raise Exception("{} is corrupted!".format(auxT))
         return encPwd != None
+
+    def init_typotoler(self,pwd,N):
+        """
+        Initiate the typotolers.
+        Makes sure that the DB has the right permissions,
+        and Initiate the tables, as well as hashCache size, the global salt
+        and so on.
+        """
+        username = self.user
+        u_data = getpwnam(username)
+        u_id = u_data[2]
+        g_id = u_data[3]
+        db_path = self.get_DB_path()
+        os.chown(db_path,u_id,g_id)     # change owner to user
+        os.chmod(db_path,0600)          # rw only for owner
+        
+        self.init_tables(pwd,N)
         
     def init_tables(self,pwd,N):
         """
