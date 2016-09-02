@@ -442,7 +442,7 @@ class UserTypoDB:
         if updateLog:
             self.log_orig_pwd_use()
         pwd_salt = self.get_pwd_pk_salt()
-        _,pwd_sk = derive_secret_key(pwd,pwd_pk_salt)
+        _,pwd_sk = derive_secret_key(pwd,pwd_salt)
         self.update_hash_cach_by_waitlist(ORG_PWD,pwd_sk,updateLog)
         
         

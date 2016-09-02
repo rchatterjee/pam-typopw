@@ -95,6 +95,7 @@ def pam_sm_authenticate(pamh, flags, argv):
         print "sm_auth: it's the right password" #TODO REMOVE
         # log the entry of the original pwd
         if not typoDB.is_aux_init():
+            print "sm_auth: initiating aux" # TODO REMOVE
             typoDB.init_tables(password,NN)
         typoDB.original_password_entered(password) # also updates the log
         # TODO
