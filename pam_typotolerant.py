@@ -5,7 +5,7 @@ import datetime
 from adaptive_typo import typo_db_access
 module_path = os.path.dirname(os.path.abspath(__file__))
 # CHKPW_EXE = '/sbin/unix_chkpwd'
-CHKPW_EXE = os.path.join(module_path, 'chkpw')
+CHKPW_EXE = '/usr/loca/bin/chkpw' # hardcoded path
 NN = 5 # hash cache's size
 
 # sys.path.insert(0, module_path)))

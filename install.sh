@@ -4,19 +4,13 @@ if [ "$(id -u)" != "0" ]; then
     echo "You need root priviledge to run this script."
     exit;
 fi
+# install libpam_python, and python-dawg
+apt-get install libpam-python python-pam python-setuptools python-dev
+
 
 # Compile chkpw and set chkpw permissions
 gcc chkpw.c -o chkpw -lcrypt
 unix_chkpwd=$(which unix_chkpwd)
-
-if [[ ! -z "$unix_chkpwd" ]];
-then
-    sudo chown --reference=${unix_chkpwd} chkpw
-    sudo chmod --reference=${unix_chkpwd} chkpw
-else
-    chown root:shadow ./chkpw
-    chmod g+s ./chkpw
-fi
 
 bindir=/usr/local/bin/
 libdir=/usr/local/lib
@@ -30,17 +24,24 @@ fi
 # Installs the pam_typotolerant script and required libraries.
 python setup.py install \
        --install-scripts=$bindir \
-       --install_lib=$libdir \
        --record ffile.txt
+       # --install-lib=$libdir \
 
 # cp pam_typotolerant.py chkpw ${bindir}
-
-# install libpam_python, and python-dawg
-apt-get install libpam-python python-pam
 
 # libpam-python is for writing pam modules in python
 # libdawgdic-dev is for dawg functionalities, used for NOTHING!! TODO: remove
 # python-pam calling pam functions via python, used for testing. 
+
+chpw=$bindir/chkpw
+if [[ ! -z "$unix_chkpwd" ]];
+then
+    sudo chown --reference=${unix_chkpwd} $chkpw
+    sudo chmod --reference=${unix_chkpwd} $chkpw
+else
+    chown root:shadow $chkpw
+    chmod g+s $chkpw
+fi
 
 # Finally create a pam-file and update common-auth
 common_auth_file=/etc/pam.d/common-auth
