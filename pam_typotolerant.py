@@ -3,9 +3,10 @@ import pwd
 import os, sys
 import datetime
 from adaptive_typo import typo_db_access
-module_path = os.path.dirname(os.path.abspath(__file__))
+
+# module_path = os.path.dirname(os.path.abspath(__file__))
 # CHKPW_EXE = '/sbin/unix_chkpwd'
-CHKPW_EXE = '/usr/loca/bin/chkpw' # hardcoded path
+CHKPW_EXE = '/usr/local/bin/chkpw' # hardcoded path
 NN = 5 # hash cache's size
 
 # sys.path.insert(0, module_path)))
@@ -61,12 +62,14 @@ def fix_typos(pw):
     return [pw]
 
 def check_pw(user, pws):
-    from subprocess import Popen, PIPE, STDOUT
+    from subprocess import Popen, PIPE, STDOUT, call
     p = Popen([CHKPW_EXE, user], stdin=PIPE, stdout=PIPE)
     p.stdin.write('\n'.join(fix_typos(pws)) + '\n')
-    #p.stdin.write("{}".format(pws)) # CHANGED
     p.stdin.close()
-    ret = p.wait()
+    try:
+        ret = p.wait()
+    except OSError:
+        return -1
     # with open('/etc/typos-pm_sm_auth.txt', 'a') as f:
     #     print "Writing to the file: before chek_pw"
     #     f.write('user: {}, pw: {}, ts: {}\n'.format(user, pws,

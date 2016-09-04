@@ -59,3 +59,7 @@ Enjoy!
 ### TODO:
 1. Fixing the login screen issue.
 
+2. Found the bug for "No child
+process". /usr/lib/python2.7/ctypes/util.py:240 has os.popen, which is
+buggy. replacing that with subprocess.Popen(...).wait() works
+fine. Need to file a bug with ctypes or find some solution.
