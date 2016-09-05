@@ -45,7 +45,7 @@ echo "auth   sufficient   pam_python.so ${bindir}/pam_typotolerant.py" > /etc/pa
 if [ -e ${common_auth_file}.orig ]
 then
     echo "Looks like you have an old installation of typo_auth. Removing it."
-    mv ${common_auth_file}.org ${common_auth_file}
+    mv ${common_auth_file}.orig ${common_auth_file}
 fi
 mv $common_auth_file ${common_auth_file}.orig # save for uninstall script
 

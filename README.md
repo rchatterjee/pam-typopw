@@ -45,13 +45,24 @@ Run `install.sh` to install. This will require super user permission.
 ```bash
 $ sudo bash install.sh
 ```
-This should install all the depenedencies and setup the PAM config files. Use `uninstall.sh` to uninstall the program. It might uninstall libraries that was previously installed but used by this. Please refer to the script (pretty small one) before running.
 
-Also, this doesn't change your main login procedures. To enable typo-tolernace in all logins, add the following line to the top of your `/etc/pam.d/common-auth` file: `auth include test  # for allowing typo-tolerance`.
-If you are happy with typo-tolernace, you can remove `/etc/pam.d/test`, and replace the above line with the the content of `/etc/pam.d/test`.  
+This should install all the depenedencies and setup the PAM config
+files. Use `uninstall.sh` to uninstall the program (require root
+priviledges).
 
-**What if the typo-tolerance PAM module is buggy? Shall I be locked out?**   
+
+* **What if the typo-tolerance PAM module is buggy? Shall I be locked out?**   
 No, your PAM should move onto next correct modules in common-auth, and you will be asked to reenter your credentials.   
+
+* **In case if you are locked out**, go to recovery mode, open root shell, and replace the `/etc/pam.d/common-auth` with 
+`/etc/pam.d/common-auth.orig`. You might need to remount the file-system in write mode via `mount -o remount,rw /`.
+```bash
+root> mount -o remount,rw /
+root> cp /etc/pam.d/common-auth.orig /etc/pam.d/common-auth
+```
+Also, make sure there is no `@include typo-auth` line in `/etc/pam.d/common-auth`.
+
+
 
 Enjoy!
 
@@ -63,3 +74,5 @@ Enjoy!
 process". /usr/lib/python2.7/ctypes/util.py:240 has os.popen, which is
 buggy. replacing that with subprocess.Popen(...).wait() works
 fine. Need to file a bug with ctypes or find some solution.
+
+3. After first failure, pam moves to the next module, which is bad.

@@ -10,7 +10,8 @@ from pw_pkcrypto import encrypt,decrypt,derive_public_key,\
 # TOTO - the same with "match_hashes - ot make it faster
 
 import binascii
-from Levenshtein import distance # WILL CHANGE to kb distance
+# from Levenshtein import distance # WILL CHANGE to kb distance
+from word2keypress import distance
 import random # maybe something else?
 import itertools
 

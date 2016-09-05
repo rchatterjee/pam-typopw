@@ -20,7 +20,8 @@ setup(
     install_requires=[
         'joblib',
         'pycryptodome',
-        'python-Levenshtein',
+        # 'python-Levenshtein',
+        'word2keypress',
         'dataset'
     ]
 )
