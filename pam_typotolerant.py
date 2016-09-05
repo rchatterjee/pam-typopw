@@ -133,7 +133,7 @@ def pam_sm_authenticate(pamh, flags, argv):
 
         if iscorrect:
             return pamh.PAM_SUCCESS
-    return pamh.PAM_ERROR
+    return pamh.PAM_AUTH_ERR
 
 
 def pam_sm_setcred(pamh, flags, argv):
