@@ -6,7 +6,8 @@ import os
 from pwd import getpwnam
 from pw_pkcrypto import encrypt,decrypt,derive_public_key,\
      derive_secret_key,update_ctx,compute_id
-# TODO - check whether I should switch somewhere to "hash_pw"
+
+# TODO - check whether we should switch somewhere to "hash_pw"
 # TOTO - the same with "match_hashes - ot make it faster
 
 import binascii
@@ -325,7 +326,7 @@ class UserTypoDB:
         dataLine_editDist = self.getDB()[auxT].find_one(desc = EditCutoff)
         if dataLine_editDist == None:
             raise Exception("Edit Dist hadn't been set")
-        maxEditDist = int(dataLine_editDist['data']) - 1
+        maxEditDist = int(dataLine_editDist['data'])
         glob_salt_ctx = self.get_glob_hmac_salt_ctx()
         typo_list = []
 
@@ -351,6 +352,8 @@ class UserTypoDB:
                                 't_id':typo_id,'edit_dist':editDist,
                                 'top_5_fixes':isTop5Fixes}
                 typo_list.append(typo_dic_obj)
+            else:
+                print "{} not entered because editDist {}".format(typo_id,editDist)
 
         return sorted(typo_list,key = lambda x:x['count'],reverse=True)[:self.N]
 

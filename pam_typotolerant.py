@@ -93,8 +93,6 @@ def on_correct_password(typo_db, password):
 def on_wrong_password(typo_db, password):
     t_sk, t_id, is_in = typo_db.fetch_from_cache(password) # also updates the log
     if not is_in: # aka it's not in the cache, 
-        # maybe we should change for a more simple check, what if
-        # negative t_id is returned ?
         eprint("sm_auth: a new typo!") # TODO REMOVE
         typo_db.add_typo_to_waitlist(password)
         return False
