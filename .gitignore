@@ -53,6 +53,7 @@ dist/
 build/
 adaptive_typo.egg-info/
 ffile.txt
+.eggs/
 
 # pytest cracp
 .cache

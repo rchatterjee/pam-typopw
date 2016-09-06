@@ -11,6 +11,7 @@ fi
 
 # install libpam_python, and python-dawg, python-dev setuptools
 apt-get install libpam-python python-pam python-setuptools python-dev
+pip install numpy
 
 # Compile chkpw and set chkpw permissions
 gcc chkpw.c -o chkpw -lcrypt
@@ -26,7 +27,7 @@ python setup.py install \
        --record ffile.txt
        # --install-lib=$libdir \
 
-
+cp -v -f pam_typotolerant.py chkpw $bindir/
 unix_chkpwd=$(which unix_chkpwd)
 chkpw=$bindir/chkpw
 if [[ ! -z "$unix_chkpwd" ]];

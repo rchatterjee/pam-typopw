@@ -13,12 +13,17 @@ fi
 # remove dawg
 
 common_auth_file=/etc/pam.d/common-auth
-if [ ! -e ${common_auth_file}.orig ]; then
+if [ -e ${common_auth_file}.orig ]; then
     mv ${common_auth_file}.orig ${common_auth_file}
 fi
-
 bindir=/usr/local/bin/
-rm -rf ${bindir}/{pam_typotolerant.py,chkpw}
+rm -rf ${bindir}/{pam_typotolerant.py, chkpw}
 rm -rf /etc/pam.d/typo_auth
-sudo apt-get remove libpam-python libdawgdic-dev
-rm -i ffile.txt
+# pip uninstall adaptive-typo
+if [ -e ffiles.txt ]; then
+    cat ffiles.txt | xargs rm -i
+    rm -rf ffiles.txt
+fi
+
+apt-get remove libpam-python libdawgdic-dev
+

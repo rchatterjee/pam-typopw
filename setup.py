@@ -1,5 +1,5 @@
 from setuptools import setup
-
+import os
 # With the help from http://peterdowns.com/posts/first-time-with-pypi.html
 
 setup(
@@ -16,7 +16,7 @@ setup(
         'login-with-errors', 'Login'
     ],
     classifiers = [],
-    scripts = ['pam_typotolerant.py', 'chkpw'],
+    # scripts = ['pam_typotolerant.py', 'chkpw'],
     install_requires=[
         'joblib',
         'pycryptodome',
