@@ -8,7 +8,7 @@ except ImportError: # if it is installed using pip
     import PAM
 
 p = PAM.pam()
-p.start('test')
+p.start('typo_auth')
 try:
     p.authenticate()
     print "Successfully logged in!"
