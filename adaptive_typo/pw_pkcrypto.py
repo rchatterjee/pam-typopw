@@ -29,8 +29,8 @@ def encrypt(_pk_dict, msg):
                      a message. pk's in the dict can be EccKey or basestring
     @msg (byte string): a message to be encrypted
     """
-    # make a deep copy of the pks
-    pk_dict = deepcopy(_pk_dict)
+    # make a semi-deep copy of the pks
+    pk_dict = {k: v for k,v in _pk_dict.items()}
 
     # First AES-128 encrypt the message with a random key
     aes_k = os.urandom(32) # 32 byte = 256 bit
@@ -88,8 +88,7 @@ def decrypt(_sk_dict, ctx):
     @ctx (byte string): decrypts the ciphertext string
     """
     # Don't change the input dictionary
-    # sk_dict = deepcopy(_sk_dict) # TODO
-    sk_dict = _sk_dict # TODO
+    sk_dict = {k: v for k,v in _sk_dict.items()}
 
     # parse the ctx
     l_unsigned_int = struct.calcsize('<I')

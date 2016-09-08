@@ -22,6 +22,7 @@ setup(
         'pycryptodome',
         # 'python-Levenshtein',
         'word2keypress',
-        'dataset'
+        'dataset',
+        'zxcvbn'
     ]
 )
