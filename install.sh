@@ -10,7 +10,7 @@ fi
 # python-pam calling pam functions via python, used for testing. 
 
 # install libpam_python, and python-dawg, python-dev setuptools
-apt-get install libpam-python python-pam python-setuptools python-dev
+apt-get install libpam-python python-pam python-setuptools python-dev python-pip
 pip install numpy
 
 # Compile chkpw and set chkpw permissions
