@@ -4,7 +4,7 @@ from Crypto.Cipher import AES
 import os, struct
 from pwcryptolib import (HASH_CNT, RandomWSeed, hash256, hmac256, aes1block)
 import joblib
-
+from copy import deepcopy
 # All Crypto operation parameters are of length 32 bytes (256 bits)
 # However AES block size is ALWAYS 16 bytes. (That's the standard!)
 
@@ -23,12 +23,15 @@ def update_ctx(pk_dict, sk_dict, ctx):
     return encrypt(pk_dict, decrypt(sk_dict, ctx))
 
 
-def encrypt(pk_dict, msg):
+def encrypt(_pk_dict, msg):
     """
     @pk_dict (dict): is a dictionary of id->pk, which will be used to encrypt 
                      a message. pk's in the dict can be EccKey or basestring
     @msg (byte string): a message to be encrypted
     """
+    # make a deep copy of the pks
+    pk_dict = deepcopy(_pk_dict)
+
     # First AES-128 encrypt the message with a random key
     aes_k = os.urandom(32) # 32 byte = 256 bit
 
@@ -77,13 +80,16 @@ def encrypt(pk_dict, msg):
         serialized_msgctx
 
 
-def decrypt(sk_dict, ctx):
+def decrypt(_sk_dict, ctx):
     """
     @sk_dict (dict): a dictionary of id->sk, it will try from the "first" element
                      via (sk_dict.pop()) and try to decrypt and if fails will use 
                      the next one. Will fail if none of the id belong to the ctx
     @ctx (byte string): decrypts the ciphertext string
     """
+    # Don't change the input dictionary
+    sk_dict = deepcopy(_sk_dict)
+
     # parse the ctx
     l_unsigned_int = struct.calcsize('<I')
     n_pk, ctx = struct.unpack('<I', ctx[:l_unsigned_int])[0], ctx[l_unsigned_int:]
