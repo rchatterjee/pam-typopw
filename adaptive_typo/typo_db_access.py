@@ -194,7 +194,7 @@ class UserTypoDB:
         """
         pw,pw_ent = self.get_org_pwd(t_h_id,sk)
         salt_ctx = self.get_glob_hmac_salt_ctx()
-        print "pw:{}, sk:{}".format(pw,str(sk))
+        # print "pw:{}, sk:{}".format(pw,str(sk)) # TODO REMOVE
         typo_id = compute_id(typo.encode('utf-8'),{t_h_id:sk},salt_ctx)
         typo_ent = self.get_entropy_stat(typo)
         rel_ent = typo_ent - pw_ent
@@ -258,6 +258,10 @@ class UserTypoDB:
     def log_end_of_session(self):
         ts = self.get_time_str()
         self.getDB()[logT].insert(dict(t_id=END_OF_SESS,timestamp=ts))
+
+    def log_message(self, msg);
+        ts = self.get_time_str()
+        self.getDB()[logT].insert(dict(t_id=msg,timestamp=ts))
         
     def get_approved_pk_dict(self):
         '''
@@ -588,8 +592,11 @@ class UserTypoDB:
     def original_password_entered(self,pwd,updateLog = True):
         if updateLog:
             self.log_orig_pwd_use()
+        self.log_message("orig_pwd_entered: ready...") # TODO REMOVE
         pwd_salt = self.get_pwd_pk_salt()
+        self.log_message("orig_pwd_entered: got salt") # TODO REMOVE
         _,pwd_sk = derive_secret_key(pwd,pwd_salt)
+        self.log_message("orig_pwd_entered: derived sk") # TODO REMOVE
         self.update_hash_cach_by_waitlist(ORG_PWD,pwd_sk,updateLog)
         
         
