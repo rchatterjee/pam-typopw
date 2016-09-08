@@ -88,7 +88,8 @@ def decrypt(_sk_dict, ctx):
     @ctx (byte string): decrypts the ciphertext string
     """
     # Don't change the input dictionary
-    sk_dict = deepcopy(_sk_dict)
+    # sk_dict = deepcopy(_sk_dict) # TODO
+    sk_dict = _sk_dict # TODO
 
     # parse the ctx
     l_unsigned_int = struct.calcsize('<I')
