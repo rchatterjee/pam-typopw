@@ -20,7 +20,7 @@ from random import random # maybe something else?
 
 DB_NAME = "typoToler"
 ORG_PWD = 'org_pwd'       # original password's t_id
-GLOB_SALT = 'glob_salt'   # global salt's t_id
+GLOB_SALT = 'glob_saltupda'   # global salt's t_id
 END_OF_SESS = 'END OF SESSION' # for log's use
 
 # Tables' names:
@@ -259,7 +259,7 @@ class UserTypoDB:
         ts = self.get_time_str()
         self.getDB()[logT].insert(dict(t_id=END_OF_SESS,timestamp=ts))
 
-    def log_message(self, msg);
+    def log_message(self, msg):
         ts = self.get_time_str()
         self.getDB()[logT].insert(dict(t_id=msg,timestamp=ts))
         
