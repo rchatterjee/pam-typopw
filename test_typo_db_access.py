@@ -83,8 +83,8 @@ def test_many_entries():
     typoDB.original_password_entered(get_pwd())
     print "log len:{}".format(len(log_t))
     print "hash len:{}".format(len(hash_t))
-    assert(len(log_t) == BIG+1 )
-    realIn = max(BIG,NN)
+    assert(len(log_t) == BIG+1 ) # plus the original password
+    realIn = min(BIG,NN)
     assert (len(hash_t) == realIn)
     
     
@@ -118,19 +118,15 @@ def t_6():
 
 def listOfOneDist(length):
     ll = []
-    m = 32
-    M = 65 - m
+    # using only lower letters
+    # to avoid shift --> 2 edit dist
+    m = 97
+    M = 123 - m
     for ii in range(length):
         col = ii/M + 1
         newC = chr(ii%M + m)
         typo = get_pwd()[:col]+newC+get_pwd()[col:]
         ll.append(typo)
-    #for i in range(length):
-    #    col = i/33
-    #    newC = chr(32+i%33)
-    #    typo = get_pwd()[:col-1]+newC+get_pwd()[col+1:]
-    #    print typo
-    #    ll.append(typo)
         
     return ll
     
