@@ -90,22 +90,35 @@ class UserTypoDB:
         return "/home/{}/{}.db".format(self.user,DB_NAME)
     
     def is_typotoler_init(self):
+        """
+        Returns whether the typotoler has been set (might be installed
+        but not active)
+        """
         return self.is_aux_init()
 
     def disallow_login(self):
-        if not is_typotoler_init():
+        if not self.is_typotoler_init():
             raise Exception("Typotoler DB wasn't initiated yet!")
         sys_aux_T = self.getDB()[auxT]
         sys_aux_T.update(dict(desc=AllowedTypoLogin,data="False"),['desc'])
         self.isON = False
 
     def allow_login(self):
-        if not is_typotoler_init():
+        if not self.is_typotoler_init():
             raise Exception("Typotoler DB wasn't initiated yet!")
         sys_aux_T = self.getDB()[auxT]
         sys_aux_T.update(dict(desc=AllowedTypoLogin,data="True"),['desc'])
         self.isON = True
-        
+
+    def is_allowed_login(self):
+        if not self.is_typotoler_init():
+            raise Exception("Typotoler DB wasn't initiated yet!")
+        sys_aux_T = self.getDB()[auxT]
+        is_on = sys_aux_T.find_one(desc=AllowedTypoLogin)['data']
+        if is_on != 'True' and is_on != 'False':
+            raise Exception('Corrupted data in {}:{}, value:{}'.format(
+                auxT,AllowedTypoLogin,is_on))
+        return is_on == 'True' 
     
     def is_aux_init(self):
         infoT = self.getDB()[auxT]
@@ -592,11 +605,11 @@ class UserTypoDB:
     def original_password_entered(self,pwd,updateLog = True):
         if updateLog:
             self.log_orig_pwd_use()
-        self.log_message("orig_pwd_entered: ready...") # TODO REMOVE
+        # self.log_message("orig_pwd_entered: ready...") # TODO REMOVE
         pwd_salt = self.get_pwd_pk_salt()
-        self.log_message("orig_pwd_entered: got salt") # TODO REMOVE
+        #self.log_message("orig_pwd_entered: got salt") # TODO REMOVE
         _,pwd_sk = derive_secret_key(pwd,pwd_salt)
-        self.log_message("orig_pwd_entered: derived sk") # TODO REMOVE
+        #self.log_message("orig_pwd_entered: derived sk") # TODO REMOVE
         self.update_hash_cach_by_waitlist(ORG_PWD,pwd_sk,updateLog)
         
         
