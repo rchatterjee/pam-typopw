@@ -30,8 +30,8 @@ def get_user(pamh, flags, argv):
         pwdir = pwd.getpwnam(user)
     except KeyError, e:
         eprint("Cound not fid user:", e)
-        return pamh.PAM_USER_UNKNOWN
-    return user, pwdir
+        return pamh.PAM_USER_UNKNOWN, ''
+    return user
 
 def get_password(tmpPrompt, pamh, flags, argv):
     password_prompt = tmpPrompt
@@ -98,7 +98,7 @@ def on_wrong_password(typo_db, password):
         return False
     else: # it's in cach
         eprint("sm_auth: in cach") # TODO REMOVE
-        typo_db.update_hash_cach_by_waitlist(t_id,t_sk) # also updates the log
+        typo_db.update_hash_cache_by_waitlist(t_id,t_sk) # also updates the log
         if typo_db.is_typotoler_on():
             eprint("Returning SUCEESS TypoToler")
             return True
@@ -112,9 +112,9 @@ def pam_sm_authenticate(pamh, flags, argv):
     eprint("** Typo-DB is ON ** ")
     
     ret = get_user(pamh, flags, argv)
-    if isinstance(ret, tuple) and len(ret) != 2:
+    if isinstance(ret, str):
         return ret
-    user, pwdir = ret
+    user = ret
     typo_db = typo_db_access.UserTypoDB(user)
 
     ATTEMPT_LIMIT = 3 # Maximum number of attempt allowed

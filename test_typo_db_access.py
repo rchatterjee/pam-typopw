@@ -1,6 +1,11 @@
 import os
 import pwd
-from adaptive_typo.typo_db_access import UserTypoDB,DB_NAME,waitlistT,hashCachT
+from adaptive_typo.typo_db_access import (
+    UserTypoDB,
+    DB_NAME,
+    waitlistT,
+    hashCacheT
+)
 
 
 NN = 5
@@ -10,9 +15,10 @@ def get_username():
 
 def DB_path():
     # TODO _ for some reason it does't work
-    db = UserTypoDB(get_username())
-    return db.get_DB_path()
-    #return "/home/{}/{}.db".format(get_username(),DB_NAME)
+    user = get_username()
+    db = UserTypoDB(user)
+    return db.get_DB_path(user)
+    #return "/home/{}/{}.db".format(get_username(), DB_NAME)
 
 def remove_DB():
     os.remove(DB_path())
@@ -20,18 +26,17 @@ def remove_DB():
 def start_DB():
     remove_DB()
     db = UserTypoDB(get_username())
-    db.init_typotoler(get_pwd(),NN)
+    db.init_typotoler(get_pw(), NN)
     return db
 
 def test_login_settings():
     typoDB = start_DB()
     #db = typoDB.getDB()
-    assert(typoDB.is_allowed_login() == True)
+    assert typoDB.is_allowed_login()
     typoDB.disallow_login()
-    print typoDB.is_allowed_login()
-    assert(typoDB.is_allowed_login() == False)
+    assert not typoDB.is_allowed_login()
     typoDB.allow_login()
-    assert(typoDB.is_allowed_login() == True)
+    assert typoDB.is_allowed_login()
     
 def test_added_to_hash():
     typoDB = start_DB()
@@ -40,30 +45,29 @@ def test_added_to_hash():
     # typoDB.add_typo_to_waitlist(t_2())
     typoDB.add_typo_to_waitlist(t_5())
     typoDB.add_typo_to_waitlist(t_3())
-    assert( len(typoDB.getDB()[waitlistT]) == 4) 
-    typoDB.original_password_entered(get_pwd())
-    assert( len(typoDB.getDB()[waitlistT]) == 0)
-    hash_t = typoDB.getDB()[hashCachT]
-    assert( len(hash_t) == 2)
-    _,t1_h,isIn_t1 = typoDB.fetch_from_cache(t_1(),False,False)
-    assert (isIn_t1)
-    assert(hash_t.find_one(H_typo=t1_h)['count'] == 2)
-    #_,t2_h,isIn_t2 = typoDB.fetch_from_cache(t_2(),False,False)
-    _,t2_h,isIn_t2 = typoDB.fetch_from_cache(t_5(),False,False)
-    assert (isIn_t2)
-    assert(hash_t.find_one(H_typo=t2_h)['count'] == 1)
+    assert len(typoDB.getDB()[waitlistT]) == 4
+    typoDB.original_password_entered(get_pw())
+    assert len(typoDB.getDB()[waitlistT]) == 0
+    hash_t = typoDB.getDB()[hashCacheT]
+    assert len(hash_t) == 2
+    _, t1_h, isIn_t1 = typoDB.fetch_from_cache(t_1(), False, False)
+    assert isIn_t1
+    assert hash_t.count(H_typo=t1_h) == 2
+    #_, t2_h, isIn_t2 = typoDB.fetch_from_cache(t_2(), False, False)
+    _, t5_h, isIn_t5 = typoDB.fetch_from_cache(t_5(), False, False)
+    assert isIn_t2
+    assert hash_t.count(H_typo=t5_h) == 1
     return typoDB
 
 def test_alt_typo():
     typoDB = test_added_to_hash()
-    hash_t = typoDB.getDB()[hashCachT]
+    hash_t = typoDB.getDB()[hashCacheT]
     count = len(hash_t)
     for ii in range(5):
         typoDB.add_typo_to_waitlist(t_4())
-    t1_sk,t1_h,isIn_t1 = typoDB.fetch_from_cache(t_1(),False,False)
-    typoDB.update_hash_cach_by_waitlist(t1_sk,r1_h)
-    
-    assert (len(hash_t) == count+1)
+    t1_sk, t1_h, isIn_t1 = typoDB.fetch_from_cache(t_1(), False, False)
+    typoDB.update_hash_cache_by_waitlist(t1_sk, t1_h)
+    assert len(hash_t) == count+1
 
 def test_many_entries():
     BIG = 60
@@ -80,16 +84,16 @@ def test_many_entries():
         typoDB.add_typo_to_waitlist(typ)
     print "waitlist len:{}".format(len(wait_t))
     assert (len(wait_t) == BIG)
-    typoDB.original_password_entered(get_pwd())
+    typoDB.original_password_entered(get_pw())
     print "log len:{}".format(len(log_t))
     print "hash len:{}".format(len(hash_t))
     assert(len(log_t) == BIG+1 ) # plus the original password
-    realIn = min(BIG,NN)
+    realIn = min(BIG, NN)
     assert (len(hash_t) == realIn)
     
     
 
-def get_pwd():
+def get_pw():
     return 'GoldApp&3'
 
 def t_1():
@@ -125,7 +129,7 @@ def listOfOneDist(length):
     for ii in range(length):
         col = ii/M + 1
         newC = chr(ii%M + m)
-        typo = get_pwd()[:col]+newC+get_pwd()[col:]
+        typo = get_pw()[:col]+newC+get_pw()[col:]
         ll.append(typo)
         
     return ll
