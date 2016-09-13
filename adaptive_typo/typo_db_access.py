@@ -280,17 +280,14 @@ class UserTypoDB:
             t_h_id = CachLine['H_typo'] # the hash id is in base64 form
             hsInTable = binascii.a2b_base64(t_h_id) #maybe better to encdode the other? TODO
 
-            # typo_id = CachLine['t_id'] TODO REMOVE
             # we removed the typo_id from the hashCache for security reasons
-            # so it (as well as the difference in entropy) needs to be calculated
-            # will be calculated only if found
-            
-            editDist = CachLine['edit_dist']
-            # TODO isInTop5
-            isInTop5 = CachLine['top_5_fixes']
-            typo_count = CachLine['count']
+            # so it (as well as the difference in entropy) needs to be 
+            # calculated every time - only if it is actually found
             
             if hsInTable == hs_bytes:
+                editDist = CachLine['edit_dist']
+                isInTop5 = CachLine['top_5_fixes']
+                typo_count = CachLine['count']
                 typo_id, rel_typo_str = self.compute_id_and_rel_entropy_for_single_typo(typo, t_h_id, sk)
                 # update table with new count
                 if increaseCount:
@@ -426,10 +423,11 @@ class UserTypoDB:
             typo_hs_b64 = typo_info['typo_hs']
             t_pk = typo_info['typo_pk'] #
             typo_str = typo_info['typo_ent_str']
-            typo_pk_salt = binascii.a2b_base64(typo_info["typo_pk_salt"])
+            #pk_salt_b64 = binascii.a2b_base64(typo_info["typo_pk_salt"])
+            pk_salt_b64 = typo_info["typo_pk_salt"]
             if typo not in new_typo_dic:
                 new_typo_dic[typo] = ([ts], typo_hs_b64, t_pk,
-                                      typo_pk_salt, typo_str)
+                                      pk_salt_b64, typo_str)
             else:
                 # TODO DELETE
                 #_, t_count, ts_list,_,_,_,_ = new_typo_dic[typo]
@@ -469,7 +467,7 @@ class UserTypoDB:
             ts_list, t_hs_bs64, typo_pk, typo_pk_salt, typo_ent  = typoDic[typo]
             count = len(ts_list)
             #t_hs_bs64 = binascii.b2a_base64(typo_hs) # we decode and encode for no reason
-            t_sa_bs64 = binascii.b2a_base64(typo_pk_salt)
+            t_sa_bs64 = typo_pk_salt # TODO
             editDist = distance(unicode(pw), unicode(typo)) # WILL CHANGE to pressDist TODO
             typo_id = compute_id(typo.encode('utf-8'), {t_id:t_sk}, glob_salt_ctx) #TODO
             isTop5Fixes = str(self.is_in_top_5_fixes(pw, typo))

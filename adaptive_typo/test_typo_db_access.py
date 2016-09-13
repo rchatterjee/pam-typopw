@@ -52,12 +52,12 @@ def test_added_to_hash(isStandAlone = True):
     assert len(hash_t) == 2
     _, t1_h, isIn_t1 = typoDB.fetch_from_cache(t_1(), False, False)
     assert isIn_t1
-    assert hash_t.count(H_typo=t1_h) == 2
+    assert hash_t.count(H_typo=t1_h) == 1
     #_, t2_h, isIn_t2 = typoDB.fetch_from_cache(t_2(), False, False)
     _, t5_h, isIn_t5 = typoDB.fetch_from_cache(t_5(), False, False)
-    assert isIn_t2
+    assert isIn_t5
     assert hash_t.count(H_typo=t5_h) == 1
-    if isStandALone:
+    if isStandAlone:
         remove_DB()
     else:
         return typoDB
@@ -97,7 +97,7 @@ def test_many_entries(isStandAlone = True):
     assert(len(log_t) == BIG+1 ) # plus the original password
     realIn = min(BIG, NN)
     assert (len(hash_t) == realIn)
-    if isStandALone:
+    if isStandAlone:
         remove_DB()
     else:
         return typoDB
@@ -152,6 +152,9 @@ print str(listOfOneDist(60))
 print get_username()
 print DB_path()
 print str(start_DB())
+print "************* test_login_settings ******************"
 test_login_settings()
+print "************* test_added_to_hash ******************"
 test_added_to_hash()
+print "************* test_many_entries ******************"
 test_many_entries()
