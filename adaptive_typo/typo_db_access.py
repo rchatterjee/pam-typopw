@@ -95,7 +95,14 @@ class UserTypoDB:
         Returns whether the typotoler has been set (might be installed
         but not active)
         """
-        return self.is_aux_init()
+        infoT = self.getDB()[auxT]
+        encPw = infoT.find_one(desc=ORG_PW)
+        globSalt = infoT.find_one(desc=GLOB_SALT)
+        if ((not globSalt) != (not encPw)):
+            # if glob and pw aren't in the same initialization state
+            raise Exception("{} is corrupted!  globSalt={}  encPw={}"\
+                            .format(auxT, globSalt, encPw))
+        return bool(encPw)
 
     def disallow_login(self):
         if not self.is_typotoler_init():
@@ -121,17 +128,17 @@ class UserTypoDB:
                 auxT, AllowedTypoLogin, is_on))
         return is_on == 'True' 
     
-    def is_aux_init(self):
-        infoT = self.getDB()[auxT]
-        encPw = infoT.find_one(desc=ORG_PW)
-        globSalt = infoT.find_one(desc=GLOB_SALT)
-        if ((not globSalt) != (not encPw)):
-            # if glob and pw aren't in the same initialization state
-            raise Exception("{} is corrupted!  globSalt={}  encPw={}"\
-                            .format(auxT, globSalt, encPw))
-        return bool(encPw)
+##    def is_aux_init(self):
+##        infoT = self.getDB()[auxT]
+##        encPw = infoT.find_one(desc=ORG_PW)
+##        globSalt = infoT.find_one(desc=GLOB_SALT)
+##        if ((not globSalt) != (not encPw)):
+##            # if glob and pw aren't in the same initialization state
+##            raise Exception("{} is corrupted!  globSalt={}  encPw={}"\
+##                            .format(auxT, globSalt, encPw))
+##        return bool(encPw)
 
-    def init_typotoler(self, pw, N):
+    def init_typotoler(self, pw, N, maxEditDist = 1, typoTolerOn = True):
         """Create the 'typotoler' database in user's home-directory.  Changes the DB
         permission to ensure its only readable by the user.  Also, it intializes
         the required tables as well as the reuired variables, such as, the
@@ -145,25 +152,14 @@ class UserTypoDB:
         db_path = self.get_DB_path(username)
         os.chown(db_path, u_id, g_id)  # change owner to user
         os.chmod(db_path, 0600)  # rw only for owner
-        self.init_tables(pw, N)
-        
-    def init_tables(self, pw, N, maxEditDist = 1, typoTolerOn = True):
-        """
-        Initiate the tables of the db, most importantly - the aux-info
-        @N (int): the max size of HashCache, based on max computation time
-        @pw (string): the user's main/original password
-        """
+        # self.init_tables(pw, N)
         db = self.getDB()
-        # db[logT].delete()       # we can probably remove it
-        # db[waitlistT].delete()  # we can probably remove it
-        # db[hashCacheT].delete()  # we can probably remove it
         db[auxT].delete()         # make sure there's no old unrelevant data
-        self.init_aux_data(N, typoTolerOn, maxEditDist)
-        self._insert_first_password_and_global_salt(pw)
 
-    def init_aux_data(self, N, typoTolerOn=True, maxEditDist=1):
-        print("Initializing the auxiliary data base ({})".format(auxT)) 
-        db = self.getDB()
+        # self.init_aux_data(N, typoTolerOn, maxEditDist)
+        # *************** Initializing Aux Data *************************
+        print("Initializing the auxiliary data base ({})".format(auxT)) # TODO REMOVE
+        # db = self.getDB()
         info_t = db[auxT]
         if info_t.find_one(desc=AllowedTypoLogin):
             raise Exception("Initial aux data have already been inserted")
@@ -172,6 +168,64 @@ class UserTypoDB:
         info_t.insert(dict(desc=AllowedTypoLogin, data=str(typoTolerOn)))
         self.isON = typoTolerOn
         info_t.insert(dict(desc=EditCutoff, data=str(maxEditDist)))
+        
+
+        # *************** insert first password and global salt: ********
+                # TODO - insert log entry of initiation
+        db = self.getDB()
+        info_t = db[auxT]
+        assert not info_t.find_one(desc=ORG_PW),\
+            "Original password is already stored. Weird!!"
+
+        pw_salt_pk = os.urandom(16)
+        pw_hash, pw_pk = derive_public_key(pw, pw_salt_pk)
+        #_, pw_sk = derive_secret_key(pw, salt_pk)
+
+        glob_salt_hmac = os.urandom(16)
+        self.glob_salt_tmp = glob_salt_hmac # TODO REMOVE
+
+        pw_salt_base64 = binascii.b2a_base64(pw_salt_pk)
+
+        pw_entropy = self.get_entropy_stat(pw) ###
+        pw_json = json.dumps({'pw': pw, 'entropy': pw_entropy})
+        # typo_plaintxt = json.dump({'desc':'pw','data':pw,'pk':pw_pk,'sa':salt_pk})
+        # salt_plaintxt = json.dump({'desc':'salt','data':salt_pk})
+
+        pk_dict = {ORG_PW: pw_pk}
+        pw_json_cipher = binascii.b2a_base64(encrypt(pk_dict, pw_json))
+        
+        glob_salt_cipher = binascii.b2a_base64(encrypt(pk_dict, glob_salt_hmac))
+
+        # TODO - change it to be 'data' instead of 'ctx'
+        info_t.insert(dict(ctx=pw_json_cipher, pk=pw_pk, pk_salt=pw_salt_base64,
+                           desc=ORG_PW))
+        info_t.insert(dict(ctx=glob_salt_cipher, desc=GLOB_SALT))
+
+        return
+        
+        
+##    def init_tables(self, pw, N, maxEditDist = 1, typoTolerOn = True):
+##        """
+##        Initiate the tables of the db, most importantly - the aux-info
+##        @N (int): the max size of HashCache, based on max computation time
+##        @pw (string): the user's main/original password
+##        """
+##        db = self.getDB()
+##        db[auxT].delete()         # make sure there's no old unrelevant data
+##        self.init_aux_data(N, typoTolerOn, maxEditDist)
+##        self._insert_first_password_and_global_salt(pw)
+
+##    def init_aux_data(self, N, typoTolerOn=True, maxEditDist=1):
+##        print("Initializing the auxiliary data base ({})".format(auxT)) # TODO REMOVE
+##        db = self.getDB()
+##        info_t = db[auxT]
+##        if info_t.find_one(desc=AllowedTypoLogin):
+##            raise Exception("Initial aux data have already been inserted")
+##        info_t.insert(dict(desc=CacheSize, data=str(N)))
+##        self.N = N # in the future might be dynamic and drawn from table at need TODO
+##        info_t.insert(dict(desc=AllowedTypoLogin, data=str(typoTolerOn)))
+##        self.isON = typoTolerOn
+##        info_t.insert(dict(desc=EditCutoff, data=str(maxEditDist)))
         
     def is_typotoler_on(self):
         dataLine = self.getDB()[auxT].find_one(desc=AllowedTypoLogin)
@@ -576,7 +630,7 @@ class UserTypoDB:
         """
         Assumes that the auxT is ok with both password and global salt
         """
-        print "updating aux ctx"
+        print " ************* updating aux ctx *************"
         infoT = self.getDB()[auxT]
         pwCtx = binascii.a2b_base64(infoT.find_one(desc=ORG_PW)['ctx'])
         globSaltCtx = binascii.a2b_base64(infoT.find_one(desc=GLOB_SALT)['ctx'])
@@ -599,7 +653,7 @@ class UserTypoDB:
         #print "SECOND PRINT" # TODO REMOVE
         #for t_id in pk_dict: # TODO REMOVE
         #    print "updated aux for {}:{}".format(t_id, pk_dict[t_id])
-        
+        print " ************* END OF updating aux ctx *************"
         
         
     def clear_waitlist(self):
@@ -635,50 +689,52 @@ class UserTypoDB:
         self.clear_waitlist()
         
         
-    def _insert_first_password_and_global_salt (self, pw):
-        # TODO - insert log entry of initiation
-        db = self.getDB()
-        info_t = db[auxT]
-        assert not info_t.find_one(desc=ORG_PW),\
-            "Original password is already stored. Weird!!"
+##    def _insert_first_password_and_global_salt (self, pw):
+##        # TODO - insert log entry of initiation
+##        db = self.getDB()
+##        info_t = db[auxT]
+##        assert not info_t.find_one(desc=ORG_PW),\
+##            "Original password is already stored. Weird!!"
+##
+##        pw_salt_pk = os.urandom(16)
+##        pw_hash, pw_pk = derive_public_key(pw, pw_salt_pk)
+##        #_, pw_sk = derive_secret_key(pw, salt_pk)
+##
+##        glob_salt_hmac = os.urandom(16)
+##        self.glob_salt_tmp = glob_salt_hmac # TODO REMOVE
+##
+##        pw_salt_base64 = binascii.b2a_base64(pw_salt_pk)
+##
+##        pw_entropy = self.get_entropy_stat(pw) ###
+##        pw_json = json.dumps({'pw': pw, 'entropy': pw_entropy})
+##        # typo_plaintxt = json.dump({'desc':'pw','data':pw,'pk':pw_pk,'sa':salt_pk})
+##        # salt_plaintxt = json.dump({'desc':'salt','data':salt_pk})
+##
+##        # tas the pk needs to be available it's a bit redundant
+##        # might change
+##
+##        pk_dict = {ORG_PW: pw_pk}
+##        pw_json_cipher = binascii.b2a_base64(encrypt(pk_dict, pw_json))
+##        # leakes somewhat the size of the pw
+##        glob_salt_cipher = binascii.b2a_base64(encrypt(pk_dict, glob_salt_hmac))
+##
+##        # TODO - change it to be 'data' instead of 'ctx'
+##        info_t.insert(dict(ctx=pw_json_cipher, pk=pw_pk, pk_salt=pw_salt_base64,
+##                           desc=ORG_PW))
+##        info_t.insert(dict(ctx=glob_salt_cipher, desc=GLOB_SALT))
+##
+##        return
 
-        pw_salt_pk = os.urandom(16)
-        pw_hash, pw_pk = derive_public_key(pw, pw_salt_pk)
-        #_, pw_sk = derive_secret_key(pw, salt_pk)
 
-        glob_salt_hmac = os.urandom(16)
-        self.glob_salt_tmp = glob_salt_hmac # TODO REMOVE
-
-        pw_salt_base64 = binascii.b2a_base64(pw_salt_pk)
-
-        pw_entropy = self.get_entropy_stat(pw) ###
-        pw_json = json.dumps({'pw': pw, 'entropy': pw_entropy})
-        # typo_plaintxt = json.dump({'desc':'pw','data':pw,'pk':pw_pk,'sa':salt_pk})
-        # salt_plaintxt = json.dump({'desc':'salt','data':salt_pk})
-
-        # tas the pk needs to be available it's a bit redundant
-        # might change
-
-        pk_dict = {ORG_PW: pw_pk}
-        pw_json_cipher = binascii.b2a_base64(encrypt(pk_dict, pw_json))
-        # leakes somewhat the size of the pw
-        glob_salt_cipher = binascii.b2a_base64(encrypt(pk_dict, glob_salt_hmac))
-
-        # TODO - change it to be 'data' instead of 'ctx'
-        info_t.insert(dict(ctx=pw_json_cipher, pk=pw_pk, pk_salt=pw_salt_base64,
-                           desc=ORG_PW))
-        info_t.insert(dict(ctx=glob_salt_cipher, desc=GLOB_SALT))
-
-        return
-
-
-
+def main2():
+    t_db = UserTypoDB('yuval')
+    return 0
 
 def main():
     '''
     first argument is the username
     '''
-    args = argv[1:]
+    args = sys.argv[1:]
     for r in args:
         print str(r)
 
@@ -688,10 +744,10 @@ def main():
     myDB.clear_waitlist()
     pw = 'dlue'
     print " $$$$$$$$$ IS INIT $$$$$$$$$$$$"
-    print str(myDB.is_aux_init())
-    myDB.init_tables(pw, 3)
+    print str(myDB.is_typotoler_init())
+    myDB.init_typotoler(pw, 3)
     print " $$$$$$$$$ IS INIT $$$$$$$$$$$$"
-    print (myDB.is_aux_init())
+    print (myDB.is_typotoler_init())
 
     pw_pk_salt = myDB.get_pw_pk_salt()
     print "pw_pk_salt: {}".format(pw_pk_salt)
@@ -748,11 +804,18 @@ def main():
     print "approved pk dict:"
     print allPks
 
-    t_sk, t_id,_ = myDB.fetch_from_cache('blue', False, False)
-    print "fetching pw: {}".format(myDB.get_org_pw(t_id, t_sk))
-    
+    t_sk, t_id,isInCache = myDB.fetch_from_cache('blue', False, False)
+    if not isInCache:
+        print "alas, blue not in cache"
+    else:
+        print "fetching pw: {}".format(myDB.get_org_pw(t_id, t_sk))
+    t_sk, t_id,isInCache = myDB.fetch_from_cache('dlum', False, False)
+    if not isInCache:
+        print "alas, dlum not in cache"
+    else:
+        print "fetching pw: {}".format(myDB.get_org_pw(t_id, t_sk))
 
 
     return 0
 if __name__ == '__main__':
-    main()
+    main2()
