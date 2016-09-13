@@ -38,7 +38,7 @@ def test_login_settings():
     typoDB.allow_login()
     assert typoDB.is_allowed_login()
     
-def test_added_to_hash():
+def test_added_to_hash(isStandAlone = True):
     typoDB = start_DB()
     typoDB.add_typo_to_waitlist(t_1())
     typoDB.add_typo_to_waitlist(t_1())
@@ -57,10 +57,13 @@ def test_added_to_hash():
     _, t5_h, isIn_t5 = typoDB.fetch_from_cache(t_5(), False, False)
     assert isIn_t2
     assert hash_t.count(H_typo=t5_h) == 1
-    return typoDB
+    if isStandALone:
+        remove_DB()
+    else:
+        return typoDB
 
-def test_alt_typo():
-    typoDB = test_added_to_hash()
+def test_alt_typo(isStandAlone = True):
+    typoDB = test_added_to_hash(False)
     hash_t = typoDB.getDB()[hashCacheT]
     count = len(hash_t)
     for ii in range(5):
@@ -68,8 +71,12 @@ def test_alt_typo():
     t1_sk, t1_h, isIn_t1 = typoDB.fetch_from_cache(t_1(), False, False)
     typoDB.update_hash_cache_by_waitlist(t1_sk, t1_h)
     assert len(hash_t) == count+1
+    if isStandALone:
+        remove_DB()
+    else:
+        return typoDB
 
-def test_many_entries():
+def test_many_entries(isStandAlone = True):
     BIG = 60
 
     typoDB = start_DB()
@@ -90,6 +97,10 @@ def test_many_entries():
     assert(len(log_t) == BIG+1 ) # plus the original password
     realIn = min(BIG, NN)
     assert (len(hash_t) == realIn)
+    if isStandALone:
+        remove_DB()
+    else:
+        return typoDB
     
     
 
