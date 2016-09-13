@@ -22,15 +22,15 @@ def get_user(pamh, flags, argv):
     # getting username
     try:
         user = pamh.get_user(None)
-    except pamh.exception, e:
+    except pamh.exception as e:
         eprint("Could not determine user. {}".format(e.pam_result))
-        return e.pam_result
+        return pamh.PAM_USER_UNKNOWN
     user = user.lower()
     try:
         pwdir = pwd.getpwnam(user)
-    except KeyError, e:
+    except KeyError as e:
         eprint("Cound not fid user:", e)
-        return pamh.PAM_USER_UNKNOWN, ''
+        return pamh.PAM_USER_UNKNOWN
     return user
 
 def get_password(tmpPrompt, pamh, flags, argv):
@@ -112,8 +112,8 @@ def pam_sm_authenticate(pamh, flags, argv):
     eprint("** Typo-DB is ON ** ")
     
     ret = get_user(pamh, flags, argv)
-    if isinstance(ret, str):
-        return ret
+    if not isinstance(ret, (basestring, str)):
+        return pamh.PAM_USER_UNKNOWN
     user = ret
     typo_db = typo_db_access.UserTypoDB(user)
 
