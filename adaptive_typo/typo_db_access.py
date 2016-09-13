@@ -253,9 +253,12 @@ class UserTypoDB:
         @sk (ECC key) : the secret key of the typo
         """
         pw, pw_ent = self.get_org_pw(t_h_id, sk)
+        print "got pw and ent" # TODO REMOVE
         salt_ctx = self.get_glob_hmac_salt_ctx()
+        print "gat salt_ctx of the hmac" # TODO REMOVE
         # print "pw:{}, sk:{}".format(pw, str(sk)) # TODO REMOVE
         typo_id = compute_id(typo.encode('utf-8'),{t_h_id:sk}, salt_ctx)
+        print "typo_id is:{}".format(str(typo_id))
         typo_ent = self.get_entropy_stat(typo)
         rel_ent = typo_ent - pw_ent
         return typo_id, rel_ent
@@ -277,6 +280,11 @@ class UserTypoDB:
         for CachLine in cachT:
             sa = binascii.a2b_base64(CachLine['salt'])
             hs_bytes, sk = derive_secret_key(typo, sa)
+            print "CHECK CHECK CHECK CHECK:" # TODO REMOVE
+            print "FROM FETCH" # TODO REMOVE
+            print "typo:{}\n salt_b64:{}\n".format(typo,CachLine['salt']) # TODO REMOVE
+            
+            print "END OF CHECK CHECK HCECK" # TODO REMOVE
             t_h_id = CachLine['H_typo'] # the hash id is in base64 form
             hsInTable = binascii.a2b_base64(t_h_id) #maybe better to encdode the other? TODO
 
@@ -339,7 +347,7 @@ class UserTypoDB:
 
         # all approved typos' pk
         for cachLine in cachT:
-            typo_h_id = cachLine['H_typo']
+            typo_h_id = cachLine['H_typo'].encode('utf-8') # TODO remove encoding?
             # the typos' id for the purpose of pk_dict
             # are the base64 of their hashes
             #typo_pk = binascii.a2b_base64(cachLine['pk'])
@@ -399,8 +407,13 @@ class UserTypoDB:
             "typo": typo,
             'typo_ent_str': typo_str
         })
-        info_ctx = binascii.b2a_base64(encrypt(self.get_approved_pk_dict(),
+        pk_dict = self.get_approved_pk_dict()
+        print "typo inserted to waitlist. encrypted by :\n"
+        for k in pk_dict.keys():
+            print "h_id:{},pk:{}".format(k,pk_dict[k])
+        info_ctx = binascii.b2a_base64(encrypt(pk_dict,
                                                plainInfo))
+        print "info_ctx:{}".format(info_ctx) # TODO REMOVE
         db = self.getDB()
         w_list_T = db[waitlistT]
 
@@ -417,6 +430,7 @@ class UserTypoDB:
         for line in self.getDB()[waitlistT].all():
             bin_ctx = binascii.a2b_base64(line['ctx'])
             typo_info = json.loads(decrypt(sk_dic, bin_ctx))
+            print "successfully decrypted" # TODO REMOVE
             ts = typo_info['timestamp']
             typo = typo_info['typo']
             #typo_hs = binascii.a2b_base64(typo_info['typo_hs'])
@@ -677,8 +691,13 @@ class UserTypoDB:
         @updateLog (bool) : whether to update in the log, set to True
         """
         # we might want to avoid saving those obj.. or some other comp. improv.
+        # print "STARTING to decrypt waitlist:" # TODO REMOVE
         waitlistTypoDict = self.decrypt_waitlist(t_h_id, t_sk)
+        # print "DECRYPTED waitlist" # TODO REMOVE
+        # print "STARTING to get org pw" # TODO REMOVE
         orig_pw, pw_entropy = self.get_org_pw(t_h_id, t_sk)
+        # print "GOT org pw" # TODO REMOVE
+        # print "GETTING top N"
         topNList = self.get_top_N_typos_within_editdistance(waitlistTypoDict,
                                                             orig_pw, pw_entropy,
                                                             t_h_id, t_sk,

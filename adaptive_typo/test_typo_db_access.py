@@ -6,6 +6,10 @@ from adaptive_typo.typo_db_access import (
     waitlistT,
     hashCacheT
 )
+from adaptive_typo.pw_pkcrypto import (
+    encrypt, decrypt, derive_public_key,
+    derive_secret_key, update_ctx, compute_id
+) # TODO REMOVE
 
 
 NN = 5
@@ -63,20 +67,34 @@ def test_added_to_hash(isStandAlone = True):
         return typoDB
 
 def test_alt_typo(isStandAlone = True):
+    print "TEST ALT TYPO"
     typoDB = test_added_to_hash(False)
     hash_t = typoDB.getDB()[hashCacheT]
+    assert len(hash_t) > 0
     count = len(hash_t)
     for ii in range(5):
         typoDB.add_typo_to_waitlist(t_4())
+##    print "added 5 typos to waitlist"
     t1_sk, t1_h, isIn_t1 = typoDB.fetch_from_cache(t_1(), False, False)
-    typoDB.update_hash_cache_by_waitlist(t1_sk, t1_h)
+    typo_hash_line = hash_t.find_one(H_typo=t1_h)
+    assert typo_hash_line
+    pk = typo_hash_line['pk']
+    salt = typo_hash_line['salt']
+    assert isIn_t1
+##    print isIn_t1
+##    print " t1_sk:{}\n t1_h:{}\n pk:{}\n salt:{}".format(str(t1_sk),
+##                                                         t1_h, pk,
+##                                                         salt)
+##    print "^^^^^^"
+    typoDB.update_hash_cache_by_waitlist(t1_h,t1_sk)
     assert len(hash_t) == count+1
-    if isStandALone:
+    if isStandAlone:
         remove_DB()
     else:
         return typoDB
 
 def test_many_entries(isStandAlone = True):
+    print "TEST MANY ENTRIES"
     BIG = 60
 
     typoDB = start_DB()
@@ -135,8 +153,8 @@ def listOfOneDist(length):
     ll = []
     # using only lower letters
     # to avoid shift --> 2 edit dist
-    m = 97
-    M = 123 - m
+    m = ord('a')
+    M = ord('z') + 1 - m
     for ii in range(length):
         col = ii/M + 1
         newC = chr(ii%M + m)
@@ -148,13 +166,15 @@ def listOfOneDist(length):
     
 
 # "main"
-print str(listOfOneDist(60))
-print get_username()
-print DB_path()
-print str(start_DB())
-print "************* test_login_settings ******************"
-test_login_settings()
-print "************* test_added_to_hash ******************"
-test_added_to_hash()
-print "************* test_many_entries ******************"
-test_many_entries()
+##print str(listOfOneDist(60))
+##print get_username()
+##print DB_path()
+##print str(start_DB())
+# print "************* test_login_settings ******************"
+# test_login_settings()
+# print "************* test_added_to_hash ******************"
+# test_added_to_hash()
+# print "************* test_many_entries ******************"
+# test_many_entries()
+print "************* test_alt_typo ******************"
+test_alt_typo(False)
