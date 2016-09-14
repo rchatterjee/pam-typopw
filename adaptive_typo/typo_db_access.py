@@ -19,7 +19,7 @@ import binascii
 from word2keypress import distance
 from random import random # maybe something else?
 
-
+LOGGER_NAME = "typoToler"
 DB_NAME = "typoToler"
 ORG_PW = 'org_pw'       # original password's t_id
 GLOB_SALT = 'glob_saltupda'   # global salt's t_id
@@ -60,6 +60,7 @@ rel_bit_strength = 'rel_bit_str'
 #                   the def logging in the functions won't do it
 
 
+logger = logging.getLogger(LOGGER_NAME)
 class UserTypoDB:
     DB_obj = None
     
@@ -69,22 +70,32 @@ class UserTypoDB:
     def __init__(self, user,debug_mode=False):
         
         self.user = user
+
+        # setting the logger object
         log_level = logging.DEBUG
         if not debug_mode:
             log_level = logging.INFO
-        logging.basicConfig(filename=self.get_logging_path(user),
-                            format='%(asctime)s + %(levelname)s + %(message)s',
-                            level=log_level)
+        # logger = logging.getLogger(LOGGER_NAME)
+        logger.setLevel(log_level)
+        if not logger.handlers:  # if it doesn't have an handler yet:
+            handler = logging.FileHandler(self.get_logging_path(user))
+            formatter = logging.Formatter('%(asctime)s + %(levelname)s + %(message)s')
+            handler.setFormatter(formatter)
+            logger.addHandler(handler)
+        
+##        logger.basicConfig(filename=self.get_logging_path(user),
+##                            format='%(asctime)s + %(levelname)s + %(message)s',
+##                            level=log_level)
         if debug_mode: # TODO REMOVE
             print "should log" # TODO REMOVE
-        logging.debug("{} created".format(str(self)))
+        logger.debug("{} created".format(str(self)))
         
         info_t = self.getDB()[auxT]
         dataLine_N = info_t.find_one(desc = CacheSize)
         #if dataLineN != None: # TODO REMOVE
         if dataLine_N:
             self.N = int(dataLine_N['data'])
-            logging.debug(" N, {}'s size is {}".format(hashCacheT,self.N))
+            logger.debug(" N, {}'s size is {}".format(hashCacheT,self.N))
         dataLine_IsON = info_t.find_one(desc=AllowedTypoLogin)
         #if dataLine_IsON != None: # TODO REMOVE
         if dataLine_IsON:
@@ -92,17 +103,18 @@ class UserTypoDB:
             active = "ON"
             if not self.isON:
                 active = "OFF"
-            logging.info("typoToler is {}".format(active))
+            logger.info("typoToler is {}".format(active))
 
     def getDB(self):
         """
         Returns the db
         If the db hasn't been connected yet - it connects to it
         """
+        # logger = logging.getLogger(LOGGER_NAME)
         if not self.DB_obj:
             self.DB_obj = dataset.connect("sqlite:////home/{}/{}.db"\
                                .format(self.user, DB_NAME))
-            logging.info("connected to DB")
+            logger.info("connected to DB")
         return self.DB_obj
     
     def get_DB_path(self, username):
@@ -113,11 +125,14 @@ class UserTypoDB:
         homedir = pwd.getpwnam(username).pw_dir
         return "{}/{}.log".format(homedir,DB_NAME)
 
+    
+
     def is_typotoler_init(self):
         """
         Returns whether the typotoler has been set (might be installed
         but not active)
         """
+        # logger = logging.getLogger(LOGGER_NAME)
         infoT = self.getDB()[auxT]
         encPw = infoT.find_one(desc=ORG_PW)
         globSalt = infoT.find_one(desc=GLOB_SALT)
@@ -127,18 +142,19 @@ class UserTypoDB:
                 stub = 'global salt is missing'
             else:
                 stub = 'pw is missing'
-            logging.critical('DB is corrupted: {}'.format(stub))
+            logger.critical('DB is corrupted: {}'.format(stub))
             raise Exception("{} is corrupted!  globSalt={}  encPw={}"\
                             .format(auxT, globSalt, encPw))
         return bool(encPw)
 
     def disallow_login(self):
+        # logger = logging.getLogger(LOGGER_NAME)
         if not self.is_typotoler_init():
             raise Exception("Typotoler DB wasn't initiated yet!")
         sys_aux_T = self.getDB()[auxT]
         sys_aux_T.update(dict(desc=AllowedTypoLogin, data="False"), ['desc'])
         self.isON = False
-        logging.info("typoToler set to OFF")
+        logger.info("typoToler set to OFF")
         
 
     def allow_login(self):
@@ -147,7 +163,7 @@ class UserTypoDB:
         sys_aux_T = self.getDB()[auxT]
         sys_aux_T.update(dict(desc=AllowedTypoLogin, data="True"),['desc'])
         self.isON = True
-        logging.info("typoToler set to ON")
+        logging.getLogger(LOGGER_NAME).info("typoToler set to ON")
 
     def is_allowed_login(self):
         if not self.is_typotoler_init():
@@ -158,16 +174,6 @@ class UserTypoDB:
             raise Exception('Corrupted data in {}:{}, value:{}'.format(
                 auxT, AllowedTypoLogin, is_on))
         return is_on == 'True' 
-    
-##    def is_aux_init(self):
-##        infoT = self.getDB()[auxT]
-##        encPw = infoT.find_one(desc=ORG_PW)
-##        globSalt = infoT.find_one(desc=GLOB_SALT)
-##        if ((not globSalt) != (not encPw)):
-##            # if glob and pw aren't in the same initialization state
-##            raise Exception("{} is corrupted!  globSalt={}  encPw={}"\
-##                            .format(auxT, globSalt, encPw))
-##        return bool(encPw)
 
     def init_typotoler(self, pw, N, maxEditDist = 1, typoTolerOn = True):
         """Create the 'typotoler' database in user's home-directory.  Changes the DB
@@ -176,7 +182,8 @@ class UserTypoDB:
         hashCache size, the global salt etc.
 
         """
-        logging.info("initiating typoToler")
+        # logger = logging.getLogger(LOGGER_NAME)
+        logger.info("initiating typoToler")
         username = self.user
         u_data = pwd.getpwnam(username)
         u_id = u_data.pw_uid
@@ -185,14 +192,14 @@ class UserTypoDB:
         os.chown(db_path, u_id, g_id)  # change owner to user
         os.chmod(db_path, 0600)  # rw only for owner
         # self.init_tables(pw, N)
-        logging.debug("{} permissons set to RW only for user:{}".format(
+        logger.debug("{} permissons set to RW only for user:{}".format(
             db_path,username))
         db = self.getDB()
         db[auxT].delete()         # make sure there's no old unrelevant data
 
         # self.init_aux_data(N, typoTolerOn, maxEditDist)
         # *************** Initializing Aux Data *************************
-        logging.info("Initializing the auxiliary data base ({})".format(auxT))
+        logger.info("Initializing the auxiliary data base ({})".format(auxT))
         
         info_t = db[auxT]
         if info_t.find_one(desc=AllowedTypoLogin):
@@ -205,7 +212,7 @@ class UserTypoDB:
         
 
         # *************** insert first password and global salt: ********
-        logging.debug("Inserting first pw and glob salt")
+        logger.debug("Inserting first pw and glob salt")
         db = self.getDB()
         info_t = db[auxT]
         assert not info_t.find_one(desc=ORG_PW),\
@@ -231,8 +238,8 @@ class UserTypoDB:
         info_t.insert(dict(ctx=pw_json_cipher, pk=pw_pk, pk_salt=pw_salt_base64,
                            desc=ORG_PW))
         info_t.insert(dict(ctx=glob_salt_cipher, desc=GLOB_SALT))
-        logging.debug("Pw and glob salt inserted successfully")
-        logging.info("TypoToler initiated succesfully")
+        logger.debug("Pw and glob salt inserted successfully")
+        logger.info("TypoToler initiated succesfully")
         return
         
     def is_typotoler_on(self):
@@ -260,13 +267,14 @@ class UserTypoDB:
         @t_h_id (hex string): the hash of the typo, serves as id for sk dict
         @sk (ECC key) : the secret key of the typo
         """
-        logging.debug("Computing id and relative entropy for typo")
+        # logger = logging.getLogger(LOGGER_NAME)
+        logger.debug("Computing id and relative entropy for typo")
         pw, pw_ent = self.get_org_pw(t_h_id, sk)
         salt_ctx = self.get_glob_hmac_salt_ctx()
         typo_id = compute_id(typo.encode('utf-8'),{t_h_id:sk}, salt_ctx)
         typo_ent = self.get_entropy_stat(typo)
         rel_ent = typo_ent - pw_ent
-        logging.debug("computed typo id:{}, and relative entropy:{}".format(
+        logger.debug("computed typo id:{}, and relative entropy:{}".format(
             typo_id,rel_ent))
         return typo_id, rel_ent
     
@@ -280,8 +288,9 @@ class UserTypoDB:
         @typo (string) : the given password typo
         @increaseCount (bool) : whether to update the typo's count if found
         @updateLog (bool) : whether to insert an update to the log
-        ''' 
-        logging.debug("Searching for typo in {}".format(hashCacheT))
+        '''
+        # logger = logging.getLogger(LOGGER_NAME)
+        logger.debug("Searching for typo in {}".format(hashCacheT))
         ts = self.get_time_str()
         db = self.getDB()
         cachT = db[hashCacheT]
@@ -296,20 +305,20 @@ class UserTypoDB:
             # calculated every time - only if it is actually found
             
             if hsInTable == hs_bytes:
-                logging.debug("Typo found in {}".format(hashCacheT))
+                logger.debug("Typo found in {}".format(hashCacheT))
                 editDist = CachLine['edit_dist']
                 isInTop5 = CachLine['top_5_fixes']
                 typo_count = CachLine['count']
                 typo_id, rel_typo_str = self.compute_id_and_rel_entropy_for_single_typo(typo, t_h_id, sk)
                 # update table with new count
                 if increaseCount:
-                    logging.debug("Typo's count had been increased")
+                    logger.debug("Typo's count had been increased")
                     typo_count += 1
                     cachT.update(dict(H_typo = t_h_id, count = typo_count),['H_typo'])
                 if updateLog:
                     self.update_log(ts, typo_id, editDist, rel_typo_str, isInTop5,'True', str(self.isON))
                 return sk, t_h_id, True
-        logging.debug("Typo wasn't found in {}".format(hashCacheT))
+        logger.debug("Typo wasn't found in {}".format(hashCacheT))
         return '','', False
 
     def update_log(self, ts, typoID_or_msg, editDist, 
@@ -344,37 +353,38 @@ class UserTypoDB:
 
         for the typos, the ids are the base64 of their hashes in HashCache
         '''
-        logging.debug("Getting approved pk dictionary")
+        # logger = logging.getLogger(LOGGER_NAME)
+        logger.debug("Getting approved pk dictionary")
         db = self.getDB()
         cachT = db[hashCacheT]
         dic = {}
         
         # all approved typos' pk
-        logging.debug("Getting from {}".format(hashCacheT)) 
+        logger.debug("Getting from {}".format(hashCacheT)) 
         for cachLine in cachT:
             typo_h_id = cachLine['H_typo'].encode('utf-8') # TODO remove encoding?
             # the typos' id for the purpose of pk_dict
             # are the base64 of their hashes
             typo_pk = cachLine['pk']
-            logging.debug("Got {}'s pk:{}".format(typo_h_id,typo_pk))
+            logger.debug("Got {}'s pk:{}".format(typo_h_id,typo_pk))
             # pk is a string so can be stored as is in the table as is
             dic[typo_h_id] = typo_pk
         
         # original pw's pk
-        logging.debug("Getting from {}".format(auxT))
+        logger.debug("Getting from {}".format(auxT))
         info_t = db[auxT]
         pw_info = info_t.find(desc=ORG_PW)
         count = 0
         for line in pw_info:
             # pw_pk = binascii.a2b_base64(line['pk'])
             pw_pk = line['pk']
-            logging.debug("Got {}'s pk:{}".format(ORG_PW,pw_pk))
+            logger.debug("Got {}'s pk:{}".format(ORG_PW,pw_pk))
             dic[ORG_PW] = pw_pk
             count += 1
 
         if count != 1:
             raise ValueError("{} pws in aux table, instead of 1".format(count))
-        logging.debug("The pk dictionary was drawn successfully")
+        logger.debug("The pk dictionary was drawn successfully")
         return dic
 
     def get_time_str(self):
@@ -400,7 +410,8 @@ class UserTypoDB:
 
         @typo (string) : the user's passwrod typo
         """
-        logging.info("Adding typo to waitlist")
+        # logger = logging.getLogger(LOGGER_NAME)
+        logger.info("Adding typo to waitlist")
         # should ts be encrypted as well?
         sa = os.urandom(16)
         typo_hs, typo_pk = derive_public_key(typo, sa)
@@ -418,14 +429,14 @@ class UserTypoDB:
         pk_dict = self.get_approved_pk_dict()
         info_ctx = binascii.b2a_base64(encrypt(pk_dict,
                                                plainInfo))
-        logging.debug("Typo encrypted successfully")
-        logging.debug("{}".format(info_ctx)) # TODO - yes/no?
+        logger.debug("Typo encrypted successfully")
+        logger.debug("{}".format(info_ctx)) # TODO - yes/no?
         
         db = self.getDB()
         w_list_T = db[waitlistT]
 
         w_list_T.insert(dict(ctx = info_ctx))
-        logging.debug("Typo inserted successfully")
+        logger.debug("Typo inserted successfully")
 
     def decrypt_waitlist(self, t_id, t_sk):
         '''
@@ -433,7 +444,8 @@ class UserTypoDB:
         Key = typo (string)
         Value = (typo, t_count, ts_list, typo_hs, t_pk, t_pk_salt)
         '''
-        logging.info("Decrypting waitlist")
+        # logger = logging.getLogger(LOGGER_NAME)
+        logger.info("Decrypting waitlist")
         new_typo_dic = {}
         sk_dic = {t_id:t_sk}
         for line in self.getDB()[waitlistT].all():
@@ -447,14 +459,14 @@ class UserTypoDB:
             typo_str = typo_info['typo_ent_str']
             #pk_salt_b64 = binascii.a2b_base64(typo_info["typo_pk_salt"])
             pk_salt_b64 = typo_info["typo_pk_salt"]
-            logging.debug("Decrypted line and got all necessary information")
+            logger.debug("Decrypted line and got all necessary information")
             if typo not in new_typo_dic:
                 new_typo_dic[typo] = ([ts], typo_hs_b64, t_pk,
                                       pk_salt_b64, typo_str)
             else:
                 new_typo_dic[typo][0].append(ts) # appending ts to ts_list
 
-        logging.debug("Waitlist decrypted successfully")
+        logger.debug("Waitlist decrypted successfully")
         return new_typo_dic
 
     def get_top_N_typos_within_editdistance(self, typoDic, pw, pw_entropy,
@@ -473,7 +485,8 @@ class UserTypoDB:
         @t_id, t_sk - an approved typo id and it's sk
         @updateLog (bool) : whether to update the log about each typo
         """
-        logging.debug("getting the top N typos within edit distance")
+        # logger = logging.getLogger(LOGGER_NAME)
+        logger.debug("getting the top N typos within edit distance")
         dataLine_editDist = self.getDB()[auxT].find_one(desc = EditCutoff)
         if dataLine_editDist == None:
             raise Exception("Edit Dist hadn't been set")
@@ -514,7 +527,7 @@ class UserTypoDB:
                 } #'t_id':typo_id, removing t_id from hashCache TODO
                 typo_list.append(typo_dic_obj)
             else:
-                logging.debug("{} not entered because editDist:{}"+\
+                logger.debug("{} not entered because editDist:{}"+\
                               "and rel_typo_entropy:{}".format(typo_id,editDist,
                                                             rel_typo_str))
 
@@ -552,23 +565,25 @@ class UserTypoDB:
         and now we need to original pw to calc edit_dist
         and the difference in entropy
         '''
-        logging.debug("Getting original pw")
+        # logger = logging.getLogger(LOGGER_NAME)
+        logger.debug("Getting original pw")
         pwLine = self.getDB()[auxT].find_one(desc=ORG_PW)
         # ctx is in base64, so we need to decode it
         pw_ctx = binascii.a2b_base64(pwLine['ctx'])
         jsn_str = decrypt({t_h_id: t_sk}, pw_ctx)
         pw_json = json.loads(jsn_str)
-        logging.debug("Fetched original password successfully")
+        logger.debug("Fetched original password successfully")
         return pw_json['pw'], pw_json['entropy']
 
     def get_glob_hmac_salt_ctx(self):
         """
         Returns the global salt ctx used for computing ID for each typo
         """
-        logging.debug("Getting globl hmac salt")
+        # logger = logging.getLogger(LOGGER_NAME)
+        logger.debug("Getting globl hmac salt")
         saltLine = self.getDB()[auxT].find_one(desc = GLOB_SALT)
         salt_ctx = binascii.a2b_base64(saltLine['ctx'])
-        logging.debug("Fetched global salt successfully")
+        logger.debug("Fetched global salt successfully")
         return salt_ctx
 
     # WILL CHANGE
@@ -578,7 +593,7 @@ class UserTypoDB:
         debug_info =  "the chance is:{}".format(chance) 
         rnd = random()
         debug_info += "rnd is:{}".format(rnd)
-        logging.debug(debug_info)
+        logger.debug(debug_info)
         return rnd <= chance
 
     def get_lowest_M_line_in_hash_cache(self, M):
@@ -598,14 +613,15 @@ class UserTypoDB:
         # right now it uses certain scheme, we should change it later on
 
         # adding if there's free space
-        logging.info("Adding typos from {} to {}".format(waitlistT,hashCacheT))
+        # logger = logging.getLogger(LOGGER_NAME)
+        logger.info("Adding typos from {} to {}".format(waitlistT,hashCacheT))
         hash_cache_size = self.get_hash_cache_size()
         new_typos = len(typo_list)
         emptyPlaces = self.N - hash_cache_size
         addNum = min(emptyPlaces, new_typos)
         info_str =  "N:{}, ADD_NUM: {} , cachSize: {}, new typos: {}, vacant: {}".format(
             self.N, addNum, hash_cache_size, new_typos, emptyPlaces)
-        logging.debug(info_str)
+        logger.debug(info_str)
         
         #if addNum > 0:
         nextLines = self.get_lowest_M_line_in_hash_cache(new_typos - addNum)
@@ -632,7 +648,8 @@ class UserTypoDB:
         """
         Assumes that the auxT is ok with both password and global salt
         """
-        logging.info("Updating aux ctx")
+        # logger = logging.getLogger(LOGGER_NAME)
+        logger.info("Updating aux ctx")
         infoT = self.getDB()[auxT]
         pwCtx = binascii.a2b_base64(infoT.find_one(desc=ORG_PW)['ctx'])
         globSaltCtx = binascii.a2b_base64(infoT.find_one(desc=GLOB_SALT)['ctx'])
@@ -647,19 +664,21 @@ class UserTypoDB:
         infoT.update(dict(desc=ORG_PW, ctx=newPwCtx),['desc'])
         infoT.update(dict(desc=GLOB_SALT, ctx=newGlobSaltCtx),['desc'])
 
-        logging.debug("Aux ctx updated successfully")
+        logger.debug("Aux ctx updated successfully")
         
         
     def clear_waitlist(self):
         self.getDB()[waitlistT].delete()
-        logging.info("{} had been deleted".format(waitlistT))
+        # logger.info("{} had been deleted".format(waitlistT))
+        logging.getLogger(LOGGER_NAME).info("{} had been deleted".format(waitlistT))
 
     def original_password_entered(self, pw, updateLog = True):
         if updateLog:
             self.log_orig_pw_use()
-        logging.info("Original password had been entered by user")
+        # logger = logging.getLogger(LOGGER_NAME)
+        logger.info("Original password had been entered by user")
         pw_salt = self.get_pw_pk_salt()
-        logging.debug("Deriving secret key of the password")
+        logger.debug("Deriving secret key of the password")
         _, pw_sk = derive_secret_key(pw, pw_salt)
         self.update_hash_cache_by_waitlist(ORG_PW, pw_sk, updateLog)
         
@@ -672,7 +691,8 @@ class UserTypoDB:
 
         @updateLog (bool) : whether to update in the log, set to True
         """
-        logging.info("Updating {} by {}".format(hashCacheT,waitlistT))
+        # logger = logging.getLogger(LOGGER_NAME)
+        logger.info("Updating {} by {}".format(hashCacheT,waitlistT))
         waitlistTypoDict = self.decrypt_waitlist(t_h_id, t_sk)
         orig_pw, pw_entropy = self.get_org_pw(t_h_id, t_sk)
         topNList = self.get_top_N_typos_within_editdistance(waitlistTypoDict,
@@ -682,97 +702,3 @@ class UserTypoDB:
         self.add_top_N_typo_list_to_hash_cache(topNList, t_h_id, t_sk)
         self.clear_waitlist()
 
-
-def main2():
-    t_db = UserTypoDB('yuval')
-    return 0
-
-def main():
-    '''
-    first argument is the username
-    '''
-    args = sys.argv[1:]
-    for r in args:
-        print str(r)
-
-    user = args[0]
-    myDB = UserTypoDB(user)
-    DB = myDB.getDB()
-    myDB.clear_waitlist()
-    pw = 'dlue'
-    print " $$$$$$$$$ IS INIT $$$$$$$$$$$$"
-    print str(myDB.is_typotoler_init())
-    myDB.init_typotoler(pw, 3)
-    print " $$$$$$$$$ IS INIT $$$$$$$$$$$$"
-    print (myDB.is_typotoler_init())
-
-    pw_pk_salt = myDB.get_pw_pk_salt()
-    print "pw_pk_salt: {}".format(pw_pk_salt)
-    _, pw_sk = derive_secret_key(pw, pw_pk_salt)
-    getPw = myDB.get_org_pw(ORG_PW, pw_sk)
-    print "{} is the pw we got".format(getPw)
-    print "{} is org pw".format(pw)
-    '''
-    glob_salt_ctx = myDB.get_glob_hmac_salt_ctx()
-    check_glob_salt = decrypt({ORG_PW:pw_sk}, glob_salt_ctx)
-    print "real glob salt: {}".format(myDB.glob_salt_tmp)
-    print "decrypted glob salt: {}".format(check_glob_salt)
-    '''
-
-    myDB.add_typo_to_waitlist("dlUE")
-    myDB.add_typo_to_waitlist("dlUE")
-    myDB.add_typo_to_waitlist("dlUE")
-    myDB.add_typo_to_waitlist("dlUE")
-    myDB.add_typo_to_waitlist("dlUE")
-    myDB.add_typo_to_waitlist("dlUE")
-    myDB.add_typo_to_waitlist("dlUE")
-    
-    myDB.add_typo_to_waitlist("blae")
-    myDB.add_typo_to_waitlist("blue")
-    myDB.add_typo_to_waitlist("clue")
-    myDB.add_typo_to_waitlist("blue")
-    myDB.add_typo_to_waitlist("clue")
-    myDB.add_typo_to_waitlist("blue")
-    myDB.add_typo_to_waitlist("clue")
-    myDB.add_typo_to_waitlist("clue")
-    myDB.add_typo_to_waitlist("shoe")
-    
-    myDB.add_typo_to_waitlist("dlum")
-    myDB.add_typo_to_waitlist("dluep")
-
-
-    print myDB.get_org_pw(ORG_PW, pw_sk)
-    '''
-    dic = myDB.decrypt_waitlist(ORG_PW, pw_sk)
-    top_N_list = myDB.get_top_N_typos_within_editdistance(dic, pw, ORG_PW, pw_sk)
-    print "dic:"
-    print dic
-    print "top N:"
-    print top_N_list
-
-    print "#" * 34
-    myDB.printCachHash()
-    myDB.add_top_N_typo_list_to_hash_cache(top_N_list, ORG_PW, pw_sk)
-    myDB.clear_waitlist()
-    print "~" * 34'''
-    myDB.update_hash_cache_by_waitlist(ORG_PW, pw_sk)
-    myDB.printCachHash()
-    allPks = myDB.get_approved_pk_dict()
-    print "approved pk dict:"
-    print allPks
-
-    t_sk, t_id,isInCache = myDB.fetch_from_cache('blue', False, False)
-    if not isInCache:
-        print "alas, blue not in cache"
-    else:
-        print "fetching pw: {}".format(myDB.get_org_pw(t_id, t_sk))
-    t_sk, t_id,isInCache = myDB.fetch_from_cache('dlum', False, False)
-    if not isInCache:
-        print "alas, dlum not in cache"
-    else:
-        print "fetching pw: {}".format(myDB.get_org_pw(t_id, t_sk))
-
-
-    return 0
-if __name__ == '__main__':
-    main2()
