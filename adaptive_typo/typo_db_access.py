@@ -67,7 +67,7 @@ class UserTypoDB:
     def __str__(self):
         return "UserTypoDB ({})".format(self.user)
 
-    def __init__(self, user,debug_mode=False):
+    def __init__(self, user, debug_mode=False):
         
         self.user = user
 
