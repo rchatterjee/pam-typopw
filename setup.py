@@ -23,6 +23,7 @@ setup(
         # 'python-Levenshtein',
         'word2keypress',
         'dataset',
-        'zxcvbn'
+        'zxcvbn',
+        'requests'
     ]
 )
