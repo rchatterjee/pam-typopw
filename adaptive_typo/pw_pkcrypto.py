@@ -63,7 +63,10 @@ def encrypt(_pk_dict, msg):
 
     # Hash the ids and take first four bytes, just in case ids are too big.
     # CAUTION: this is valid only if the size of pk_dict is <= 65536
-    pkctx = { hash256(_id)[:4]: _encrypt_w_one_pk(pk) for _id, pk in pk_dict.items()}
+    pkctx = { 
+        hash256(unicode(_id))[:4]: _encrypt_w_one_pk(pk) 
+        for _id, pk in pk_dict.items()
+    }
     assert all(map(lambda v: len(v)==32, pkctx.values()))
     serialized_pkctx = ''.join(k+v for k,v in pkctx.items())
 
@@ -110,10 +113,10 @@ def decrypt(_sk_dict, ctx):
     failed_to_decrypt = True
     # For debugging
     ctx_sk_ids = pkctx_dict.keys()
-    give_sk_ids = [hash256(_id)[:4] for _id in sk_dict.keys()]
+    give_sk_ids = [hash256(unicode(_id))[:4] for _id in sk_dict.keys()]
     # End debugging
     for _id, sk in sk_dict.items():
-        h_id = hash256(_id)[:4]
+        h_id = hash256(unicode(_id))[:4]
         if h_id not in pkctx_dict: continue
         aes_k = _decrypt_w_one_sk(sk, pkctx_dict[h_id])
         try:
@@ -125,7 +128,9 @@ def decrypt(_sk_dict, ctx):
             print "Wrong key with id: {}".format(_id)
     if failed_to_decrypt:
         raise ValueError("None of the secret keys ({}) could decrypt the "\
-                         "ciphertext with keys=({})".format(ctx_sk_ids, give_sk_ids))
+                         "ciphertext with keys=({}) (count={})".format(
+                             ctx_sk_ids, give_sk_ids, n_pk)
+        )
     return msg
     
 def hash_pw(pw, sa):

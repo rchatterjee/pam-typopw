@@ -3,7 +3,11 @@ import crypt
 import pwd
 import os, sys
 import datetime
-from adaptive_typo import typo_db_access
+from adaptive_typo import (
+    typo_db_access, 
+    on_wrong_password, 
+    on_correct_password
+)
 
 # module_path = os.path.dirname(os.path.abspath(__file__))
 # CHKPW_EXE = '/sbin/unix_chkpwd'
@@ -48,7 +52,7 @@ def get_password(tmpPrompt, pamh, flags, argv):
 def fix_typos(pw):
     # ret = fast_modify(pw)
     def Top5Corrector(pw):
-        if len(pw)<7: return [pw] 
+        if len(pw)<7: return set([pw])
         return set([
             pw.capitalize(),
             pw.swapcase(),
@@ -58,15 +62,15 @@ def fix_typos(pw):
             pw.upper()
         ])
     # if allow old top5 corrections
-    ret = Top5Corrector(pw) # right now IGORING.
-    ret.add(pw) # Ensure the original `pw` always
+    # ret = Top5Corrector(pw) # right now IGORING.
+    # ret.add(pw) # Ensure the original `pw` always
     #return ret
     return [pw]
 
-def check_pw(user, pws):
+def check_pw(user, pw):
     from subprocess import Popen, PIPE, STDOUT, call
     p = Popen([CHKPW_EXE, user], stdin=PIPE, stdout=PIPE)
-    p.stdin.write('\n'.join(fix_typos(pws)) + '\n')
+    p.stdin.write('\n'.join(fix_typos(pw)) + '\n')
     p.stdin.close()
     try:
         ret = p.wait()
@@ -79,33 +83,6 @@ def check_pw(user, pws):
     #     f.write('Return Code: {}'.format(p.returncode))
     # eprint(''.join(p.stdout.readlines()))
     return p.returncode
-
-def on_correct_password(typo_db, password):
-    eprint("sm_auth: it's the right password") #TODO REMOVE
-    # log the entry of the original pwd
-    if not typo_db.is_typotoler_init():
-        eprint("sm_auth: initiating typoToler") # TODO REMOVE
-        typo_db.init_typotoler(password, NN)
-    typo_db.original_password_entered(password) # also updates the log
-    return True
-
-
-def on_wrong_password(typo_db, password):
-    t_sk, t_id, is_in = typo_db.fetch_from_cache(password) # also updates the log
-    if not is_in: # aka it's not in the cache, 
-        eprint("sm_auth: a new typo!") # TODO REMOVE
-        typo_db.add_typo_to_waitlist(password)
-        return False
-    else: # it's in cach
-        eprint("sm_auth: in cach") # TODO REMOVE
-        typo_db.update_hash_cache_by_waitlist(t_id,t_sk) # also updates the log
-        if typo_db.is_typotoler_on():
-            eprint("Returning SUCEESS TypoToler")
-            return True
-        else:
-            eprint("sm_auth: but typoToler is OFF") # TODO REMOVE
-            return False
-
 
 def pam_sm_authenticate(pamh, flags, argv):
     eprint("** Typo-tolerant password checking!")
