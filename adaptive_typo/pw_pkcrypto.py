@@ -174,7 +174,16 @@ def serialize_pub_key(pk):
     return '{:170s}'.format(pk.export_key(format='OpenSSH'))
 
 
-def compute_id(pwtypo, sk_dict, saltctx):
+def compute_id(pwtypo, salt):
+    """
+    Computes an ID for pwtypo. 
+    @pwtypo (byte string): mistyped (or correct) password
+    @salt (byte string): global salt
+    """
+    h = hmac256(salt, pwtypo)
+    return struct.unpack('<I', h[:4])[0]
+
+def compute_id_w_saltctx(pwtypo, sk_dict, saltctx):
     """
     Computes an ID for pwtypo. 
     @pwtypo (byte string): mistyped (or correct) password

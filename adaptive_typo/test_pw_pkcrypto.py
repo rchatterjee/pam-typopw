@@ -3,7 +3,8 @@ import os
 from pw_pkcrypto import (
     encrypt, decrypt, derive_public_key,
     derive_secret_key, serialize_pub_key,
-    compute_id, hash_pw, match_hashes
+    compute_id, hash_pw, match_hashes,
+    compute_id_w_saltctx
 )
 
 def test_hash_pw():
@@ -52,6 +53,20 @@ def test_derive_key():
     assert serialize_pub_key(sk.public_key()) == pk
 
 
+def test_compute_id_w_saltctx():
+    pwtypo = 'asdfadsfadf'
+    list_keys = {
+        i: ECC.generate(curve='P-256')
+        for i in xrange(10)
+    }
+    pk_dict = {k: v.public_key() for k,v in list_keys.items()}
+    salt = os.urandom(32)
+    saltctx = encrypt(pk_dict, salt)
+    id1 = compute_id_w_saltctx(pwtypo, dict([list_keys.popitem()]), saltctx)
+    id2 = compute_id_w_saltctx(pwtypo, dict([list_keys.popitem()]), saltctx)
+    assert isinstance(id1, int)
+    assert id1 == id2
+
 def test_compute_id():
     pwtypo = 'asdfadsfadf'
     list_keys = {
@@ -61,9 +76,11 @@ def test_compute_id():
     pk_dict = {k: v.public_key() for k,v in list_keys.items()}
     salt = os.urandom(32)
     saltctx = encrypt(pk_dict, salt)
-    id1 = compute_id(pwtypo, dict([list_keys.popitem()]), saltctx)
-    id2 = compute_id(pwtypo, dict([list_keys.popitem()]), saltctx)
+    id1 = compute_id(pwtypo, salt)
+    id2 = compute_id(pwtypo, salt)
+    id3 = compute_id_w_saltctx(pwtypo, dict([list_keys.popitem()]), saltctx)
     assert isinstance(id1, int)
     assert id1 == id2
-
+    assert id1 == id3
+    
 test_functionality()

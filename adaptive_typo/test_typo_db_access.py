@@ -21,7 +21,7 @@ def DB_path():
     # TODO _ for some reason it does't work
     user = get_username()
     db = UserTypoDB(user)
-    return db.get_DB_path(user)
+    return db.get_db_path(user)
     #return "/home/{}/{}.db".format(get_username(), DB_NAME)
 
 def remove_DB():
@@ -35,7 +35,7 @@ def start_DB():
 
 def test_login_settings():
     typoDB = start_DB()
-    #db = typoDB.getDB()
+    #db = typoDB.getdb()
     assert typoDB.is_allowed_login()
     typoDB.disallow_login()
     assert not typoDB.is_allowed_login()
@@ -49,10 +49,10 @@ def test_added_to_hash(isStandAlone = True):
     # typoDB.add_typo_to_waitlist(t_2())
     typoDB.add_typo_to_waitlist(t_5())
     typoDB.add_typo_to_waitlist(t_3())
-    assert len(typoDB.getDB()[waitlistT]) == 4
+    assert len(typoDB.getdb()[waitlistT]) == 4
     typoDB.original_password_entered(get_pw())
-    assert len(typoDB.getDB()[waitlistT]) == 0
-    hash_t = typoDB.getDB()[hashCacheT]
+    assert len(typoDB.getdb()[waitlistT]) == 0
+    hash_t = typoDB.getdb()[hashCacheT]
     assert len(hash_t) == 2
     _, t1_h, isIn_t1 = typoDB.fetch_from_cache(t_1(), False, False)
     assert isIn_t1
@@ -69,23 +69,23 @@ def test_added_to_hash(isStandAlone = True):
 def test_alt_typo(isStandAlone = True):
     print "TEST ALT TYPO"
     typoDB = test_added_to_hash(False)
-    hash_t = typoDB.getDB()[hashCacheT]
+    hash_t = typoDB.getdb()[hashCacheT]
     assert len(hash_t) > 0
     count = len(hash_t)
     for ii in range(5):
         typoDB.add_typo_to_waitlist(t_4())
-##    print "added 5 typos to waitlist"
+    ##    print "added 5 typos to waitlist"
     t1_sk, t1_h, isIn_t1 = typoDB.fetch_from_cache(t_1(), False, False)
     typo_hash_line = hash_t.find_one(H_typo=t1_h)
     assert typo_hash_line
     pk = typo_hash_line['pk']
     salt = typo_hash_line['salt']
     assert isIn_t1
-##    print isIn_t1
-##    print " t1_sk:{}\n t1_h:{}\n pk:{}\n salt:{}".format(str(t1_sk),
-##                                                         t1_h, pk,
-##                                                         salt)
-##    print "^^^^^^"
+    ##    print isIn_t1
+    ##    print " t1_sk:{}\n t1_h:{}\n pk:{}\n salt:{}".format(str(t1_sk),
+    ##                                                         t1_h, pk,
+    ##                                                         salt)
+    ##    print "^^^^^^"
     typoDB.update_hash_cache_by_waitlist(t1_h,t1_sk)
     assert len(hash_t) == count+1
     if isStandAlone:
@@ -99,9 +99,9 @@ def test_many_entries(isStandAlone = True):
 
     typoDB = start_DB()
     
-    log_t = typoDB.getDB()['Log']
-    hash_t = typoDB.getDB()['HashCache']
-    wait_t = typoDB.getDB()['Waitlist']
+    log_t = typoDB.getdb()['Log']
+    hash_t = typoDB.getdb()['HashCache']
+    wait_t = typoDB.getdb()['Waitlist']
 
     print "start log:{}".format(len(log_t))
     
