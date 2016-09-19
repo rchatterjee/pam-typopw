@@ -287,7 +287,7 @@ class UserTypoDB:
         logger.debug("Computing id and relative entropy for typo")
         pw, pw_ent = self.get_orig_pw(t_h_id, sk)
         global_salt = self.get_global_salt(t_h_id, sk)
-        typo_id = compute_id(btyes(typo.encode('utf-8')), global_salt)
+        typo_id = compute_id(bytes(typo.encode('utf-8')), global_salt)
         typo_ent = get_entropy_stat(typo)
         rel_ent = typo_ent - pw_ent
         logger.debug("computed typo id:{}, and relative entropy:{}".format(
@@ -307,12 +307,13 @@ class UserTypoDB:
         '''
         logger.debug("Searching for typo in {}".format(hashCacheT))
         ts = get_time_str()
-        cachT = self._db[hashCacheT]
-        for cacheline in cachT:
+        cacheT = self._db[hashCacheT]
+        for cacheline in cacheT:
             sa = binascii.a2b_base64(cacheline['salt'])
             hs_bytes, sk = derive_secret_key(typo, sa)
             t_h_id = cacheline['H_typo'] # the hash id is in base64 form
             hsInTable = binascii.a2b_base64(t_h_id)
+            # Check if the hash(typo, sa) matches the stored hash 
             if hsInTable != hs_bytes: continue
 
             # we removed the typo_id from the hashCache for security reasons
@@ -328,7 +329,7 @@ class UserTypoDB:
             if increaseCount:
                 logger.debug("Typo's count had been increased")
                 typo_count += 1
-                cachT.update(dict(H_typo=t_h_id, count=typo_count), ['H_typo'])
+                cacheT.update(dict(H_typo=t_h_id, count=typo_count), ['H_typo'])
             if updateLog:
                 self.update_log(
                     ts, typo_id, editDist, rel_typo_str, isInTop5,'True', 
@@ -372,14 +373,13 @@ class UserTypoDB:
         '''
         logger.debug("Getting approved pk dictionary")
         db = self._db
-        cachT = db[hashCacheT]
+        cacheT = db[hashCacheT]
         pk_dict = {}
         
         # all approved typos' pk
         logger.debug("Getting from {}".format(hashCacheT)) 
-        for cachLine in cachT:
-            typo_h_id = cachLine['H_typo'].encode('utf-8') # TODO remove encoding?
-
+        for cachLine in cacheT:
+            typo_h_id = cachLine['H_typo']
             # the typo ids for the purpose of pk_dict are the base64 of their
             # hashes (RC: Why not use one single kind of id)
 
@@ -387,7 +387,7 @@ class UserTypoDB:
             logger.debug("Got {}'s pk:{}".format(typo_h_id,typo_pk))
             # pk is a string so can be stored as is in the table as is
             pk_dict[typo_h_id] = typo_pk
-        
+
         # original pw's pk
         logger.debug("Getting from {}".format(auxT))
         info_t = db[auxT]
@@ -493,7 +493,7 @@ class UserTypoDB:
             ts_list, t_hs_bs64, typo_pk, t_sa_bs64, typo_ent  = typoDic[typo]
             count = len(ts_list)
             editDist = distance(unicode(pw), unicode(typo))
-            typo_id = compute_id(typo.encode('utf-8'), global_salt)
+            typo_id = compute_id(bytes(typo.encode('utf-8')), global_salt)
             isTop5Fixes = str(self.is_in_top_5_fixes(pw, typo))
             rel_typo_str = typo_ent - pw_entropy ###
             # will add it to the information inserted in the list append
