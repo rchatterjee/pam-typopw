@@ -108,6 +108,10 @@ def decrypt(_sk_dict, ctx):
         return aes1block(ki, pkctx, op='decrypt')
     msg = ''
     failed_to_decrypt = True
+    # For debugging
+    ctx_sk_ids = pkctx_dict.keys()
+    give_sk_ids = [hash256(_id)[:4] for _id in sk_dict.keys()]
+    # End debugging
     for _id, sk in sk_dict.items():
         h_id = hash256(_id)[:4]
         if h_id not in pkctx_dict: continue
@@ -120,9 +124,10 @@ def decrypt(_sk_dict, ctx):
         except ValueError:
             print "Wrong key with id: {}".format(_id)
     if failed_to_decrypt:
-        raise ValueError("None of the secret keys could decrypt the ciphertext")
+        raise ValueError("None of the secret keys ({}) could decrypt the "\
+                         "ciphertext with keys=({})".format(ctx_sk_ids, give_sk_ids))
     return msg
-
+    
 def hash_pw(pw, sa):
     """
     Compute the slow hash of the password

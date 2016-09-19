@@ -21,7 +21,7 @@ from word2keypress import distance
 from random import random # maybe something else?
 
 LOGGER_NAME = "typoToler"
-DB_NAME = "typoToler"
+DB_NAME = ".typoToler"
 ORIG_PW = 'OriginalPw'
 ORIG_SK_SALT = 'OriginalPwSaltForSecretKey'
 ORIG_PW_CTX = 'OrgignalPwCtx'       # original password's t_id
@@ -83,11 +83,26 @@ def encode_encrypt(pk_dict, msg):
     return binascii.b2a_base64(encrypt(pk_dict, msg))
 
 def decode_decrypt(sk_dict, ctx):
-    return decrypt(sk_dict, binascii.a2b_base64(ctx))
-
-CONFIG_FILE = "typodb.cfg"
-class UserTypoDB:
+    try:
+        return decrypt(sk_dict, binascii.a2b_base64(ctx))
+    except ValueError as e:
+        logger.debug('ctx={}, sk_dict={}'.format(ctx, sk_dict))
+        logger.debug(e)
+        raise(e)
     
+
+def get_time_str():
+    """
+    Returns the timestamp in a string, in a consistent format
+    which works in linux and can be stored in the DB
+    (unlike datetime.datetime, for example)
+    """
+    return str(time.time())
+
+def get_entropy_stat(typo):
+    return password_strength(typo)['entropy']
+
+class UserTypoDB:
     def __str__(self):
         return "UserTypoDB ({})".format(self._user)
 
@@ -136,7 +151,6 @@ class UserTypoDB:
         homedir = pwd.getpwnam(username).pw_dir
         return "{}/{}.log".format(homedir,DB_NAME)
     
-
     def is_typotoler_init(self):
         """
         Returns whether the typotoler has been set (might be installed
@@ -165,7 +179,6 @@ class UserTypoDB:
         self.isON = False
         logger.info("typoToler set to OFF")
         
-
     def allow_login(self):
         if not self.is_typotoler_init():
             raise Exception("Typotoler DB wasn't initiated yet!")
@@ -234,7 +247,7 @@ class UserTypoDB:
         global_hmac_salt = os.urandom(16)
         global_salt_cipher = binascii.b2a_base64(encrypt(pk_dict, global_hmac_salt))
         
-        pw_entropy = encode_encrypt(pk_dict, bytes(self.get_entropy_stat(pw)))
+        pw_entropy = encode_encrypt(pk_dict, bytes(get_entropy_stat(pw)))
         pw_cipher = encode_encrypt(pk_dict, pw)
         
         info_t.insert_many([
@@ -275,7 +288,7 @@ class UserTypoDB:
         pw, pw_ent = self.get_orig_pw(t_h_id, sk)
         global_salt = self.get_global_salt(t_h_id, sk)
         typo_id = compute_id(btyes(typo.encode('utf-8')), global_salt)
-        typo_ent = self.get_entropy_stat(typo)
+        typo_ent = get_entropy_stat(typo)
         rel_ent = typo_ent - pw_ent
         logger.debug("computed typo id:{}, and relative entropy:{}".format(
             typo_id,rel_ent))
@@ -293,7 +306,7 @@ class UserTypoDB:
         @updateLog (bool) : whether to insert an update to the log
         '''
         logger.debug("Searching for typo in {}".format(hashCacheT))
-        ts = self.get_time_str()
+        ts = get_time_str()
         cachT = self._db[hashCacheT]
         for cacheline in cachT:
             sa = binascii.a2b_base64(cacheline['salt'])
@@ -339,15 +352,15 @@ class UserTypoDB:
         ))
 
     def log_orig_pw_use(self):
-        ts = self.get_time_str()
+        ts = get_time_str()
         self.update_log(ts, ORIG_PW,'0','0','False','False','True')
                                   
     def log_end_of_session(self):
-        ts = self.get_time_str()
+        ts = get_time_str()
         self._db[logT].insert(dict(t_id=END_OF_SESS, timestamp=ts))
 
     def log_message(self, msg):
-        ts = self.get_time_str()
+        ts = get_time_str()
         self._db[logT].insert(dict(t_id=msg, timestamp=ts))
         
     def get_approved_pk_dict(self):
@@ -385,22 +398,11 @@ class UserTypoDB:
         logger.debug("The pk dictionary was drawn successfully")
         return pk_dict
 
-    def get_time_str(self):
-        """
-        Returns the timestamp in a string, in a consistent format
-        which works in linux and can be stored in the DB
-        (unlike datetime.datetime, for example)
-        """
-        return str(time.time())
-
-    def get_entropy_stat(self, typo):
-        return password_strength(typo)['entropy']
-
     def add_typo_to_waitlist(self, typo):
         """
         Adds the typo to the waitlist.
         saves the timestamp as well (for logging reasons)
-        **** for now: (might be change from computation time reasons) ****
+        **** for now: (might change from computation time reasons) ****
         computes an hash for the typo (+sa)
         encryptes everything in a json format
         enc(json(dict(...)))
@@ -408,31 +410,28 @@ class UserTypoDB:
 
         @typo (string) : the user's passwrod typo
         """
-        # logger = logging.getLogger(LOGGER_NAME)
         logger.info("Adding typo to waitlist")
         # should ts be encrypted as well?
         sa = os.urandom(16)
         typo_hs, typo_pk = derive_public_key(typo, sa)
+        ts = get_time_str()
 
-        ts = self.get_time_str()
-        typo_str = self.get_entropy_stat(typo)
+        typo_entropy = get_entropy_stat(typo)
         plainInfo = json.dumps({
             "typo_hs": binascii.b2a_base64(typo_hs),
-            "typo_pk": typo_pk, #
+            "typo_pk": typo_pk,
             "typo_pk_salt": binascii.b2a_base64(sa),
             "timestamp": ts,
             "typo": typo,
-            'typo_ent_str': typo_str
+            'typo_ent_str': typo_entropy
         })
         pk_dict = self.get_approved_pk_dict()
         info_ctx = binascii.b2a_base64(encrypt(pk_dict, plainInfo))
         logger.debug("Typo encrypted successfully")
         logger.debug("{}".format(info_ctx)) # TODO - yes/no?
         
-        db = self._db
-        w_list_T = db[waitlistT]
-
-        w_list_T.insert(dict(ctx = info_ctx))
+        w_list_T = self._db[waitlistT]
+        w_list_T.insert(dict(ctx=info_ctx))
         logger.debug("Typo inserted successfully")
 
     def decrypt_waitlist(self, t_id, t_sk):
@@ -669,8 +668,7 @@ class UserTypoDB:
         
     def clear_waitlist(self):
         self._db[waitlistT].delete()
-        # logger.info("{} had been deleted".format(waitlistT))
-        logging.getLogger(LOGGER_NAME).info("{} had been deleted".format(waitlistT))
+        logger.info("{} had been deleted".format(waitlistT))
 
     def original_password_entered(self, pw, updateLog = True):
         if updateLog:

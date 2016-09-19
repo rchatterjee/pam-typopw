@@ -29,7 +29,7 @@ def remove_DB():
 
 def start_DB():
     remove_DB()
-    db = UserTypoDB(get_username())
+    db = UserTypoDB(get_username(), debug_mode=True)
     db.init_typotoler(get_pw(), NN)
     return db
 
@@ -86,7 +86,7 @@ def test_alt_typo(isStandAlone = True):
     ##                                                         t1_h, pk,
     ##                                                         salt)
     ##    print "^^^^^^"
-    typoDB.update_hash_cache_by_waitlist(t1_h,t1_sk)
+    typoDB.update_hash_cache_by_waitlist(t1_h, t1_sk)
     assert len(hash_t) == count+1
     if isStandAlone:
         remove_DB()
