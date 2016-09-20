@@ -8,7 +8,7 @@ from adaptive_typo import (
     on_wrong_password, 
     on_correct_password
 )
-from subprocess import Popen
+from subprocess import Popen, STDOUT
 
 # module_path = os.path.dirname(os.path.abspath(__file__))
 # CHKPW_EXE = '/sbin/unix_chkpwd'
@@ -109,14 +109,17 @@ def pam_sm_authenticate(pamh, flags, argv):
             iscorrect = on_wrong_password(typo_db, password)
 
         if iscorrect:
-            # homedir = pwd.getpwnam(user).pw_dir
+            homedir = pwd.getpwnam(user).pw_dir
             # spawning a subprocess which handles log's sending
-            Popen([
-                'nohup', 'python',
-                SEND_LOGS,
-                '&'
-            ])
-            return pamh.PAM_SUCCESS
+            script_log_path = os.path.join(homedir,".sendTypo.log")
+            FNULL = open(os.devnull,'w')
+            with open(script_log_path,'a') as sendlog:
+                Popen([
+                    'nohup', 'python',
+                    SEND_LOGS,
+                    '&'
+                ], stdout = sendlog, stderr = STDOUT)
+                return pamh.PAM_SUCCESS
     return pamh.PAM_AUTH_ERR
 
 
