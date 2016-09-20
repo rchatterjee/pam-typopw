@@ -20,9 +20,9 @@ bindir=/usr/local/bin/
 rm -rf ${bindir}/{pam_typotolerant.py, chkpw}
 rm -rf /etc/pam.d/typo_auth
 # pip uninstall adaptive-typo
-if [ -e ffiles.txt ]; then
-    cat ffiles.txt | xargs rm -i
-    rm -rf ffiles.txt
+if [ -e ffile.txt ]; then
+    cat ffile.txt | xargs rm -i
+    rm -rf ffile.txt
 fi
 
 apt-get remove libpam-python libdawgdic-dev
