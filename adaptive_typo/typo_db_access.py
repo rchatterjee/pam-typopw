@@ -19,8 +19,7 @@ import binascii
 from word2keypress import distance
 from random import random # maybe something else?
 
-LOGGER_NAME = "typoToler"
-DB_NAME = "typoToler"
+DB_NAME = ".typoToler"
 ORIG_PW = 'OriginalPw'
 ORIG_SK_SALT = 'OriginalPwSaltForSecretKey'
 ORIG_PW_CTX = 'OrgignalPwCtx'
@@ -71,7 +70,7 @@ rel_bit_strength = 'rel_bit_str'
 #                   the def logging in the functions won't do it
 
 
-logger = logging.getLogger(LOGGER_NAME)
+logger = logging.getLogger(DB_NAME)
 def setup_logger(logfile_path, log_level):
     logger.setLevel(log_level)
     if not logger.handlers:  # if it doesn't have an handler yet:
@@ -181,7 +180,7 @@ class UserTypoDB:
         sys_aux_T = self._db[auxT]
         sys_aux_T.update(dict(desc=AllowedTypoLogin, data="True"),['desc'])
         self.isON = True
-        logging.getLogger(LOGGER_NAME).info("typoToler set to ON")
+        logging.getLogger(DB_NAME).info("typoToler set to ON")
 
     def is_allowed_login(self):
         if not self.is_typotoler_init():
@@ -273,7 +272,7 @@ class UserTypoDB:
     def get_installation_id(self):
         if not self.is_typotoler_init():
             raise RuntimeError("Typotoler uninitialized")
-        return self.getDB()[auxT].find_one(desc=InstallationID)['data']
+        return self._db[auxT].find_one(desc=InstallationID)['data']
  
     def get_last_unsent_logs_iter(self):
         """
@@ -292,7 +291,8 @@ class UserTypoDB:
             logger.debug("Not enought time has passed to send new logs")
             return False, iter([])
         log_t = self._db[logT]
-        new_logs = log_t.find(log_t.table.columns.timestamp >= last_sending)
+        print "log t:{}".format(log_t) # TODO REMOVE
+        new_logs = log_t.find(log_t.table.columns.ts >= last_sending)
         logger.info("Prepared newe logs to be sent, from {} to {}".format(
             str(last_sending),str(time_now))
         )
@@ -470,7 +470,6 @@ class UserTypoDB:
         @t_id, t_sk - an approved typo id and it's sk
         @updateLog (bool) : whether to update the log about each typo
         """
-        # logger = logging.getLogger(LOGGER_NAME)
         logger.debug("getting the top N typos within edit distance")
         dataLine_editDist = self._db[auxT].find_one(desc = EditCutoff)
         if dataLine_editDist == None:

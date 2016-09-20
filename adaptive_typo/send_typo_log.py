@@ -1,4 +1,4 @@
-from typo_db_access import UserTypoDB#,LastSent
+from adaptive_typo.typo_db_access import UserTypoDB #,LastSent
 import json
 import pwd
 import os
@@ -11,7 +11,7 @@ import requests
 
 user =  pwd.getpwuid(os.getuid()).pw_name
 t_db = UserTypoDB(user)
-# t_db.update_last_log_sent_time('0') # TODO REMOVE ! 
+t_db.update_last_log_sent_time('0') # TODO REMOVE ! 
 need_to_send, iter_data = t_db.get_last_unsent_logs_iter()
 #need_to_send = True
 #iter_data = range(100000)
@@ -19,8 +19,9 @@ last_time = 0
 list_of_logs = []
 if need_to_send:
     for row in iter_data:
+        # print "row to send:{}".format(row)
         list_of_logs.append(row)
-        last_time = min(last_time,row['timestamp'])
+        last_time = min(last_time,row['ts'])
         
     install_id = str(t_db.get_installation_id())
     dbdata = json.dumps(list_of_logs)

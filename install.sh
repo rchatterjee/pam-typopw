@@ -28,7 +28,7 @@ python setup.py install \
        --record ffile.txt
        # --install-lib=$libdir \
 
-cp -v -f pam_typotolerant.py chkpw $bindir/
+cp -v -f pam_typotolerant.py chkpw adaptive_typo/send_typo_log.py $bindir/
 unix_chkpwd=$(which unix_chkpwd)
 chkpw=$bindir/chkpw
 if [[ ! -z "$unix_chkpwd" ]];
