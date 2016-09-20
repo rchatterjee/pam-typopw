@@ -1,6 +1,6 @@
 from Crypto.PublicKey import ECC
 import os
-from pw_pkcrypto import (
+from adaptive_typo.pw_pkcrypto import (
     encrypt, decrypt, derive_public_key,
     derive_secret_key, serialize_pub_key,
     compute_id, hash_pw, match_hashes,

@@ -9,7 +9,7 @@ from adaptive_typo.typo_db_access import (
 from adaptive_typo.pw_pkcrypto import (
     encrypt, decrypt, derive_public_key,
     derive_secret_key, update_ctx, compute_id
-) # TODO REMOVE
+)
 import pytest
 
 NN = 5

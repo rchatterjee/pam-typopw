@@ -16,7 +16,8 @@ def hash256(*args):
     assert len(args)>0, "Should give at least 1 message"
     h = SHA256.new(bytes(len(args)) + bytes(args[0]))
     for m in args[1:]:
-        h.update(bytes(m))
+        h.update(bytes(m)); 
+        h.update(bytes(len(m)))
     h.update(bytes(len(args)))
     return h.digest()
 
