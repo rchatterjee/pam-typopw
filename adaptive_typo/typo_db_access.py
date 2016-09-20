@@ -49,6 +49,11 @@ auxT = 'AuxSysData' # holds system's setting as well as glob_salt and enc(pw)
 # auxiley info 'desc's:
 AllowedTypoLogin = "AllowedTypoLogin"
 InstallDate = "InstallDate"
+InstallationID = "Install_id"
+LastSent="Last_sent"
+SendEvery="SendEvery(sec)"
+UPDATE_GAPS= 24 * 60 * 60 # 24 hours, in seconds
+
 # LastPwChange = "LastPwChange"  # not yet implemented
 # PwTypoPolicy = "PwTypoPolicy"  # not yet implemented
 CacheSize = "CacheSize"
@@ -210,11 +215,19 @@ class UserTypoDB:
 
         # self.init_aux_data(N, typoTolerOn, maxEditDist)
         # *************** Initializing Aux Data *************************
+        install_id = binascii.b2a_base64(os.urandom(8))
+        install_time = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())
+        last_sent_time = get_time_str()
+
         logger.info("Initializing the auxiliary data base ({})".format(auxT))
         db[auxT].insert_many([
             dict(desc=CacheSize, data=str(N)),
             dict(desc=AllowedTypoLogin, data=str(typoTolerOn)),
-            dict(desc=EditCutoff, data=str(maxEditDist))
+            dict(desc=EditCutoff, data=str(maxEditDist)),
+            dict(desc=InstallationID, data=install_id),
+            dict(desc=InstallDate, data=install_time),
+            dict(desc=LastSent, data=last_sent_time),
+            dict(desc=SendEvery, data=str(UPDATE_GAPS))
         ])
         self.N = N
         self.isON = typoTolerOn
@@ -255,6 +268,40 @@ class UserTypoDB:
             typo.capitalize(), typo.swapcase(), typo.lower(), 
             typo.upper(), typo[1:], typo[:-1]
         )
+
+
+    def get_installation_id(self):
+        if not self.is_typotoler_init():
+            raise RuntimeError("Typotoler uninitialized")
+        return self.getDB()[auxT].find_one(desc=InstallationID)['data']
+ 
+    def get_last_unsent_logs_iter(self):
+        """
+        Check what was the last time the log has been sent,
+        And returns whether the log should be sent
+        """
+        if not self.is_typotoler_init():
+            return False, iter([])
+        aux_t = self._db[auxT]
+        last_sending = float(aux_t.find_one(desc=LastSent)['data'])
+        update_gap = float(aux_t.find_one(desc=SendEvery)['data'])
+        time_now = time.time()
+        passed_enough_time = ((time_now - last_sending) >= update_gap)
+        if not passed_enough_time:
+            logger.debug("Last sent time:{}".format(str(last_sending)))
+            logger.debug("Not enought time has passed to send new logs")
+            return False, iter([])
+        log_t = self._db[logT]
+        new_logs = log_t.find(log_t.table.columns.timestamp >= last_sending)
+        logger.info("Prepared newe logs to be sent, from {} to {}".format(
+            str(last_sending),str(time_now))
+        )
+        return True, new_logs
+
+    def update_last_log_sent_time(self,sent_time=''):
+        if not sent_time:
+            sent_time = self.get_time_str()
+        self._db[auxT].update(dict(desc=LastSent, data=float(sent_time)), ['desc'])
 
     def _hmac_id(self, typo, sk_dict):
         """
