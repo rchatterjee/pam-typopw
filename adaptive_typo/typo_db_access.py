@@ -291,7 +291,7 @@ class UserTypoDB:
             logger.debug("Not enought time has passed to send new logs")
             return False, iter([])
         log_t = self._db[logT]
-        print "log t:{}".format(log_t) # TODO REMOVE
+        # print "log t:{}".format(log_t) # TODO REMOVE
         new_logs = log_t.find(log_t.table.columns.ts >= last_sending)
         logger.info("Prepared newe logs to be sent, from {} to {}".format(
             str(last_sending),str(time_now))
