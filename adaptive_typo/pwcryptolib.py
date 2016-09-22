@@ -9,12 +9,16 @@ from Crypto.Cipher import AES
 from Crypto.Hash import SHA256, HMAC
 import os
 import struct
+
+# In production let's make it 10000. 150 millisecond
 HASH_CNT = 1000 # Number of hashes to compute one SHA256 takes 15 microsec,
 
 def hash256(*args):
     """short function for Hashing the arguments with SHA-256"""
     assert len(args)>0, "Should give at least 1 message"
-    h = SHA256.new(bytes(len(args)) + bytes(args[0]))
+    assert all(isinstance(m, (bytes, basestring)) for m in args), \
+        "All inputs should be byte string"
+    h = SHA256.new(bytes(len(args)) + bytes(args[0]) + bytes(len(args[0])))
     for m in args[1:]:
         h.update(bytes(m)); 
         h.update(bytes(len(m)))

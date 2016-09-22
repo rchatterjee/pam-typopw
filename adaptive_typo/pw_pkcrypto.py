@@ -1,6 +1,8 @@
 from Crypto.Protocol.KDF import PBKDF2
 from Crypto.PublicKey import ECC
 from Crypto.Cipher import AES
+from Crypto.Signature import DSS
+from Crypto.Hash import SHA256
 import os, struct
 from pwcryptolib import (HASH_CNT, RandomWSeed, hash256, hmac256, aes1block)
 import joblib
@@ -132,7 +134,24 @@ def decrypt(_sk_dict, ctx):
                              ctx_sk_ids, give_sk_ids, n_pk)
         )
     return msg
-    
+
+def sign(sk, msg):
+    signer = DSS.new(sk, 'fips-186-3')
+    h = SHA256.new(msg)
+    return signer.sign(h)
+
+def verify(pk, msg, sgn):
+    if not isinstance(pk, ECC.EccKey):
+        pk = ECC.import_key(pk)
+    verifier = DSS.new(pk, 'fips-186-3')
+    h = SHA256.new(msg)
+    try:
+        verifier.verify(h, sgn)
+        return True
+    except ValueError as e:
+        print("VerifyFailed: {}".format(e))
+        return False
+
 def hash_pw(pw, sa):
     """
     Compute the slow hash of the password
@@ -142,36 +161,71 @@ def hash_pw(pw, sa):
     """
     return hash256(PBKDF2(pw, sa, dkLen=16, count=HASH_CNT)) # SLOW
 
-def derive_public_key(pw, sa):
+def derive_public_key(pw, sa, for_='encryption'):
     """
     derive the public key from a password (pw) and salt (sa).
     @pw (bytes): password
     @sa (bytes): salt (must be >= 16 bytes long)
+    @for_ (string or bytes): denotes what is the key good for.
+           Allowed values: ['encryption', 'verify', 'both']
+           Though any key is good for both, but the caller shouold ensure, 
+           that signing key is not used for encryption and vice-versa.
+           **There is no security guarantee provided if a key is used
+             for both encrpytion and signing** 
+           'both' will return two keys: one for encryption and another for verifying
+
+    @Returns the slow hash of the password, and public key(s) in serialized format 
     """
-    pwhash, ec_elem = _derive_key(pw, sa)
-    return pwhash, serialize_pub_key(ec_elem.public_key())
+    keys_for_ = ('encryption', 'verify', 'both')
+    assert for_ in keys_for_, \
+        "parameter for_ should be one of {}. Got {}".format(keys_for_, for_)
+    if for_ != 'both':
+        pwhash, ec_elem = _derive_key(pw, sa, for_)
+        return pwhash, serialize_pub_key(ec_elem.public_key())
+    else:
+        pwhash, (ec_elem_enc, ec_elem_sgn) = _derive_key(pw, sa, for_)
+        return (pwhash,
+                (serialize_pub_key(ec_elem_enc.public_key()),
+                 serialize_pub_key(ec_elem_sgn.public_key())))
 
 
-def derive_secret_key(pw, sa):
+def derive_secret_key(pw, sa, for_='decryption'):
     """
     Derive the secret keey from the password (pw) and the salt
+    Allowed values: ['decryption', 'sign', 'both']
     CAUTION: This returns key as raw objects, cannot be put in any database
+    @Returns the slow hash of the password, and ECC element(s).
+    If for_ = 'both', the first ECC element is for encryption, and the second 
+    one is for 'signing'
     """
-    pwhash, ec_elem = _derive_key(pw, sa)
-    return pwhash, ec_elem
-
-
-def _derive_key(pw, sa):
+    keys_for_ = ('decryption', 'sign', 'both')
+    assert for_ in keys_for_, \
+        "parameter for_ should be one of {}. Got {}".format(keys_for_, for_)
+    return _derive_key(pw, sa, for_)
+    
+def _derive_key(pw, sa, for_):
     """derives the ECC public key from the password using the salt.
     @pw (byte string): password
     @sa (byte string): salt (must be >= 16 bytes long)
+    @for_ (string): allowed values, ('encryption', 'decryption', 
+                                     'verify', 'sign', 'both)
+    @Returns: the pwhash and one or two ECC element (depending on the for_)
     """
     curve = 'secp256r1' # 
-    rand_seed = PBKDF2(pw, sa, dkLen=16, count=HASH_CNT) # SLOW
-    rand_num_generator = RandomWSeed(rand_seed, 1024)
-    pwhash = hash256(rand_seed) # The last hash to be stored in the cache
-    ec_elem = ECC.generate(curve=curve, randfunc=rand_num_generator.get_random_bytes)
-    return pwhash, ec_elem # ec_elem can be used to find pk or sk. 
+    intermediate_hash = PBKDF2(pw, sa, dkLen=16, count=HASH_CNT) # SLOW
+    pwhash = hash256(intermediate_hash) # The last hash to be stored in the cache
+    seed_enc = hash256(intermediate_hash, b'encryption|decryption')
+    seed_sgn = hash256(intermediate_hash, b'sign|verify')
+    prg_enc = RandomWSeed(seed_enc, 1024)
+    prg_sgn = RandomWSeed(seed_sgn, 1024)
+    if for_ == 'both':
+        return (pwhash,
+                (ECC.generate(curve=curve, randfunc=prg_enc.get_random_bytes),
+                 ECC.generate(curve=curve, randfunc=prg_sgn.get_random_bytes)))
+    elif for_ in ('encryption', 'decryption'):
+        return pwhash, ECC.generate(curve=curve, randfunc=prg_enc.get_random_bytes)
+    elif for_ in ('sign', 'verify'):
+        return pwhash, ECC.generate(curve=curve, randfunc=prg_sgn.get_random_bytes)
 
 
 def serialize_pub_key(pk):
