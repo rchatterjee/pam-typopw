@@ -11,7 +11,7 @@ import requests
 
 user =  pwd.getpwuid(os.getuid()).pw_name
 t_db = UserTypoDB(user)
-t_db.update_last_log_sent_time('0') # TODO REMOVE ! 
+#t_db.update_last_log_sent_time('0') # TODO REMOVE ! 
 need_to_send, iter_data = t_db.get_last_unsent_logs_iter()
 #need_to_send = True
 #iter_data = range(100000)

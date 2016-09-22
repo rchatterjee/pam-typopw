@@ -22,10 +22,15 @@ from random import random # maybe something else?
 DB_NAME = ".typoToler"
 ORIG_PW = 'OriginalPw'
 ORIG_SK_SALT = 'OriginalPwSaltForSecretKey'
-ORIG_PW_CTX = 'OrgignalPwCtx'
+ORIG_PW_CTX = 'OrignalPwCtx'
 ORIG_PW_ENTROPY_CTX = 'OrgignalPwEntropyCtx'
 GLOBAL_SALT_CTX = 'GlobalSaltCtx'
-ORIG_PW_PK = 'PublicKey'
+
+ORIG_PW_ENC_PK = 'EncPublicKey'
+ORIG_PW_SGN_PK = 'SgnPublicKey'
+pksT = "Pwd_pk_t"
+PK_DB_PATH = '/etc/adaptive_typo'
+PK_DB_NAME = DB_NAME+".pk"
 
 # default values
 CACHE_SIZE = 5
@@ -44,6 +49,8 @@ waitlistT = 'Waitlist'
 # table col: base64(enc(json(typo, ts, hash, salt, entropy)))'
 auxT = 'AuxSysData' # holds system's setting as well as glob_salt and enc(pw)
 # table cols: desc, data
+
+
 
 # auxiley info 'desc's:
 AllowedTypoLogin = "AllowedTypoLogin"
@@ -108,6 +115,15 @@ def get_entropy_stat(typo):
     return password_strength(typo)['entropy']
 
 class UserTypoDB:
+
+    class TypoDBError(Exception):
+        # all errors that have to do with the typoDB state
+        pass
+    class NoneInitiatedDB(TypoDBError):
+        pass
+    class CorruptedDB(TypoDBError):
+        pass
+    
     def __str__(self):
         return "UserTypoDB ({})".format(self._user)
 
@@ -116,8 +132,10 @@ class UserTypoDB:
         self._user = user  # this is a real user.
         homedir = pwd.getpwnam(self._user).pw_dir 
         self._db_path = "{}/{}.db".format(homedir, DB_NAME)
+        self._pk_db_path="{}/{}.db".format(PK_DB_PATH,PK_DB_NAME) #
         self._log_path = "{}/{}.log".format(homedir, DB_NAME)
         self._db = dataset.connect('sqlite:///{}'.format(self._db_path))
+        self._pk_db = dataset.connect('sqlite:///{}'.format(self._pk_db_path)) #
         self._global_salt = None  # only will be available if correct pw is provided
         # setting the logger object
         log_level = logging.DEBUG if debug_mode else logging.INFO
@@ -146,6 +164,7 @@ class UserTypoDB:
     def get_logging_path(self,username):
         homedir = pwd.getpwnam(username).pw_dir
         return "{}/{}.log".format(homedir, DB_NAME)
+
     
     def is_typotoler_init(self):
         """
@@ -162,28 +181,36 @@ class UserTypoDB:
             else:
                 stub = 'pw is missing'
             logger.critical('DB is corrupted: {}'.format(stub))
-            raise Exception("{} is corrupted!  globSalt={}  encPw={}"\
+            raise UserTypoDB.CorruptedDB("{} is corrupted!  globSalt={}  encPw={}"\
                             .format(auxT, globSalt, encPw))
         return bool(encPw)
 
     def allow_login(self, allow=True):
         if not self.is_typotoler_init():
-            raise Exception("Typotoler DB wasn't initiated yet!")
-        assert allow in (True, False), \
-            "Allow is expected to be a boolean. Got {}".format(allow)
-        self.isON = allow
-        self._db[auxT].update(dict(desc=AllowedTypoLogin, data=str(allow)), ['desc'])
-        logger.info("Allow login with typos: {}".format(allow))
+            raise UserTypoDB.NoneInitiatedDB("Typotoler DB wasn't initiated yet!")
+        aux_T = self._db[auxT]
+        aux_T.update(dict(desc=AllowedTypoLogin, data="False"), ['desc'])
+        self.isON = False
+        logger.info("typoToler set to OFF")
+        
+    def allow_login(self):
+        if not self.is_typotoler_init():
+            raise UserTypoDB.NoneInitiatedDB("Typotoler DB wasn't initiated yet!")
+        sys_aux_T = self._db[auxT]
+        sys_aux_T.update(dict(desc=AllowedTypoLogin, data="True"),['desc'])
+        self.isON = True
+        logging.getLogger(DB_NAME).info("typoToler set to ON")
 
     def is_allowed_login(self):
         if not self.is_typotoler_init():
-            raise Exception("Typotoler DB wasn't initiated yet!")
-        is_on = self._db[auxT].find_one(desc=AllowedTypoLogin)['data']
+            raise UserTypoDB.NoneInitiatedDB("Typotoler DB wasn't initiated yet!")
+        sys_aux_T = self._db[auxT]
+        is_on = sys_aux_T.find_one(desc=AllowedTypoLogin)['data']
         assert is_on in ('True', 'False'), \
             'Corrupted data in {}: {}={}'.format(auxT, AllowedTypoLogin, is_on)
         return is_on == 'True' 
 
-    def init_typotoler(self, pw, N, maxEditDist=1, typoTolerOn=True):
+    def init_typotoler(self, pw, N=CACHE_SIZE, maxEditDist=1, typoTolerOn=True):
         """Create the 'typotoler' database in user's home-directory.  Changes the DB
         permission to ensure its only readable by the user.  Also, it intializes
         the required tables as well as the reuired variables, such as, the
@@ -195,9 +222,11 @@ class UserTypoDB:
         u_data = pwd.getpwnam(self._user)
         u_id, g_id = u_data.pw_uid, u_data.pw_gid
         db_path = self._db_path
+        pk_db_path = self._pk_db_path
         os.chown(db_path, u_id, g_id)  # change owner to user
         os.chmod(db_path, 0600)  # rw only for owner
-
+        os.chown(pk_db_path,0,0) # TODO CHECK
+        os.chmod(pk_db_path,0644) # TODO CHECK
         logger.debug(
             "{} permissons set to RW only for user:{}".format(db_path, self._user)
         )
@@ -224,15 +253,20 @@ class UserTypoDB:
         self.isON = typoTolerOn
         
         # *************** insert first password and global salt: ********
-        info_t = db[auxT]
-        assert not info_t.find_one(desc=ORIG_PW),\
-            "Original password is already stored. Weird!!"
+        info_t = db[auxT][pksT] # 
+        # TODO REMOVE none relevent as we removed the table:
+        #assert not info_t.find_one(desc=ORIG_PW)# ,"Original password is already stored. Weird!!"
+                                      
 
         # 1. derive public_key from the original password 
         pk_salt = os.urandom(16)
         pk_salt_base64 = binascii.b2a_base64(pk_salt)
         pw_hash, pw_pk = derive_public_key(pw, pk_salt)
         pk_dict = {ORIG_PW: pw_pk}
+
+        # TODO
+        # inserting pks to the table (with their salts?)
+        pk_t = self._pk_db[pksT]
 
         # 2. encrypt the global salt with the pk
         global_hmac_salt = os.urandom(16)
@@ -243,7 +277,7 @@ class UserTypoDB:
         
         info_t.insert_many([
             dict(desc=ORIG_SK_SALT, data=pk_salt_base64), 
-            dict(desc=ORIG_PW_PK, data=pw_pk),
+            dict(desc=ORIG_PW_ENC_PK, data=pw_pk),
             dict(desc=GLOBAL_SALT_CTX, data=global_salt_cipher),
             dict(desc=ORIG_PW_CTX, data=pw_cipher),
             dict(desc=ORIG_PW_ENTROPY_CTX, data=pw_entropy)
@@ -263,7 +297,7 @@ class UserTypoDB:
 
     def get_installation_id(self):
         if not self.is_typotoler_init():
-            raise RuntimeError("Typotoler uninitialized")
+            raise UserTypoDB.NoneInitiatedDB("Typotoler uninitialized")
         return self._db[auxT].find_one(desc=InstallationID)['data']
  
     def get_last_unsent_logs_iter(self):
@@ -383,7 +417,7 @@ class UserTypoDB:
 
         # original pw's pk
         info_t = self._db[auxT]
-        orig_pw_pk = info_t.find_one(desc=ORIG_PW_PK)['data']
+        orig_pw_pk = info_t.find_one(desc=ORIG_PW_ENC_PK)['data']
         pk_dict[ORIG_PW] = orig_pw_pk
         assert len(pk_dict)>0, "PK_dict size is zero!!"
         logger.debug("PK_dict keys: {}".format(pk_dict.keys()))
@@ -465,7 +499,7 @@ class UserTypoDB:
         logger.debug("getting the top N typos within edit distance")
         dataLine_editDist = self._db[auxT].find_one(desc = EditCutoff)
         if dataLine_editDist == None:
-            raise Exception("Edit Dist hadn't been set")
+            raise UserTypoDB.NoneInitiatedDB("Edit Dist hadn't been set")
         maxEditDist = int(dataLine_editDist['data'])
         global_salt = self.get_global_salt(sk_dict)
         typo_list = []
@@ -529,7 +563,7 @@ class UserTypoDB:
             return False
         if count_pw == 1 and count_res == 1:
             return True
-        raise ValueError("There are {} instants of pw\n".format(count_pw)+
+        raise UserTypoDB.CorruptedDB("There are {} instants of pw\n".format(count_pw)+
                          "And {} instants of glob_salt\n".format(count_salt)+
                          "instead of 1, 1 - in {}".format(auxT))
 
@@ -568,7 +602,7 @@ class UserTypoDB:
                 salt_ctx = self._db[auxT].find_one(desc=GLOBAL_SALT_CTX)['data']
                 self._global_salt = decode_decrypt(sk_dict, salt_ctx)
             except ValueError as e:
-                logging.debug("Sorry wrong id-sk pair ({}). Could decrypt the salt"\
+                logging.debug("Sorry wrong id-sk pair ({}). Couldn't decrypt the salt"\
                               .format(sk_dict))
         return self._global_salt
 
@@ -671,29 +705,59 @@ class UserTypoDB:
         self.update_aux_ctx(sk_dict)
         self.clear_waitlist()
 
-
 def on_correct_password(typo_db, password):
     logger.info("sm_auth: it's the right password") #TODO REMOVE
     # log the entry of the original pwd
-    if not typo_db.is_typotoler_init():
-        logger.info("sm_auth: initiating typoToler") # TODO REMOVE
-        typo_db.init_typotoler(password, CACHE_SIZE)
-    typo_db.original_password_entered(password) # also updates the log
-    return True
+    try:
+        if not typo_db.is_typotoler_init():
+            typo_db.init_typotoler(password, CACHE_SIZE)
+        typo_db.original_password_entered(password) # also updates the log
+    except UserTypoDB.CorruptedDB as e:
+        # DB is corrupted, restart it
+        # TODO 
+        pass
+    except ValueError as e:
+        # probably  failre in decryption
+        pass
+
+    except Exception as e:
+        logger.Error("Unexpected error while on_correct_password:\n{}\n".format(
+            e.message()))
+    # in order to avoid locking out - always return true for correct password
+    finally:
+        return True
 
 
 def on_wrong_password(typo_db, password):
-    sk_dict, is_in = typo_db.fetch_from_cache(password) # also updates the log
-    if not is_in: # aka it's not in the cache, 
-        logger.info("sm_auth: a new typo!") # TODO REMOVE
-        typo_db.add_typo_to_waitlist(password)
-        return False
-    else: # it's in cach
-        logger.info("sm_auth: in cach") # TODO REMOVE
-        typo_db.update_hash_cache_by_waitlist(sk_dict) # also updates the log
-        if typo_db.is_typotoler_on():
-            logger.info("Returning SUCEESS TypoToler")
-            return True
-        else:
-            logger.info("sm_auth: but typoToler is OFF") # TODO REMOVE
+    try:
+        sk_dict, is_in = typo_db.fetch_from_cache(password) # also updates the log
+        if not is_in: # aka it's not in the cache, 
+            logger.info("a new typo appeared!") # TODO REMOVE
+            typo_db.add_typo_to_waitlist(password)
             return False
+        else: # it's in cach
+            logger.info("typo in cach") # TODO REMOVE
+            typo_db.update_hash_cache_by_waitlist(sk_dict) # also updates the log
+            if typo_db.is_typotoler_on():
+                logger.info("Returning SUCEESS TypoToler")
+                return True
+            else:
+                logger.info("but typoToler is OFF") # TODO REMOVE
+                return False
+    except ValueError as e:
+        # probably  failre in decryption
+        logger.Error("ValueError:{}".format(e.message()))
+        pass
+    except UserTypoDB.CorruptedDB as e:
+        # DB is corrupted, restart it
+        pass
+    except Exception as e:
+        logger.Error("Unexpected error while on_correct_password:\n{}\n".format(
+            e.message()))
+    # if reached here it means there was some kind of an error.
+    # returns False to be on the safe side
+    finally:
+        return False
+        
+
+
