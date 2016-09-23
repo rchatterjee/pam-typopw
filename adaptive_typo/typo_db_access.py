@@ -21,16 +21,17 @@ from random import random # maybe something else?
 
 DB_NAME = ".typoToler"
 ORIG_PW = 'OriginalPw'
-ORIG_SK_SALT = 'OriginalPwSaltForSecretKey'
+ORIG_SK_SALT = 'OriginalPwSaltForEncSecretKey'
 ORIG_PW_CTX = 'OrignalPwCtx'
 ORIG_PW_ENTROPY_CTX = 'OrgignalPwEntropyCtx'
 GLOBAL_SALT_CTX = 'GlobalSaltCtx'
 
 ORIG_PW_ENC_PK = 'EncPublicKey'
 ORIG_PW_SGN_PK = 'SgnPublicKey'
-pksT = "Pwd_pk_t"
+ORIG_SGN_SALT = 'OriginalPwSaltForVerifySecretKey'
+pks_and_salts_T = "Pwd_pk_t"
 PK_DB_PATH = '/etc/adaptive_typo'
-PK_DB_NAME = DB_NAME+".pk"
+PK_DB_NAME = DB_NAME+".ro" # READ_ONLY or ROOT_ONLY
 
 # default values
 CACHE_SIZE = 5
@@ -130,9 +131,18 @@ class UserTypoDB:
     def __init__(self, user, debug_mode=False):
         
         self._user = user  # this is a real user.
-        homedir = pwd.getpwnam(self._user).pw_dir 
+        homedir = pwd.getpwnam(self._user).pw_dir
+        typo_dir = os.path.join(PK_DB_PATH,user)
+        if not os.path.exists(typo_dir): # creating dir only if it doesn't exist
+            # this directory needs root permission, and should be created as
+            # part of the installation process
+            try:
+                os.makedirs(typo_dir)
+            except OSError as error:
+                if error.errno != errno.EEXIST:
+                    raise
         self._db_path = "{}/{}.db".format(homedir, DB_NAME)
-        self._pk_db_path="{}/{}.db".format(PK_DB_PATH,PK_DB_NAME) #
+        self._pk_db_path="{}/{}.db".format(typo_dir,PK_DB_NAME) #
         self._log_path = "{}/{}.log".format(homedir, DB_NAME)
         self._db = dataset.connect('sqlite:///{}'.format(self._db_path))
         self._pk_db = dataset.connect('sqlite:///{}'.format(self._pk_db_path)) #
@@ -158,15 +168,18 @@ class UserTypoDB:
     def getdb(self):
         return self._db
     
-    def get_db_path(self, username):
+    def get_db_path(self):
         return self._db_path
+
+#    def get_pk_db_path(self): # TODO REMOVE
+#        return self._pk_db_path()
 
     def get_logging_path(self,username):
         homedir = pwd.getpwnam(username).pw_dir
         return "{}/{}.log".format(homedir, DB_NAME)
 
     
-    def is_typotoler_init(self):
+    def is_typotoler_init(self): # TODO CHANGE
         """
         Returns whether the typotoler has been set (might be installed
         but not active)
@@ -253,36 +266,52 @@ class UserTypoDB:
         self.isON = typoTolerOn
         
         # *************** insert first password and global salt: ********
-        info_t = db[auxT][pksT] # 
+        info_t = db[auxT] # 
         # TODO REMOVE none relevent as we removed the table:
         #assert not info_t.find_one(desc=ORIG_PW)# ,"Original password is already stored. Weird!!"
                                       
 
         # 1. derive public_key from the original password 
-        pk_salt = os.urandom(16)
-        pk_salt_base64 = binascii.b2a_base64(pk_salt)
-        pw_hash, pw_pk = derive_public_key(pw, pk_salt)
-        pk_dict = {ORIG_PW: pw_pk}
+        enc_pk_salt = os.urandom(16) # salt of enc_pk
+        enc_salt_bs64 = binascii.b2a_base64(enc_pk_salt)
+        pw_hash, pw_enc_pk = derive_public_key(pw, enc_pk_salt, for_='encryption')
+        enc_pk_dict = {ORIG_PW: pw_enc_pk}
 
-        # TODO
-        # inserting pks to the table (with their salts?)
-        pk_t = self._pk_db[pksT]
+        # TODO CHANGE -- use the same salt for both of them
+        # 1.5 inserting pks to the table (with their salts?)
+        pk_salt_t = self._pk_db[pks_and_salts_T]
+        sgn_pk_salt = os.urandom(16)
+        sgn_salt_bs64 = binascii.b2a_base64(sgn_pk_salt)
+        _, pw_sgn_pk = derive_public_key(pw,sgn_pk_salt,for_='verify')
 
-        # 2. encrypt the global salt with the pk
+        # 2. encrypt the global salt with the enc pk
         global_hmac_salt = os.urandom(16)
-        global_salt_cipher = binascii.b2a_base64(encrypt(pk_dict, global_hmac_salt))
+        global_salt_cipher = binascii.b2a_base64(encrypt(enc_pk_dict, global_hmac_salt))
         
-        pw_entropy = encode_encrypt(pk_dict, bytes(get_entropy_stat(pw)))
-        pw_cipher = encode_encrypt(pk_dict, pw)
+        pw_entropy = encode_encrypt(enc_pk_dict, bytes(get_entropy_stat(pw)))
+        pw_cipher = encode_encrypt(enc_pk_dict, pw)
         
         info_t.insert_many([
-            dict(desc=ORIG_SK_SALT, data=pk_salt_base64), 
-            dict(desc=ORIG_PW_ENC_PK, data=pw_pk),
+            dict(desc=ORIG_SK_SALT, data=enc_salt_bs64), 
+            dict(desc=ORIG_PW_ENC_PK, data=pw_enc_pk),
             dict(desc=GLOBAL_SALT_CTX, data=global_salt_cipher),
             dict(desc=ORIG_PW_CTX, data=pw_cipher),
             dict(desc=ORIG_PW_ENTROPY_CTX, data=pw_entropy)
         ])
         info_t.create_index(['desc']) # To speed up the queries to the table
+
+        # 2.5
+        # note - we can't move any ctx to the 'read-only' pk_salt_t
+        # because all ctx needs updating everytime a new typo enters HashCache
+        pk_salt_t.insert_many([
+            dict(desc=ORIG_SK_SALT, data=enc_salt_bs64), 
+            dict(desc=ORIG_PW_ENC_PK, data=pw_enc_pk),
+            dict(desc=EditCutoff, data=str(maxEditDist)),
+            dict(desc=ORIG_SGN_SALT, data=sgn_salt_bs64),
+            dict(desc=ORIG_PW_SGN_PK, data=pw_sgn_pk)
+        ]) # in the future will also store the entropy cutOffs TODO
+        pk_salt_t.create_index(['desc'])
+            
 
     def is_typotoler_on(self):
         dataLine = self._db[auxT].find_one(desc=AllowedTypoLogin)
@@ -526,8 +555,8 @@ class UserTypoDB:
                     )
 
             closeEdit = (editDist <= maxEditDist)
-            notMuchWeaker = (rel_entropy >= -3) # TODO change to be 3 from aux
-            notTooWeak = (typo_ent >= 16)        # TODO change to be 16 from aux
+            notMuchWeaker = (rel_entropy >= -3) # TODO change to be 3 from readOnlyTable
+            notTooWeak = (typo_ent >= 16)        # TODO change to be 16 from readOnlyTable
             # and to be "True" if not found in aux
             
             if  closeEdit and notMuchWeaker and notTooWeak: # TODO CHANGE !
@@ -710,7 +739,10 @@ def on_correct_password(typo_db, password):
     # log the entry of the original pwd
     try:
         if not typo_db.is_typotoler_init():
-            typo_db.init_typotoler(password, CACHE_SIZE)
+            raise UserTypoDB.NoneInitiatedDB("Typotoler DB wasn't initiated yet!")
+            # the initialization is now part of the installation process
+
+        #    typo_db.init_typotoler(password, CACHE_SIZE)
         typo_db.original_password_entered(password) # also updates the log
     except UserTypoDB.CorruptedDB as e:
         # DB is corrupted, restart it

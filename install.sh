@@ -40,6 +40,10 @@ else
     chmod g+s $chkpw
 fi
 
+# initiating all the DBs of typo_toler
+echo "initiating DB:"
+python ~/pam-typopw/typo_initiate.py
+
 # Finally create a pam-file and update common-auth
 common_auth_file=/etc/pam.d/common-auth
 echo "auth   sufficient   pam_python.so ${bindir}/pam_typotolerant.py" > /etc/pam.d/typo_auth
@@ -52,9 +56,10 @@ fi
 mv $common_auth_file ${common_auth_file}.orig # save for uninstall script
 
 # Install typo tolerance
+# actually setting and activating the typo_toler
 echo '@include typo_auth' > ${common_auth_file}
-cat ${common_auth_file}.orig >> ${common_auth_file}
 
+cat ${common_auth_file}.orig >> ${common_auth_file}
 
 # Now, you are on your own
 echo "******************************************************"

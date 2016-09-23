@@ -23,11 +23,12 @@ def main():
         right_pw = check_pw(user,pw) == 0
         if not right_pw:
             print "Incorrect pw"
+            raise ValueError("incorrect pw") # to stop the installation process
         else:
             print "correct pw!" # TODO REMOVE
             # do things
             tb = UserTypoDB(user)
-            tb.init_typo_toler(pw)
+            tb.init_typotoler(pw)
             
         return 0
 

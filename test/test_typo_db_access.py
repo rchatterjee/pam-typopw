@@ -21,7 +21,7 @@ def DB_path():
     # TODO _ for some reason it does't work
     user = get_username()
     db = UserTypoDB(user, debug_mode=True)
-    return db.get_db_path(user)
+    return db.get_db_path()
     #return "/home/{}/{}.db".format(get_username(), DB_NAME)
 
 def remove_DB():
