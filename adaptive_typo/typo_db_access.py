@@ -172,9 +172,6 @@ class UserTypoDB:
     def get_db_path(self):
         return self._db_path
 
-#    def get_pk_db_path(self): # TODO REMOVE
-#        return self._pk_db_path()
-
     def get_logging_path(self,username):
         homedir = pwd.getpwnam(username).pw_dir
         return "{}/{}.log".format(homedir, DB_NAME)
@@ -197,7 +194,9 @@ class UserTypoDB:
             logger.critical('DB is corrupted: {}'.format(stub))
             raise UserTypoDB.CorruptedDB("{} is corrupted!  globSalt={}  encPw={}"\
                             .format(auxT, globSalt, encPw))
-        return bool(encPw)
+        sgnPk = self._pk_db[pks_and_salts_T].find_one(desc=ORIG_PW_SGN_PK)
+        
+        return (bool(encPw) and bool(sgnPk))
 
     def allow_login(self, allow=True):
         if not self.is_typotoler_init():
@@ -472,8 +471,9 @@ class UserTypoDB:
         }
 
         # original pw's pk
-        info_t = self._db[auxT]
-        orig_pw_pk = info_t.find_one(desc=ORIG_PW_ENC_PK)['data']
+        #info_t = self._db[auxT]
+        pks_t = self._pk_db[pks_and_salts_T] # 
+        orig_pw_pk = pks_t.find_one(desc=ORIG_PW_ENC_PK)['data']
         pk_dict[ORIG_PW] = orig_pw_pk
         assert len(pk_dict)>0, "PK_dict size is zero!!"
         logger.debug("PK_dict keys: {}".format(pk_dict.keys()))
@@ -568,7 +568,7 @@ class UserTypoDB:
         sgn_salt = binascii.a2b_base64(sgn_salt_bs64)
         _,pw_sgn_sk = derive_secret_key(pw,sgn_salt,for_='sign')
         
-        dataLine_editDist = self._db[auxT].find_one(desc = EditCutoff)
+        dataLine_editDist = pk_salt_t.find_one(desc = EditCutoff) # 
         if dataLine_editDist == None:
             raise UserTypoDB.NoneInitiatedDB("Edit Dist hadn't been set")
         maxEditDist = int(dataLine_editDist['data'])
