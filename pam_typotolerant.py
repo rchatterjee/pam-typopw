@@ -78,13 +78,8 @@ def check_pw(user, pw):
         ret = p.wait()
     except OSError:
         return -1
-    # with open('/etc/typos-pm_sm_auth.txt', 'a') as f:
-    #     eprint("Writing to the file: before chek_pw")
-    #     f.write('user: {}, pw: {}, ts: {}\n'.format(user, pws,
-    #     datetime.datetime.now()))
-    #     f.write('Return Code: {}'.format(p.returncode))
-    # eprint(''.join(p.stdout.readlines()))
     return p.returncode
+
 
 def pam_sm_authenticate(pamh, flags, argv):
     eprint("** Typo-tolerant password checking!")
