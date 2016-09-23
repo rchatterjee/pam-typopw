@@ -166,27 +166,19 @@ class UserTypoDB:
                             .format(auxT, globSalt, encPw))
         return bool(encPw)
 
-    def disallow_login(self):
+    def allow_login(self, allow=True):
         if not self.is_typotoler_init():
             raise Exception("Typotoler DB wasn't initiated yet!")
-        aux_T = self._db[auxT]
-        aux_T.update(dict(desc=AllowedTypoLogin, data="False"), ['desc'])
-        self.isON = False
-        logger.info("typoToler set to OFF")
-        
-    def allow_login(self):
-        if not self.is_typotoler_init():
-            raise Exception("Typotoler DB wasn't initiated yet!")
-        sys_aux_T = self._db[auxT]
-        sys_aux_T.update(dict(desc=AllowedTypoLogin, data="True"),['desc'])
-        self.isON = True
-        logging.getLogger(DB_NAME).info("typoToler set to ON")
+        assert allow in (True, False), \
+            "Allow is expected to be a boolean. Got {}".format(allow)
+        self.isON = allow
+        self._db[auxT].update(dict(desc=AllowedTypoLogin, data=str(allow)), ['desc'])
+        logger.info("Allow login with typos: {}".format(allow))
 
     def is_allowed_login(self):
         if not self.is_typotoler_init():
             raise Exception("Typotoler DB wasn't initiated yet!")
-        sys_aux_T = self._db[auxT]
-        is_on = sys_aux_T.find_one(desc=AllowedTypoLogin)['data']
+        is_on = self._db[auxT].find_one(desc=AllowedTypoLogin)['data']
         assert is_on in ('True', 'False'), \
             'Corrupted data in {}: {}={}'.format(auxT, AllowedTypoLogin, is_on)
         return is_on == 'True' 
