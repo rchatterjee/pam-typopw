@@ -9,7 +9,8 @@ from collections import OrderedDict
 import pwd
 from pw_pkcrypto import (
     encrypt, decrypt, derive_public_key,
-    derive_secret_key, update_ctx, compute_id
+    derive_secret_key, update_ctx, compute_id,
+    sign, verify
 )
 
 # TODO - check whether we should switch somewhere to "hash_pw"
@@ -128,7 +129,7 @@ class UserTypoDB:
     def __str__(self):
         return "UserTypoDB ({})".format(self._user)
 
-    def __init__(self, user, debug_mode=False):
+    def __init__(self, user, debug_mode=True): # TODO CHANGE to False
         
         self._user = user  # this is a real user.
         homedir = pwd.getpwnam(self._user).pw_dir
@@ -237,14 +238,24 @@ class UserTypoDB:
         db_path = self._db_path
         pk_db_path = self._pk_db_path
         os.chown(db_path, u_id, g_id)  # change owner to user
-        os.chmod(db_path, 0600)  # rw only for owner
+        os.chmod(db_path, 0600)  # RW only for owner
         os.chown(pk_db_path,0,0) # TODO CHECK
         os.chmod(pk_db_path,0644) # TODO CHECK
         logger.debug(
             "{} permissons set to RW only for user:{}".format(db_path, self._user)
         )
+        log_path = self._log_path
+        os.chown(log_path, u_id, g_id)  # change owner to user
+        os.chmod(log_path, 0600)  # RW only for owner
+        
         db = self._db
-        db[auxT].delete()         # make sure there's no old unrelevant data
+        db[auxT].delete()         # make sure there's no old unrelevent data
+        db[hashCacheT].delete()
+        db[waitlistT].delete()
+        # doesn't delete log because it will also be used
+        # whenever a password is changed
+        pk_db = self._pk_db
+        pk_db[pks_and_salts_T].delete() #
 
         # self.init_aux_data(N, typoTolerOn, maxEditDist)
         # *************** Initializing Aux Data *************************
@@ -279,7 +290,7 @@ class UserTypoDB:
 
         # TODO CHANGE -- use the same salt for both of them
         # 1.5 inserting pks to the table (with their salts?)
-        pk_salt_t = self._pk_db[pks_and_salts_T]
+        pk_salt_t = pk_db[pks_and_salts_T]
         sgn_pk_salt = os.urandom(16)
         sgn_salt_bs64 = binascii.b2a_base64(sgn_pk_salt)
         _, pw_sgn_pk = derive_public_key(pw,sgn_pk_salt,for_='verify')
@@ -311,7 +322,7 @@ class UserTypoDB:
             dict(desc=ORIG_PW_SGN_PK, data=pw_sgn_pk)
         ]) # in the future will also store the entropy cutOffs TODO
         pk_salt_t.create_index(['desc'])
-            
+        logger.debug("Initialization Complete")
 
     def is_typotoler_on(self):
         dataLine = self._db[auxT].find_one(desc=AllowedTypoLogin)
@@ -384,11 +395,26 @@ class UserTypoDB:
 
         '''
         logger.debug("Searching for typo in {}".format(hashCacheT))
+        # getting the pw's verify pk
+        pk_salt_t = self._pk_db[pks_and_salts_T]
+        sgn_pk = pk_salt_t.find_one(desc=ORIG_PW_SGN_PK)['data']
+        logger.debug("found signing key:{}".format(sgn_pk))
+        print "SGN_PK:{}".format(sgn_pk) # TODO REMOVE
+        
         cacheT = self._db[hashCacheT]
         for cacheline in cacheT:
             sa = binascii.a2b_base64(cacheline['salt'])
             hs_bytes, sk = derive_secret_key(typo, sa)
             t_h_id = cacheline['H_typo'] # the hash id is in base64 form
+            sgn = binascii.a2b_base64(cacheline['sign']) #
+
+            # verifing the integrity of the hash data
+            if not verify(bytes(sgn_pk),bytes(t_h_id),sgn): # unverified data in DB
+                err_msg = "Unverified hash in {}. Sign:{},Hash:{}".format(
+                    hashCacheT,sgn,t_h_id)
+                logger.critical(err_msg)
+                raise UserTypoDB.CorruptedDB(err_msg)
+            
             # Check if the hash(typo, sa) matches the stored hash 
             if binascii.a2b_base64(t_h_id) != hs_bytes: continue
 
@@ -402,6 +428,7 @@ class UserTypoDB:
             if updateLog:
                 self.update_log(typo_id, cacheline)
             return {t_h_id: sk}, True
+        
         logger.debug("Typo wasn't found in {}".format(hashCacheT))
         return {}, False
 
@@ -451,7 +478,14 @@ class UserTypoDB:
         assert len(pk_dict)>0, "PK_dict size is zero!!"
         logger.debug("PK_dict keys: {}".format(pk_dict.keys()))
         return pk_dict
-
+    
+    def get_pw_sign_sk(self,pw):
+        pk_salt_t = self._pk_db[pks_and_salts_T]
+        sgn_salt_bs64 = pk_salt_t.find_one(desc=ORIG_SGN_SALT)['data']
+        sgn_salt = binascii.a2b_base64(sgn_salt_bs64)
+        _,pw_sgn_sk = derive_secret_key(pw,sgn_salt,for_='sign')
+        return pw_sgn_sk
+        
     def add_typo_to_waitlist(self, typo):
         """
         Adds the typo to the waitlist.
@@ -464,6 +498,7 @@ class UserTypoDB:
 
         @typo (string) : the user's passwrod typo
         """
+        logger.debug("Adding a new typo to waitlist")
         sa = os.urandom(16)
         typo_hs, typo_pk = derive_public_key(typo, sa)
         ts = get_time_str()
@@ -526,6 +561,13 @@ class UserTypoDB:
         @updateLog (bool) : whether to update the log about each typo
         """
         logger.debug("getting the top N typos within edit distance")
+
+        # getting the signing key of the pw
+        pk_salt_t = self._pk_db[pks_and_salts_T]
+        sgn_salt_bs64 = pk_salt_t.find_one(desc=ORIG_SGN_SALT)['data']
+        sgn_salt = binascii.a2b_base64(sgn_salt_bs64)
+        _,pw_sgn_sk = derive_secret_key(pw,sgn_salt,for_='sign')
+        
         dataLine_editDist = self._db[auxT].find_one(desc = EditCutoff)
         if dataLine_editDist == None:
             raise UserTypoDB.NoneInitiatedDB("Edit Dist hadn't been set")
@@ -539,7 +581,7 @@ class UserTypoDB:
             editDist = distance(unicode(pw), unicode(typo))
             typo_id = compute_id(bytes(typo.encode('utf-8')), global_salt)
             rel_entropy = typo_ent - pw_entropy
-
+            
             # writing into log for each ts
             if updateLog:
                 for ts in ts_list:
@@ -560,8 +602,13 @@ class UserTypoDB:
             # and to be "True" if not found in aux
             
             if  closeEdit and notMuchWeaker and notTooWeak: # TODO CHANGE !
+                logger.debug("tmp, pre signing")
+                sgn_hash = sign(pw_sgn_sk,t_hs_bs64.encode('utf-8'))
+                sgn_hash_bs64 = binascii.b2a_base64(sgn_hash)
+                logger.debug("tmp, after signing")
                 typo_list.append({
                     'H_typo': t_hs_bs64,
+                    'sign': sgn_hash_bs64,
                     'salt': t_sa_bs64,
                     'count': count,
                     'pk': typo_pk,
@@ -741,19 +788,20 @@ def on_correct_password(typo_db, password):
         if not typo_db.is_typotoler_init():
             raise UserTypoDB.NoneInitiatedDB("Typotoler DB wasn't initiated yet!")
             # the initialization is now part of the installation process
-
         #    typo_db.init_typotoler(password, CACHE_SIZE)
         typo_db.original_password_entered(password) # also updates the log
     except UserTypoDB.CorruptedDB as e:
+        logger.error("Corrupted DB!")
         # DB is corrupted, restart it
         # TODO 
         pass
     except ValueError as e:
         # probably  failre in decryption
+        logger.error("Value error raised. probably a failure in decryption")
         pass
 
     except Exception as e:
-        logger.Error("Unexpected error while on_correct_password:\n{}\n".format(
+        logger.error("Unexpected error while on_correct_password:\n{}\n".format(
             e.message()))
     # in order to avoid locking out - always return true for correct password
     finally:
@@ -778,13 +826,15 @@ def on_wrong_password(typo_db, password):
                 return False
     except ValueError as e:
         # probably  failre in decryption
-        logger.Error("ValueError:{}".format(e.message()))
+        logger.error("ValueError:{}".format(e.message()))
         pass
     except UserTypoDB.CorruptedDB as e:
+        logger.error("Corrupted DB!")
         # DB is corrupted, restart it
+        # TODO
         pass
     except Exception as e:
-        logger.Error("Unexpected error while on_correct_password:\n{}\n".format(
+        logger.error("Unexpected error while on_wrong_password:\n{}\n".format(
             e.message()))
     # if reached here it means there was some kind of an error.
     # returns False to be on the safe side

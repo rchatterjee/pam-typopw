@@ -9,8 +9,8 @@ def main():
     # make sure that root
     # but if it's called from the install there's no need for that
     # optional - to compile this script
-    
-    user = raw_input("enter username\n")
+    print "Each installation is made to a specific user"
+    user = raw_input("Please enter username:\n")
     # some checks agaist bad input? TODO
     try:
         # checks that such a user exists:
@@ -21,16 +21,22 @@ def main():
         pw = getpass.getpass()
         # check that it's the right pw
         right_pw = check_pw(user,pw) == 0
-        if not right_pw:
-            print "Incorrect pw"
-            raise ValueError("incorrect pw") # to stop the installation process
-        else:
+        tries = 1
+        while tries <= 3 and not right_pw:
+            print "Incorrect pw, please try again"
+            tries += 1
+            pw = getpass.getpass()
+            right_pw = check_pw(user,pw) == 0
+        if right_pw:
             print "correct pw!" # TODO REMOVE
+            print "Please wait paitently while the everything is set"
             # do things
             tb = UserTypoDB(user)
             tb.init_typotoler(pw)
-            
-        return 0
+            return 0
+        # else
+        print "Failed to enter a correct password 3 times"
+        raise ValueError("incorrect pw given 3 times") # to stop the installation process
 
 # from pam_typotolerance
 def check_pw(user, pw):
