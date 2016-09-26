@@ -27,6 +27,7 @@ ORIG_PW_CTX = 'OrignalPwCtx'
 ORIG_PW_ENTROPY_CTX = 'OrgignalPwEntropyCtx'
 GLOBAL_SALT_CTX = 'GlobalSaltCtx'
 
+ORIG_PW_ID = 'OrgPwID'
 ORIG_PW_ENC_PK = 'EncPublicKey'
 ORIG_PW_SGN_PK = 'SgnPublicKey'
 ORIG_SGN_SALT = 'OriginalPwSaltForVerifySecretKey'
@@ -156,15 +157,16 @@ class UserTypoDB:
         # setting the logger object
         log_level = logging.DEBUG if debug_mode else logging.INFO
         setup_logger(self._log_path, log_level)
-        info_t = self._db[auxT]
-        dataLine_N = info_t.find_one(desc=CacheSize)
+
+        pk_t = self._pk_db[pks_and_salts_T]
+        dataLine_N = pk_t.find_one(desc=CacheSize)
         if dataLine_N:
             self.N = int(dataLine_N['data'])
             logger.info("{}: N={}".format(hashCacheT, self.N))
         else:
             self.N =  CACHE_SIZE
 
-        dataLine_IsON = info_t.find_one(desc=AllowedTypoLogin)
+        dataLine_IsON = pk_t.find_one(desc=AllowedTypoLogin)
         if dataLine_IsON and dataLine_IsON['data'] == 'True':
             self.isON, active = True, "ON"
         else:
@@ -206,24 +208,24 @@ class UserTypoDB:
     def allow_login(self, allow=True):
         if not self.is_typotoler_init():
             raise UserTypoDB.NoneInitiatedDB("Typotoler DB wasn't initiated yet!")
-        aux_T = self._db[auxT]
-        aux_T.update(dict(desc=AllowedTypoLogin, data="False"), ['desc'])
+        pk_T = self._pk_db[pks_and_salts_T]
+        pk_T.update(dict(desc=AllowedTypoLogin, data="False"), ['desc'])
         self.isON = False
         logger.info("typoToler set to OFF")
         
     def allow_login(self):
         if not self.is_typotoler_init():
             raise UserTypoDB.NoneInitiatedDB("Typotoler DB wasn't initiated yet!")
-        sys_aux_T = self._db[auxT]
-        sys_aux_T.update(dict(desc=AllowedTypoLogin, data="True"),['desc'])
+        pk_T = self._pk_db[pks_and_salts_T]
+        pk_T.update(dict(desc=AllowedTypoLogin, data="True"),['desc'])
         self.isON = True
         logging.getLogger(DB_NAME).info("typoToler set to ON")
 
     def is_allowed_login(self):
         if not self.is_typotoler_init():
             raise UserTypoDB.NoneInitiatedDB("Typotoler DB wasn't initiated yet!")
-        sys_aux_T = self._db[auxT]
-        is_on = sys_aux_T.find_one(desc=AllowedTypoLogin)['data']
+        pk_T = self._pk_db[pks_and_salts_T]
+        is_on = pk_T.find_one(desc=AllowedTypoLogin)['data']
         assert is_on in ('True', 'False'), \
             'Corrupted data in {}: {}={}'.format(auxT, AllowedTypoLogin, is_on)
         return is_on == 'True' 
@@ -269,9 +271,6 @@ class UserTypoDB:
 
         logger.info("Initializing the auxiliary data base ({})".format(auxT))
         db[auxT].insert_many([
-            dict(desc=CacheSize, data=str(N)),
-            dict(desc=AllowedTypoLogin, data=str(typoTolerOn)),
-            # dict(desc=EditCutoff, data=str(maxEditDist)),
             dict(desc=InstallationID, data=install_id),
             dict(desc=InstallDate, data=install_time),
             dict(desc=LastSent, data=last_sent_time),
@@ -288,9 +287,12 @@ class UserTypoDB:
 
         # 1. derive public_key from the original password 
         enc_pk_salt = os.urandom(16) # salt of enc_pk
+        global_hmac_salt = os.urandom(16) # global salt
+        
         enc_salt_bs64 = binascii.b2a_base64(enc_pk_salt)
         pw_hash, pw_enc_pk = derive_public_key(pw, enc_pk_salt, for_='encryption')
-        enc_pk_dict = {ORIG_PW: pw_enc_pk}
+        pw_id = compute_id(pw,global_hmac_salt)
+        enc_pk_dict = {pw_id: pw_enc_pk}
 
         # TODO CHANGE -- use the same salt for both of them
         # 1.5 inserting pks to the table (with their salts?)
@@ -300,11 +302,11 @@ class UserTypoDB:
         _, pw_sgn_pk = derive_public_key(pw,sgn_pk_salt,for_='verify')
 
         # 2. encrypt the global salt with the enc pk
-        global_hmac_salt = os.urandom(16)
         global_salt_cipher = binascii.b2a_base64(encrypt(enc_pk_dict, global_hmac_salt))
         
         pw_entropy = encode_encrypt(enc_pk_dict, bytes(get_entropy_stat(pw)))
         pw_cipher = encode_encrypt(enc_pk_dict, pw)
+        
         
         info_t.insert_many([
             dict(desc=GLOBAL_SALT_CTX, data=global_salt_cipher),
@@ -318,14 +320,18 @@ class UserTypoDB:
         # because all ctx needs updating everytime a new typo enters HashCache
 
         pk_salt_t.insert_many([
+            dict(desc=ORIG_PW_ID, data=pw_id),
             dict(desc=ORIG_SK_SALT, data=enc_salt_bs64), 
             dict(desc=ORIG_PW_ENC_PK, data=pw_enc_pk),
             dict(desc=EditCutoff, data=str(maxEditDist)),
             dict(desc=ORIG_SGN_SALT, data=sgn_salt_bs64),
             dict(desc=ORIG_PW_SGN_PK, data=pw_sgn_pk),
             dict(desc=REL_ENT_BIT_DEC_ALLOWED, data=REL_ENT_CUTOFF),
-            dict(desc=LOWEST_ENT_BIT_ALLOWED, data=LOWER_ENT_CUTOFF)
+            dict(desc=LOWEST_ENT_BIT_ALLOWED, data=LOWER_ENT_CUTOFF),
+            dict(desc=CacheSize, data=str(N)),
+            dict(desc=AllowedTypoLogin, data=str(typoTolerOn))
         ]) # in the future will also store the entropy cutOffs TODO
+        logger.debug("TEMP init [{}]:{}".format(pw_id,pw_enc_pk)) # TODO DELETE
         pk_salt_t.create_index(['desc'])
         logger.debug("Initialization Complete")
 
@@ -454,7 +460,8 @@ class UserTypoDB:
 
     def log_orig_pw_use(self):
         ts = get_time_str()
-        self.update_log(ORIG_PW)
+        pw_id = self._pk_db[pks_and_salts_T].find_one(desc=ORIG_PW_ID)['data'].encode('utf-8') # 
+        self.update_log(pw_id)
                                   
     def log_end_of_session(self):
         ts = get_time_str()
@@ -480,7 +487,9 @@ class UserTypoDB:
         #info_t = self._db[auxT]
         pks_t = self._pk_db[pks_and_salts_T] # 
         orig_pw_pk = pks_t.find_one(desc=ORIG_PW_ENC_PK)['data']
-        pk_dict[ORIG_PW] = orig_pw_pk
+        orig_pw_id = pks_t.find_one(desc=ORIG_PW_ID)['data'].encode('utf-8') #
+        pk_dict[orig_pw_id] = orig_pw_pk #
+        logger.debug("TEMP inserted [{}]:{}".format(orig_pw_id,orig_pw_pk)) # TODO DELETE
         assert len(pk_dict)>0, "PK_dict size is zero!!"
         logger.debug("PK_dict keys: {}".format(pk_dict.keys()))
         return pk_dict
@@ -773,10 +782,18 @@ class UserTypoDB:
         pw_salt = self.get_pw_sk_salt()
         logger.debug("Deriving secret key of the password")
         _, pw_sk = derive_secret_key(pw, pw_salt)
-        self.update_hash_cache_by_waitlist({ORIG_PW: pw_sk}, updateLog)
+        #
+        _,pw_pk = derive_public_key(pw,pw_salt) # TODO DELETE
+        logger.debug("TEMP pw pk:{}".format(pw_pk)) # TODO DELETE
+        #
+        pw_id = self._pk_db[pks_and_salts_T].find_one(desc=ORIG_PW_ID)['data'].encode('utf-8')
+        logger.debug("TEMP pw_id:{}".format(pw_id)) # TODO REMOVE
+        logger.debug(pw_id) # TODO REMOVE
+        logger.debug(type(pw_id)) # TODO REMOVE
+        self.update_hash_cache_by_waitlist({pw_id: pw_sk}, pw)
 
         
-    def update_hash_cache_by_waitlist(self, sk_dict, updateLog = True):
+    def update_hash_cache_by_waitlist(self, sk_dict, typo = '', updateLog = True):
         """
         Updates the hash cache according to waitlist.
         It also updates the log accordingly (if updateLog is set)
@@ -787,6 +804,27 @@ class UserTypoDB:
         logger.info("Updating {} by {}".format(hashCacheT,waitlistT))
         waitlistTypoDict = self.decrypt_waitlist(sk_dict)
         orig_pw, pw_entropy = self.get_orig_pw(sk_dict)
+        not_pass = typo != ''
+        if not_pass:
+
+            # making sure the hashCache hadn't been tempered with
+            editDist = distance(unicode(orig_pw), unicode(typo))
+            typo_ent = get_entropy_stat(typo)
+            rel_entropy = typo_ent - pw_entropy
+            
+            pk_table = self._pk_db[pks_and_salts_T]
+            rel_bound = int(pk_table.find_one(desc=REL_ENT_BIT_DEC_ALLOWED)['data'])
+            strict_bound = int(pk_table.find_one(desc=LOWEST_ENT_BIT_ALLOWED)['data'])
+            maxEditDist = int(pk_table.find_one(desc=EditCutoff)['data'])
+            
+            notMuchWeaker = (rel_entropy >= rel_bound)
+            notTooWeak = (typo_ent >= strict_bound)
+            closeEdit = (editDist <= maxEditDist)
+            legit = (notTooWeak and notMuchWeaker and closeEdit)
+            if not legit:
+                raise UserTypoDB.CorruptedDB("illegal typo within {}".format(
+                    hashCacheT))
+                              
         topNList = self.get_top_N_typos_within_distance(
             waitlistTypoDict, orig_pw, pw_entropy, sk_dict, updateLog
         )
@@ -832,7 +870,7 @@ def on_wrong_password(typo_db, password):
             return False
         else: # it's in cach
             logger.info("typo in cach") # TODO REMOVE
-            typo_db.update_hash_cache_by_waitlist(sk_dict) # also updates the log
+            typo_db.update_hash_cache_by_waitlist(sk_dict, typo=password) # also updates the log
             if typo_db.is_typotoler_on():
                 logger.info("Returning SUCEESS TypoToler")
                 return True

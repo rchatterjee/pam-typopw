@@ -126,7 +126,7 @@ def decrypt(_sk_dict, ctx):
                      .decrypt_and_verify(ctx, tag)
             failed_to_decrypt = False
             break
-        except ValueError:
+        except KeyError:
             print "Wrong key with id: {}".format(_id)
     if failed_to_decrypt:
         raise ValueError("None of the secret keys ({}) could decrypt the "\
