@@ -33,10 +33,15 @@ ORIG_SGN_SALT = 'OriginalPwSaltForVerifySecretKey'
 pks_and_salts_T = "Pwd_pk_t"
 PK_DB_PATH = '/etc/adaptive_typo'
 PK_DB_NAME = DB_NAME+".ro" # READ_ONLY or ROOT_ONLY
+REL_ENT_BIT_DEC_ALLOWED = "RelativeEntropyDecAllowed"
+LOWEST_ENT_BIT_ALLOWED = "LowestEntBitAllowed"
 
 # default values
 CACHE_SIZE = 5
 EDIT_DIST_CUTOFF = 1
+REL_ENT_CUTOFF = -3
+LOWER_ENT_CUTOFF = -1
+
 
 END_OF_SESS = 'END OF SESSION' # for log's use
 
@@ -266,7 +271,7 @@ class UserTypoDB:
         db[auxT].insert_many([
             dict(desc=CacheSize, data=str(N)),
             dict(desc=AllowedTypoLogin, data=str(typoTolerOn)),
-            dict(desc=EditCutoff, data=str(maxEditDist)),
+            # dict(desc=EditCutoff, data=str(maxEditDist)),
             dict(desc=InstallationID, data=install_id),
             dict(desc=InstallDate, data=install_time),
             dict(desc=LastSent, data=last_sent_time),
@@ -302,8 +307,6 @@ class UserTypoDB:
         pw_cipher = encode_encrypt(enc_pk_dict, pw)
         
         info_t.insert_many([
-            dict(desc=ORIG_SK_SALT, data=enc_salt_bs64), 
-            dict(desc=ORIG_PW_ENC_PK, data=pw_enc_pk),
             dict(desc=GLOBAL_SALT_CTX, data=global_salt_cipher),
             dict(desc=ORIG_PW_CTX, data=pw_cipher),
             dict(desc=ORIG_PW_ENTROPY_CTX, data=pw_entropy)
@@ -313,12 +316,15 @@ class UserTypoDB:
         # 2.5
         # note - we can't move any ctx to the 'read-only' pk_salt_t
         # because all ctx needs updating everytime a new typo enters HashCache
+
         pk_salt_t.insert_many([
             dict(desc=ORIG_SK_SALT, data=enc_salt_bs64), 
             dict(desc=ORIG_PW_ENC_PK, data=pw_enc_pk),
             dict(desc=EditCutoff, data=str(maxEditDist)),
             dict(desc=ORIG_SGN_SALT, data=sgn_salt_bs64),
-            dict(desc=ORIG_PW_SGN_PK, data=pw_sgn_pk)
+            dict(desc=ORIG_PW_SGN_PK, data=pw_sgn_pk),
+            dict(desc=REL_ENT_BIT_DEC_ALLOWED, data=REL_ENT_CUTOFF),
+            dict(desc=LOWEST_ENT_BIT_ALLOWED, data=LOWER_ENT_CUTOFF)
         ]) # in the future will also store the entropy cutOffs TODO
         pk_salt_t.create_index(['desc'])
         logger.debug("Initialization Complete")
@@ -398,7 +404,7 @@ class UserTypoDB:
         pk_salt_t = self._pk_db[pks_and_salts_T]
         sgn_pk = pk_salt_t.find_one(desc=ORIG_PW_SGN_PK)['data']
         logger.debug("found signing key:{}".format(sgn_pk))
-        print "SGN_PK:{}".format(sgn_pk) # TODO REMOVE
+        # print "SGN_PK:{}".format(sgn_pk) # TODO REMOVE
         
         cacheT = self._db[hashCacheT]
         for cacheline in cacheT:
@@ -597,15 +603,19 @@ class UserTypoDB:
                     )
 
             closeEdit = (editDist <= maxEditDist)
-            notMuchWeaker = (rel_entropy >= -3) # TODO change to be 3 from readOnlyTable
-            notTooWeak = (typo_ent >= 16)        # TODO change to be 16 from readOnlyTable
+
+            pk_table = self._pk_db[pks_and_salts_T]
+            rel_bound = int(pk_table.find_one(desc=REL_ENT_BIT_DEC_ALLOWED)['data'])
+            strict_bound = int(pk_table.find_one(desc=LOWEST_ENT_BIT_ALLOWED)['data'])
+            notMuchWeaker = (rel_entropy >= rel_bound)
+            notTooWeak = (typo_ent >= strict_bound)       
             # and to be "True" if not found in aux
             
-            if  closeEdit and notMuchWeaker and notTooWeak: # TODO CHANGE !
-                logger.debug("tmp, pre signing")
+            if  closeEdit and notMuchWeaker and notTooWeak:
+                # logger.debug("tmp, pre signing") # TODO DELETE
                 sgn_hash = sign(pw_sgn_sk,t_hs_bs64.encode('utf-8'))
                 sgn_hash_bs64 = binascii.b2a_base64(sgn_hash)
-                logger.debug("tmp, after signing")
+                # logger.debug("tmp, after signing") # TODO DELETE
                 typo_list.append({
                     'H_typo': t_hs_bs64,
                     'sign': sgn_hash_bs64,
@@ -621,6 +631,10 @@ class UserTypoDB:
                     "{} not entered because editDist:{} and rel_typo_entropy:{}"\
                     .format(typo_id, editDist, rel_entropy)
                 )
+            # TODO, note - as this version have an objective lower bound cutoff
+            # typos might not enter because of it. do we want to print it?
+            # it's in DEBUG, but still
+                
 
         return sorted(typo_list, key=lambda x: x['count'], reverse=True)[:self.N]
 
@@ -644,7 +658,8 @@ class UserTypoDB:
                          "instead of 1, 1 - in {}".format(auxT))
 
     def get_pw_sk_salt(self):
-        sk_salt_base64 =  self._db[auxT].find_one(desc=ORIG_SK_SALT)
+        sk_salt_base64 =  self._pk_db[pks_and_salts_T].find_one(
+            desc=ORIG_SK_SALT)
         assert sk_salt_base64, \
             "{}[{}] = {!r}. It should not be None."\
                 .format(auxT, ORIG_SK_SALT, sk_salt_base64)
