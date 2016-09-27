@@ -212,19 +212,13 @@ class UserTypoDB:
     def allow_login(self, allow=True):
         if not self.is_typotoler_init():
             raise UserTypoDB.NoneInitiatedDB("Typotoler DB wasn't initiated yet!")
+        assert allow in (True, False, 0, 1), "Expects a boolean"
+        allow = True if allow else False
         pk_T = self._pk_db[pks_and_salts_T]
-        pk_T.update(dict(desc=AllowedTypoLogin, data="False"), ['desc'])
-        self.isON = False
+        pk_T.update(dict(desc=AllowedTypoLogin, data=str(allow)), ['desc'])
+        self.isON = allow
         logger.info("typoToler set to OFF")
         
-    def allow_login(self):
-        if not self.is_typotoler_init():
-            raise UserTypoDB.NoneInitiatedDB("Typotoler DB wasn't initiated yet!")
-        pk_T = self._pk_db[pks_and_salts_T]
-        pk_T.update(dict(desc=AllowedTypoLogin, data="True"),['desc'])
-        self.isON = True
-        logging.getLogger(DB_NAME).info("typoToler set to ON")
-
     def is_allowed_login(self):
         if not self.is_typotoler_init():
             raise UserTypoDB.NoneInitiatedDB("Typotoler DB wasn't initiated yet!")
@@ -277,9 +271,9 @@ class UserTypoDB:
         db[auxT].insert_many([
             dict(desc=InstallationID, data=install_id),
             dict(desc=InstallDate, data=install_time),
-            dict(desc=LastSent, data=last_sent_time),
+            dict(desc=LastSent, data=str(last_sent_time)),
             dict(desc=SendEvery, data=str(UPDATE_GAPS)),
-            dict(desc=SysStatus, data=0)
+            dict(desc=SysStatus, data=str(0))
         ])
         self.N = N
         self.isON = typoTolerOn
@@ -325,14 +319,14 @@ class UserTypoDB:
         # because all ctx needs updating everytime a new typo enters HashCache
 
         pk_salt_t.insert_many([
-            dict(desc=ORIG_PW_ID, data=pw_id),
+            dict(desc=ORIG_PW_ID, data=str(pw_id)),
             dict(desc=ORIG_SK_SALT, data=enc_salt_bs64), 
             dict(desc=ORIG_PW_ENC_PK, data=pw_enc_pk),
             dict(desc=EditCutoff, data=str(maxEditDist)),
             dict(desc=ORIG_SGN_SALT, data=sgn_salt_bs64),
             dict(desc=ORIG_PW_SGN_PK, data=pw_sgn_pk),
-            dict(desc=REL_ENT_BIT_DEC_ALLOWED, data=REL_ENT_CUTOFF),
-            dict(desc=LOWEST_ENT_BIT_ALLOWED, data=LOWER_ENT_CUTOFF),
+            dict(desc=REL_ENT_BIT_DEC_ALLOWED, data=str(REL_ENT_CUTOFF)),
+            dict(desc=LOWEST_ENT_BIT_ALLOWED, data=str(LOWER_ENT_CUTOFF)),
             dict(desc=CacheSize, data=str(N)),
             dict(desc=AllowedTypoLogin, data=str(typoTolerOn))
         ]) # in the future will also store the entropy cutOffs TODO

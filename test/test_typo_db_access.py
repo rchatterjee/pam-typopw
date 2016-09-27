@@ -38,7 +38,7 @@ def test_login_settings():
     typoDB = start_DB()
     #db = typoDB.getdb()
     assert typoDB.is_allowed_login()
-    typoDB.disallow_login()
+    typoDB.allow_login(allow=False)
     assert not typoDB.is_allowed_login()
     typoDB.allow_login()
     assert typoDB.is_allowed_login()
