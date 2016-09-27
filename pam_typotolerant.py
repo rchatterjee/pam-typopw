@@ -16,11 +16,11 @@ CHKPW_EXE = '/usr/local/bin/chkpw' # hardcoded path
 SEND_LOGS = '/usr/local/bin/send_typo_log.py'
 NN = 5 # hash cache's size
 
-DEBUG=1
+DEBUG=0
 def eprint(*args, **kwargs):
-    if DEBUG:
+    if DEBUG==1:
         print(*args, file=sys.stdout, **kwargs)
-    else:
+    elif DEBUG==2:
         print(*args, file=sys.stderr, **kwargs)
 
 
