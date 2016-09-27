@@ -22,7 +22,7 @@ def _get_typoDB():
 
 parser = argparse.ArgumentParser("Change settings of the adaptive_typo module.")
 parser.add_argument(
-    "--allowtypo", type=str.lower, choices=['yes','no'], 
+    "--allowtypo", type=str.lower, choices=['yes','no'],
     help='Allow login with typos of the password'
 )
 parser.add_argument(
@@ -38,7 +38,6 @@ parser.add_argument(
     help="Prints the installation id, which you have to submit while filling up the google form"
 )
 
-    
 typoDB = _get_typoDB()
 args = parser.parse_args()
 if args.allowtypo:
