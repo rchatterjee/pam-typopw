@@ -368,17 +368,23 @@ class UserTypoDB:
             logger.debug("Not enought time has passed to send new logs")
             return False, iter([])
         log_t = self._db[logT]
-        # print "log t:{}".format(log_t) # TODO REMOVE
         new_logs = log_t.find(log_t.table.columns.ts >= last_sending)
         logger.info("Prepared newe logs to be sent, from {} to {}".format(
             str(last_sending),str(time_now))
         )
         return True, new_logs
 
-    def update_last_log_sent_time(self,sent_time=''):
+    def update_last_log_sent_time(self,sent_time='',delete_old_logs = False):
+        logger.debug("updating log sent time")
         if not sent_time:
             sent_time = self.get_time_str()
+            logger.debug("generating new timestamp, 'now'={} ".format(sent_time))
         self._db[auxT].update(dict(desc=LastSent, data=float(sent_time)), ['desc'])
+        if delete_old_logs:
+            logger.debug("deleting old logs")
+            log_t = self._db[logT]
+            deleted = log_t.table.delete().where(log_t.table.columns.ts <= float(sent_time)).execute()
+    
 
     def _hmac_id(self, typo, sk_dict):
         """

@@ -4,7 +4,8 @@ from adaptive_typo.typo_db_access import (
     UserTypoDB,
     DB_NAME,
     waitlistT,
-    hashCacheT
+    hashCacheT,
+    get_time_str
 )
 from adaptive_typo.pw_pkcrypto import (
     encrypt, decrypt, derive_public_key,
@@ -120,7 +121,22 @@ def test_many_entries(isStandAlone = True):
     else:
         return typoDB
     
-    
+def test_deleting_logs(isStandAlone = True):
+    typoDB = test_alt_typo(isStandAlone = False)
+    log_t = typoDB.getdb()['Log']
+    assert len(log_t) == 10 # because that's the length of the log so far
+    to_send,log_iter = typoDB.get_last_unsent_logs_iter()
+    assert not to_send
+    typoDB.update_last_log_sent_time('0')
+    to_send,log_iter = typoDB.get_last_unsent_logs_iter()
+    count = 0;
+    for ll in log_iter:
+        count += 1
+    now = get_time_str()
+    typoDB.update_last_log_sent_time(now)
+    assert len(log_t) == 10
+    typoDB.update_last_log_sent_time(now,delete_old_logs=True)
+    assert len(log_t) == 0
 
 def get_pw():
     return 'GoldApp&3'

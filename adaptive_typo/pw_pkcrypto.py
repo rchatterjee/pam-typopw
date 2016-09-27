@@ -129,7 +129,7 @@ def decrypt(_sk_dict, ctx):
         except KeyError:
             print "Wrong key with id: {}".format(_id)
     if failed_to_decrypt:
-        raise ValueError("None of the secret keys ({}) could decrypt the "\
+        raise KeyError("None of the secret keys ({}) could decrypt the "\
                          "ciphertext with keys=({}) (count={})".format(
                              ctx_sk_ids, give_sk_ids, n_pk)
         )
