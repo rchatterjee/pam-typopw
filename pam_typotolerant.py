@@ -90,10 +90,12 @@ def pam_sm_authenticate(pamh, flags, argv):
         return pamh.PAM_USER_UNKNOWN
     user = ret
     typo_db = typo_db_access.UserTypoDB(user)
+    prompt = typo_db.get_prompt()
+    full_prompt = '{}: '.format(prompt)
 
     ATTEMPT_LIMIT = 3 # Maximum number of attempt allowed
     for _ in range(ATTEMPT_LIMIT):
-        ret = get_password('aDAPTIVE pASSWORD: ', pamh, flags, argv)
+        ret = get_password(full_prompt, pamh, flags, argv)
         if isinstance(ret, tuple) and len(ret) != 2 and ret[0] != 'pw':
             return pamh.PAM_AUTH_ERR # Should never happen
         _, password = ret

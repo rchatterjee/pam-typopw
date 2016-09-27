@@ -29,7 +29,7 @@ def main():
             right_pw = check_pw(user,pw) == 0
         if right_pw:
             print "correct pw!" # TODO REMOVE
-            print "Please wait paitently while the everything is set"
+            print "Please be patient while the everything is set"
             # do things
             tb = UserTypoDB(user)
             tb.init_typotoler(pw)

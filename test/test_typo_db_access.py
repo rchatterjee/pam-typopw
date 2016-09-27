@@ -137,9 +137,55 @@ def test_deleting_logs(isStandAlone = True):
     assert len(log_t) == 10
     typoDB.update_last_log_sent_time(now,delete_old_logs=True)
     assert len(log_t) == 0
+    if isStandAlone:
+        remove_DB()
+    else:
+        return typoDB
+    
+def test_pw_change(isStandAlone = True):
+    typoDB = test_alt_typo(isStandAlone = False)
+    db = typoDB.getdb()
+    typoDB.update_after_pw_change(new_pw())
+    assert len(db['HashCache']) == 0
+    assert len(db['Log']) == 0
+    assert len(db['Waitlist']) == 0
+    failed_to_decrypt_with_old_pw = False
+    with_new_pw = True
+    try:
+        for newTypo in listOfOneDist(5):
+            typoDB.add_typo_to_waitlist(newTypo)
+        typoDB.original_password_entered(new_pw())
+        assert len(db['HashCache']) == 0        
+        with_new_pw = False
+        for newTypo in listOfOneDist(5):
+            typoDB.add_typo_to_waitlist(newTypo)    
+        typoDB.original_password_entered(get_pw())
+    except KeyError as e:
+        # encryption error
+        if not with_new_pw:
+            failed_to_decrypt_with_old_pw = True
+        else:
+            # i.e - failed with the new pw:
+            assert 0
+    except ValueError as e:
+        # probably a verify error
+        if not with_new_pw:
+            failed_to_decrypt_with_old_pw = True
+        else:
+            # i.e - failed with the new pw:
+            assert 0
+    finally:
+        if isStandAlone:
+            remove_DB()
+        else:
+            return typoDB
 
+    
 def get_pw():
     return 'GoldApp&3'
+
+def new_pw():
+    return "Beetle*Juice94"
 
 def t_1():
     # lower initial
