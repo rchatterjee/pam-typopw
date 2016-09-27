@@ -17,7 +17,6 @@ will be installed automatically by the `install.sh` script.
 >3. `python-pam`, for testing `tet_pam.py` script. Not required in production.
 >4. `python-setputools`, if you are a python user, then this is most likely already isntalled. 
 >5. `python-dev`, for `python.h` dependency with some cypthon modules.
->6. `numpy`
 
 
 <!--### How to? 
