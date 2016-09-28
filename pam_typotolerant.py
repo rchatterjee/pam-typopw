@@ -58,7 +58,8 @@ def check_pw(user, pw):
     p.stdin.close()
     try:
         ret = p.wait()
-    except OSError:
+    except OSError as e:
+        eprint("ERROR: Could not open {}\n{}".format(CHKPW_EXE, e))
         return -1
     return p.returncode
 
@@ -102,7 +103,7 @@ def pam_sm_authenticate(pamh, flags, argv):
 
 
 def pam_sm_setcred(pamh, flags, argv):
-    raise Exception("pam_sm_setcred not initialized")
+    # raise Exception("pam_sm_setcred not initialized")
     return pamh.PAM_SUCCESS
 
 def pam_sm_acct_mgmt(pamh, flags, argv):

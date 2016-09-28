@@ -949,8 +949,8 @@ def on_correct_password(typo_db, password):
         logger.error("details: {}".format(e.message))
         pass
     except Exception as e:
-        logger.error("Unexpected error while on_correct_password:\n{}\n".format(
-            e.message))
+        logger.error("Unexpected error while on_correct_password:\n{}\n"\
+                     .format(e.message))
     # in order to avoid locking out - always return true for correct password
     finally:
         return True

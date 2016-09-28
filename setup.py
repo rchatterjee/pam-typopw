@@ -5,14 +5,14 @@ import getpass
 import pwd
 from setuptools import setup
 from setuptools.command.install import install
-from subprocess import Popen, STDOUT, PIPE
+from subprocess import Popen, call, PIPE
 import stat
 VERSION = "0.1"
 GITHUB_URL = 'https://github.com/rchatterjee/pam-typopw' # URL in github repo
 BINDIR = '/usr/local/bin'
 SEC_DB_PATH = '/etc/adaptive_typo'
 SCRIPTS = [
-    'pam_typotolerant.py', 'chkpw', 'adaptive_typo/send_typo_log.py',
+    'pam_typotolerant.py', 'adaptive_typo/send_typo_log.py',
 ]
 LIB_DEPENDENCIES = ['libpam-python', 'python-pam', 
                     'python-setuptools', 'python-dev']
@@ -70,14 +70,16 @@ class CustomInstaller(install):
         assert os.getuid() == 0, "You need root priviledge to run the installation"
         if not os.path.exists(BINDIR):
             os.mkdirs(path=BINDIR, mode=0755) # drwxr-xr-x
-        Popen(['apt-get', 'install'] + LIB_DEPENDENCIES).wait()
-        Popen(['gcc', 'chkpw.c', '-o', '{}/chkpw'.format(BINDIR), '-lcrypt']).wait()
+        call(['apt-get', 'install'] + LIB_DEPENDENCIES)
+        call(['gcc', 'chkpw.c', '-o', '{}/chkpw'.format(BINDIR), '-lcrypt'])
         # Assuming there is a unix_chkpwd
-        unix_chkpwd_st = os.stat(
-            Popen('which unix_chkpwd'.split(), stdout=PIPE).stdout.read().strip()
-        )
-        os.chmod('{}/chkpw'.format(BINDIR), unix_chkpwd_st.st_mode)
+        p = Popen('which unix_chkpwd'.split(), stdout=PIPE)
+        unix_chkpwd = p.stdout.read().strip()
+        p.wait()
+        unix_chkpwd_st = os.stat(unix_chkpwd)
         os.chown('{}/chkpw'.format(BINDIR), unix_chkpwd_st.st_uid, unix_chkpwd_st.st_gid)
+        os.chmod('{}/chkpw'.format(BINDIR), 0o2755)
+
         Popen('cp -vf {} {}/'.format(' '.join(SCRIPTS), BINDIR).split()).wait()
         common_auth = '/etc/pam.d/common-auth'
         common_auth_orig = '/etc/pam.d/common-auth.orig'
