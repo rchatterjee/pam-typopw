@@ -374,7 +374,7 @@ class UserTypoDB:
         # 2.5
         # note - we can't move any ctx to the 'read-only' pk_salt_t
         # because all ctx needs updating everytime a new typo enters HashCache
-        pk_salt_t.update(dict(desc=ORIG_PW_ID, data=pw_id), ['desc'])
+        pk_salt_t.update(dict(desc=ORIG_PW_ID, data=str(pw_id)), ['desc'])
         pk_salt_t.update(dict(desc=ORIG_SK_SALT, data=enc_salt_bs64), ['desc'])
         pk_salt_t.update(dict(desc=ORIG_PW_ENC_PK, data=pw_enc_pk), ['desc'])
         pk_salt_t.update(dict(desc=ORIG_SGN_SALT, data=sgn_salt_bs64), ['desc'])
@@ -495,12 +495,14 @@ class UserTypoDB:
             typo_count = cacheline['count']
 
             # update table with new count
+            sk_dict = {t_h_id: sk}
             if increaseCount:
                 typo_count += 1
                 cacheT.update(dict(H_typo=t_h_id, count=typo_count), ['H_typo'])
             if updateLog:
+                typo_id = self._hmac_id(typo, sk_dict)
                 self.update_log(typo_id, cacheline)
-            return {t_h_id: sk}, True
+            return sk_dict, True
         
         logger.debug("Typo wasn't found in {}".format(hashCacheT))
         return {}, False
@@ -522,7 +524,7 @@ class UserTypoDB:
 
     def log_orig_pw_use(self):
         ts = get_time()
-        pw_id = self._sec_db[secretAuxSysT].find_one(desc=ORIG_PW_ID)['data'].encode('utf-8') # 
+        pw_id = int(self._sec_db[secretAuxSysT].find_one(desc=ORIG_PW_ID)['data'])
         self.update_log(pw_id)
                                   
     def log_end_of_session(self):
@@ -549,7 +551,7 @@ class UserTypoDB:
         #info_t = self._db[auxT]
         pks_t = self._sec_db[secretAuxSysT] # 
         orig_pw_pk = pks_t.find_one(desc=ORIG_PW_ENC_PK)['data']
-        orig_pw_id = pks_t.find_one(desc=ORIG_PW_ID)['data'].encode('utf-8') #
+        orig_pw_id = int(pks_t.find_one(desc=ORIG_PW_ID)['data'])
         pk_dict[orig_pw_id] = orig_pw_pk #
         # logger.debug("TEMP inserted [{}]:{}".format(orig_pw_id, orig_pw_pk)) # TODO DELETE
         assert len(pk_dict)>0, "PK_dict size is zero!!"
@@ -848,7 +850,7 @@ class UserTypoDB:
         # _, pw_pk = derive_public_key(pw, pw_salt) # TODO DELETE
         # logger.debug("TEMP pw pk:{}".format(pw_pk)) # TODO DELETE
         #
-        pw_id = self._sec_db[secretAuxSysT].find_one(desc=ORIG_PW_ID)['data'].encode('utf-8')
+        pw_id = int(self._sec_db[secretAuxSysT].find_one(desc=ORIG_PW_ID)['data'])
         # logger.debug("TEMP pw_id:{}".format(pw_id)) # TODO REMOVE
         logger.debug(pw_id) # TODO REMOVE
         logger.debug(type(pw_id)) # TODO REMOVE
@@ -898,7 +900,7 @@ class UserTypoDB:
 
 
     # pwd promts
-    NOT_INITIALIZED = "Uninitialized"
+    NOT_INITIALIZED = "Password"
     ACTIVATED = 'aDAPTIVE pASSWORD'
     RE_INIT = 'Please re-init'
     CORRUPT_DB = "Corrupted DB !"

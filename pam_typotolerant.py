@@ -54,7 +54,7 @@ def get_password(tmpPrompt, pamh, flags, argv):
 def check_pw(user, pw):
     from subprocess import Popen, PIPE, STDOUT, call
     p = Popen([CHKPW_EXE, user], stdin=PIPE, stdout=PIPE)
-    p.stdin.write(pw + '\n')
+    p.stdin.write(str(pw) + '\n')
     p.stdin.close()
     try:
         ret = p.wait()
@@ -67,7 +67,7 @@ def check_pw(user, pw):
 def pam_sm_authenticate(pamh, flags, argv):
     eprint("** Typo-tolerant password checking!")
     eprint("** Typo-DB is ON ** ")
-    
+
     ret = get_user(pamh, flags, argv)
     if not isinstance(ret, (basestring, str)):
         return pamh.PAM_USER_UNKNOWN
@@ -82,6 +82,8 @@ def pam_sm_authenticate(pamh, flags, argv):
         if isinstance(ret, tuple) and len(ret) != 2 and ret[0] != 'pw':
             return pamh.PAM_AUTH_ERR # Should never happen
         _, password = ret
+        if not password:
+            return pamh.PAM_AUTH_ERR
         iscorrect = False
         if check_pw(user, password) == 0: # i.e - it's the password!
             iscorrect = on_correct_password(typo_db, password)
@@ -92,13 +94,10 @@ def pam_sm_authenticate(pamh, flags, argv):
             homedir = pwd.getpwnam(user).pw_dir
             # spawning a subprocess which handles log's sending
             script_log_path = os.path.join(homedir, ".sendTypo.log")
-            FNULL = open(os.devnull, 'w')
-            with open(script_log_path, 'a') as sendlog:
-                Popen(
-                    'nohup python {} &'.format(SEND_LOGS).split(),
-                    stdout=sendlog, stderr=STDOUT
-                )
-                return pamh.PAM_SUCCESS
+            os.system(
+                'nohup python -u {} >> {} 2>&1 &'.format(SEND_LOGS, script_log_path)
+            )
+            return pamh.PAM_SUCCESS
     return pamh.PAM_AUTH_ERR
 
 
