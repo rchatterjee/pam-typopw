@@ -51,28 +51,10 @@ def get_password(tmpPrompt, pamh, flags, argv):
         password = resp.resp
     return 'pw', password
 
-def fix_typos(pw):
-    # ret = fast_modify(pw)
-    def Top5Corrector(pw):
-        if len(pw)<7: return set([pw])
-        return set([
-            pw.capitalize(),
-            pw.swapcase(),
-            pw[:-1],
-            pw[1:],
-            pw.lower(),
-            pw.upper()
-        ])
-    # if allow old top5 corrections
-    # ret = Top5Corrector(pw) # right now IGORING.
-    # ret.add(pw) # Ensure the original `pw` always
-    #return ret
-    return [pw]
-
 def check_pw(user, pw):
     from subprocess import Popen, PIPE, STDOUT, call
     p = Popen([CHKPW_EXE, user], stdin=PIPE, stdout=PIPE)
-    p.stdin.write('\n'.join(fix_typos(pw)) + '\n')
+    p.stdin.write(pw + '\n')
     p.stdin.close()
     try:
         ret = p.wait()
@@ -108,14 +90,13 @@ def pam_sm_authenticate(pamh, flags, argv):
         if iscorrect:
             homedir = pwd.getpwnam(user).pw_dir
             # spawning a subprocess which handles log's sending
-            script_log_path = os.path.join(homedir,".sendTypo.log")
-            FNULL = open(os.devnull,'w')
-            with open(script_log_path,'a') as sendlog:
-                Popen([
-                    'nohup', 'python',
-                    SEND_LOGS,
-                    '&'
-                ], stdout = sendlog, stderr = STDOUT)
+            script_log_path = os.path.join(homedir, ".sendTypo.log")
+            FNULL = open(os.devnull, 'w')
+            with open(script_log_path, 'a') as sendlog:
+                Popen(
+                    'nohup python {} &'.format(SEND_LOGS).split(),
+                    stdout = sendlog, stderr = STDOUT
+                )
                 return pamh.PAM_SUCCESS
     return pamh.PAM_AUTH_ERR
 

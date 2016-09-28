@@ -37,7 +37,7 @@ def main():
 def check_pw(user, pw):
     from subprocess import Popen, PIPE, STDOUT, call
     p = Popen([CHKPW_EXE, user], stdin=PIPE, stdout=PIPE)
-    p.stdin.write('\n'.join([pw]) + '\n')
+    p.stdin.write(pw + '\n')
     p.stdin.close()
     try:
         ret = p.wait()

@@ -17,7 +17,7 @@ if [ -e ${common_auth_file}.orig ]; then
     mv ${common_auth_file}.orig ${common_auth_file}
 fi
 bindir=/usr/local/bin/
-rm -rf ${bindir}/{pam_typotolerant.py, chkpw}
+rm -rf ${bindir}/pam_typotolerant.py $bindir/chkpw $bindir/send_typo_log.py
 rm -rf /etc/pam.d/typo_auth
 # pip uninstall adaptive-typo
 if [ -e ffile.txt ]; then
@@ -26,4 +26,3 @@ if [ -e ffile.txt ]; then
 fi
 
 apt-get remove libpam-python libdawgdic-dev
-

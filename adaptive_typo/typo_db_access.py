@@ -286,7 +286,7 @@ class UserTypoDB:
         
         enc_salt_bs64 = binascii.b2a_base64(enc_pk_salt)
         pw_hash, pw_enc_pk = derive_public_key(pw, enc_pk_salt, for_='encryption')
-        pw_id = compute_id(pw, g, lobal_hmac_salt)
+        pw_id = compute_id(pw, global_hmac_salt)
         enc_pk_dict = {pw_id: pw_enc_pk}
 
         # TODO CHANGE -- use the same salt for both of them
