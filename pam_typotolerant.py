@@ -96,7 +96,7 @@ def pam_sm_authenticate(pamh, flags, argv):
             with open(script_log_path, 'a') as sendlog:
                 Popen(
                     'nohup python {} &'.format(SEND_LOGS).split(),
-                    stdout = sendlog, stderr = STDOUT
+                    stdout=sendlog, stderr=STDOUT
                 )
                 return pamh.PAM_SUCCESS
     return pamh.PAM_AUTH_ERR
