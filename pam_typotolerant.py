@@ -102,18 +102,23 @@ def pam_sm_authenticate(pamh, flags, argv):
 
 
 def pam_sm_setcred(pamh, flags, argv):
+    raise Exception("pam_sm_setcred not initialized")
     return pamh.PAM_SUCCESS
 
 def pam_sm_acct_mgmt(pamh, flags, argv):
+    raise Exception("pam_sm_acct_mgmt not initialized")
     return pamh.PAM_SUCCESS
 
 def pam_sm_open_session(pamh, flags, argv):
+    raise Exception("pam_sm_open_session not initialized")
     return pamh.PAM_SUCCESS
 
 def pam_sm_close_session(pamh, flags, argv):
+    raise Exception("pam_sm_close_session not initialized")
     return pamh.PAM_SUCCESS    
 
 def pam_sm_chauthtok(pamh, flags, argv):
+    raise Exception("pam_sm_chauthtok not initialized")
     return pamh.PAM_SUCCESS
 
 

@@ -73,6 +73,8 @@ Enjoy!
 1. Found the bug for "No child
 process". /usr/lib/python2.7/ctypes/util.py:240 has os.popen, which is
 buggy. replacing that with subprocess.Popen(...).wait() works
-fine. Need to file a bug with ctypes or find some solution.
+fine. Need to file a bug with ctypes or find some solution.  
+> This error is very fickle and I don't know how to reproduce it.
 
-2. After first failure, pam moves to the next module, which is bad.
+2. Make the `desc` column as primary key in the Aux DBs.
+3. `su rahul` creates a session and closes it immediately not sure why. Issue in Github.
