@@ -12,7 +12,7 @@ fi
 # install libpam_python, and python-dawg, python-dev setuptools,
 # libpam0g-dev (in case we use C libraries)
 apt-get install libpam-python python-pam python-setuptools python-dev python-pip
-pip install numpy
+# pip install numpy
 
 # Compile chkpw and set chkpw permissions
 gcc chkpw.c -o chkpw -lcrypt

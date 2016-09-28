@@ -1,3 +1,4 @@
+#!/usr/bin/python
 from adaptive_typo.typo_db_access import UserTypoDB #,LastSent
 import json
 import pwd
