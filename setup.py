@@ -77,7 +77,7 @@ setup(
         'requests'
     ],
     cmdclass={'install': CustomInstaller},
-    zipsage=False
+    zipsafe=False
 )
 
 first_msg = """\n\n\n

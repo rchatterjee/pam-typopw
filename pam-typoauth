@@ -79,22 +79,6 @@ apt-get -y remove libpam-python libdawgdic-dev
     os.system(cmd)
 
 parser = argparse.ArgumentParser("pam-typoauth ")
-parser.add_argument(
-    "--allowtypo", type=str.lower, choices=['yes','no'],
-    help='Allow login with typos of the password'
-)
-parser.add_argument(
-    "--status", action="store_true",
-    help='Prints current states of the typotolerance.'
-)
-parser.add_argument(
-    "--allowupload", type=str.lower, choices=['yes', 'no'],
-    help="Allow uploading the non-sensive annonymous data into the server for research purposes."
-)
-parser.add_argument(
-    "--installid", action="store_true",
-    help="Prints the installation id, which you have to submit while filling up the google form"
-)
 
 parser.add_argument(
     "--init", action="store_true",
@@ -102,14 +86,34 @@ parser.add_argument(
 )
 
 parser.add_argument(
+    "--allowtypo", type=str.lower, choices=['yes','no'],
+    help='Allow login with typos of the password'
+)
+
+parser.add_argument(
+    "--allowupload", type=str.lower, choices=['yes', 'no'],
+    help="Allow uploading the non-sensive annonymous data into the server for research purposes."
+)
+
+parser.add_argument(
+    "--installid", action="store_true",
+    help="Prints the installation id, which you have to submit while filling up the google form"
+)
+
+parser.add_argument(
+    "--status", action="store_true",
+    help='Prints current states of the typotolerance.'
+)
+
+parser.add_argument(
     "--uninstall", action="store_true",
     help="To initialize the DB. You have to run this once you install adaptive_typo"
 )
 
-parser.add_argument( # TODO: We can defer it for next release
-    "--disable", type=str.lower, 
-    help="Disables typo tolerance for a user"
-)
+# parser.add_argument( # TODO: We can defer it for next release
+#     "--disable", type=str.lower, option
+#     help="Disables typo tolerance for a user"
+# )
 
 args = parser.parse_args()
 if len(sys.argv) <=1:
