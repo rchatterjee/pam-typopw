@@ -1,5 +1,4 @@
 import os
-from adaptive_typo.typo_db_access import UserTypoDB
 from pam_typotolerant import check_pw
 import getpass
 import pwd
@@ -60,6 +59,7 @@ def initiate_typodb():
             right_pw = (check_pw(user, pw) == 0)
             if right_pw:
                 print("Initiating the database...",)
+                from adaptive_typo.typo_db_access import UserTypoDB
                 tb = UserTypoDB(user)
                 tb.init_typotoler(pw)
                 print("Done!")
