@@ -10,7 +10,7 @@ GITHUB_URL = 'https://github.com/rchatterjee/pam-typopw' # URL in github repo
 BINDIR = '/usr/local/bin'
 SEC_DB_PATH = '/etc/adaptive_typo'
 SCRIPTS = [
-    'pam_typotolerant.py', 'adaptive_typo/send_typo_log.py',
+    'pam_typotolerant.py', 'send_typo_log.py',
     'uninstall_adaptive_typo.sh', 'pam-typoauth'
 ]
 LIB_DEPENDENCIES = ['libpam-python', 'python-pam', 
