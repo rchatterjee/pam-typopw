@@ -920,6 +920,14 @@ def on_correct_password(typo_db, password):
 
 def on_wrong_password(typo_db, password):
     try:
+        sysStatLine = self._db[auxT].find_one(desc=SysStatus)
+        if not sysStatLine: # if not found in table
+            raise UserTypoDB.NoneInitiatedDB("Typotoler DB wasn't initiated yet!")
+        sysStatVal = int(sysStatLine['data'])
+        if sysStatVal == 1:
+            raise KeyError
+        if sysStatVal == 2:
+             raise UserTypoDB.CorruptedDB("")
         sk_dict, is_in = typo_db.fetch_from_cache(password) # also updates the log
         if not is_in: # aka it's not in the cache, 
             logger.info("a new typo appeared!") # TODO REMOVE
