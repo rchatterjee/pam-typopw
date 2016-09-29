@@ -48,7 +48,8 @@ class CustomInstaller(install):
             f.write('# for allowing typo tolerant login\n'
                     '@include typo_auth\n')
             f.write(open(common_auth_orig).read())
-        install.run(self)
+        # install.run(self) # this ignores all install_requires
+        self.do_egg_install()
         # initiate_typodb() # Because pip install is non-interactive
 
 

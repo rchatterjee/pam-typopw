@@ -32,14 +32,16 @@ will be installed automatically by the `install.sh` script.
 
 -->
 ### Install
-Run `pip install adaptive_typo` to install. This will require super user permission.
 ```bash
-$ sudo pip install adaptive_typo
+$ git clone https://github.com/rchatterjee/pam-typopw.git && cd pam-typopw && sudo python setup.py install
 ```
 
-This should install all the depenedencies and setup the PAM config
-files. Use `bash uninstall.sh` to uninstall the program (requires root
-priviledges).
+This should install all the depenedencies and setup the PAM config files. This
+will install a command-line control script `pam-typoauth` which you can use to
+control and monitor the behaivior of the adaptive typo tolernace system. Details
+of the script is given below.  
+
+To **uninstall** run `pam-typoauth --uninstall` (requires root priviledges).
 
 ### If the user change his password
 When the user changes his password, the adaptive typo will be disabled until the system is re-initialized for the new password
