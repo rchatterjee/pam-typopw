@@ -1,6 +1,6 @@
 ## pam-typopw / Adaptive typo tolerance
 
-Login failure due to small mistakes in the login password is annoying for legitimate users. Allowing small typographical errors while checking password can improve usability significantly. However, making too many corrections could degrade security drastically, and be computationally expensive. Here, we propose a typo correcting system that is built specifically for your mistakes. We believe users make only a few different types of typos, so, we can keep the number of corrections low (saving in computation overhead and security), while maximize the benefit of correction. We need to verify our hypothesis, and hence this project.
+Password typing mistakes are prevalent and annoying as it unnecessarily stops legimate users from doing something more productive than merely retyping their passwords. Usability of passwords will imrpove significantly, if we allow some small typographical errors while checking passwords. As passwords are not stored in plaintext, it is not trivial to check whether or not an entered password is a typo or an adversarial guess. One possible solution to that is to check a set of possible corrections of the entered password. However this requires learning proper set of corrections, or in a way the distributions of typographical errors. Here, we propose a typo correcting system that is built specifically for your mistakes, that is, the system monitors your password typing mistakes and allow you to log in with five most probable mistyped version of your passwod. We believe users make only a few different types of typos over and over again, so, we can keep the number of corrections low (saving in computation overhead and security), while maximize the benefit of correction.
 
 ### A bit more technical details
 
@@ -17,9 +17,6 @@ The script will report the following information back to us for research purpose
 5. The relative change in the strength of the typo with respect to the original password.
 6. The edit distance between the typo and the original password
 
-**Right now this only supports Debian distributions.
-In the future we might port this project to Fedora, CetOS, MAC and Windows**
-
 
 ### Requirements  
 This module **only works with Debian linux distros**, for example, **Ubuntu, Lubuntu, Kubuntu, Debian**, etc.  
@@ -32,7 +29,7 @@ This pam_module depends on the following packages. These will be installed autom
 >4. `python-setputools`, if you are a python user, then this is most likely already isntalled. 
 >5. `python-dev`, for `python.h` dependency with some cypthon modules.
 
--->
+
 ### Install
 
 ```bash
