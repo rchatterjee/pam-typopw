@@ -8,22 +8,24 @@ This module tries to add typo tolerance to standard Unix password based
 authentication systems. It uses Pluggable authentication module (PAM) to plug
 typo tolerant password checking into normal linux login.
 
-The script will report the following information back to us for research purposes. All the collected data are anonymous, and handled with utmost care. All the sensitive data in the user's laptop is encrypted, and the weakest link is as strong as guessing the user's password. 
->1. The timestamp and local time of logging in.
->2. A unique id of the submitted password. The id is obtained by computing HMAC of the submitted password with a key derived from the original password and a random 128-bit secret. The 128-bit secret never leaves the user's computer. Therefore, without the secret, it is impossible to perform brute-force dictionary attack against the submitted passwords and invert the ids. If the user uninstalls the script that key is deleted immediately 
->3. Whether or not the entered password is one of the frequent typos.
->4. Whether or not the entered password is an easy-to-correct typo (i.e., flipped cases, or a character added to the end or beginning of the original password).
->5. The relative change in the strength of the typo with respect to the original password.
->6. The edit distance between the typo and the original password
+The script will report the following information back to us for research purposes. All the collected data are anonymous, and handled with utmost care. All the sensitive data in the user's laptop is encrypted, and the weakest link is as strong as guessing the user's password.
+
+1. The timestamp and local time of logging in.
+2. A unique id of the submitted password. The id is obtained by computing HMAC of the submitted password with a key derived from the original password and a random 128-bit secret. The 128-bit secret never leaves the user's computer. Therefore, without the secret, it is impossible to perform brute-force dictionary attack against the submitted passwords and invert the ids. If the user uninstalls the script that key is deleted immediately 
+3. Whether or not the entered password is one of the frequent typos.
+4. Whether or not the entered password is an easy-to-correct typo (i.e., flipped cases, or a character added to the end or beginning of the original password).
+5. The relative change in the strength of the typo with respect to the original password.
+6. The edit distance between the typo and the original password
 
 **Right now this only supports Debian distributions.
 In the future we might port this project to Fedora, CetOS, MAC and Windows**
 
 
 ### Requirements  
-Assuming you have `make` and `gcc`. All of the following are dependencies, which
-will be installed automatically by the `install.sh` script.
+This module **only works with Debian linux distros**, for example, **Ubuntu, Lubuntu, Kubuntu, Debian**, etc.  
 
+This pam_module depends on the following packages. These will be installed automatically once you call
+`python setup.py install`.  **Do not use pip to install this pam_module**.
 >1. `libpam-dev`, for security/pam_modules.h etc.
 >2. `libpam-python`, to write pam modules in Python.
 >3. `python-pam`, for testing `tet_pam.py` script. Not required in production.
@@ -32,8 +34,10 @@ will be installed automatically by the `install.sh` script.
 
 -->
 ### Install
+
 ```bash
-$ git clone https://github.com/rchatterjee/pam-typopw.git && cd pam-typopw && sudo python setup.py install
+$ git clone https://github.com/rchatterjee/pam-typopw.git
+$ cd pam-typopw && sudo python setup.py install
 ```
 
 This should install all the depenedencies and setup the PAM config files. This
@@ -42,6 +46,29 @@ control and monitor the behaivior of the adaptive typo tolernace system. Details
 of the script is given below.  
 
 To **uninstall** run `pam-typoauth --uninstall` (requires root priviledges).
+
+### `pam-typoauth` Utility
+```bash
+$ pam-typoauth 
+usage: pam-typoauth  [-h] [--init] [--allowtypo {yes,no}]
+                     [--allowupload {yes,no}] [--installid] [--status]
+                     [--uninstall]
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --init                To initialize the DB. You have to run this once you
+                        install adaptive_typo
+  --allowtypo {yes,no}  Allow login with typos of the password
+  --allowupload {yes,no}
+                        Allow uploading the non-sensive annonymous data into
+                        the server for research purposes.
+  --installid           Prints the installation id, which you have to submit
+                        while filling up the google form
+  --status              Prints current states of the typotolerance.
+  --uninstall           To initialize the DB. You have to run this once you
+                        install adaptive_typo
+
+```
 
 ### If the user change his password
 When the user changes his password, the adaptive typo will be disabled until the system is re-initialized for the new password
