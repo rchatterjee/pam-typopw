@@ -150,8 +150,9 @@ class UserTypoDB:
             try:
                 os.makedirs(typo_dir)
             except OSError as error:
-                if error.errno != errno.EEXIST:
-                    raise(error)
+                print("Trying to create: {}, but raninto some issues."\
+                      .format(typo_dir))
+                raise(error)
         self._db_path = "{}/{}.db".format(homedir, DB_NAME)
         self._sec_db_path="{}/{}.db".format(typo_dir, SEC_DB_NAME) #
         self._log_path = "{}/{}.log".format(homedir, DB_NAME)
@@ -657,7 +658,7 @@ class UserTypoDB:
         for typo in typoDic.keys():
             ts_list, t_hs_bs64, typo_pk, t_sa_bs64, typo_ent  = typoDic[typo]
             count = len(ts_list)
-            editDist = distance(unicode(pw), unicode(typo))
+            editDist = distance(str(pw), str(typo))
             typo_id = compute_id(bytes(typo.encode('utf-8')), global_salt)
             rel_entropy = typo_ent - pw_entropy
             
@@ -872,7 +873,7 @@ class UserTypoDB:
         if not_pass:
 
             # making sure the hashCache hadn't been tempered with
-            editDist = distance(unicode(orig_pw), unicode(typo))
+            editDist = distance(str(orig_pw), str(typo))
             typo_ent = get_entropy_stat(typo)
             rel_entropy = typo_ent - pw_entropy
             

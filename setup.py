@@ -1,6 +1,5 @@
-import os
-from pam_typotolerant import check_pw
-import getpass
+from __future__ import print_function
+import os, sys
 import pwd
 from setuptools import setup
 from setuptools.command.install import install
@@ -12,64 +11,10 @@ BINDIR = '/usr/local/bin'
 SEC_DB_PATH = '/etc/adaptive_typo'
 SCRIPTS = [
     'pam_typotolerant.py', 'adaptive_typo/send_typo_log.py',
+    'uninstall_adaptive_typo.sh', 'pam-typoauth'
 ]
 LIB_DEPENDENCIES = ['libpam-python', 'python-pam', 
                     'python-setuptools', 'python-dev']
-
-first_msg = """\n\n\n
-----------------------------------------------------------------------
-    / \   __| | __ _ _ __ | |_(_)_   _____  |_   _|   _ _ __   ___  
-   / _ \ / _` |/ _` | '_ \| __| \ \ / / _ \   | || | | | '_ \ / _ \ 
-  / ___ \ (_| | (_| | |_) | |_| |\ V /  __/   | || |_| | |_) | (_) | 
- /_/   \_\__,_|\__,_| .__/ \__|_| \_/ \___|   |_| \__, | .__/ \___/ 
-                    |_|                           |___/|_| 
----------------------------------------------------------------------\n
-Hello!
-
-Thanks for installing Adaptive Typo Tolerance (version: {version}).
-This software attaches a new Pluggable Authentication Module (PAM) to
-almost all of your common authentication processes, and observes your
-password typing mistakes. Eventually this learns about your frequent
-typing mistakes, and enable logging in with slight but popular
-vairation of your actual login password. 
-
-We would like to collect some anonymous non-sensitive data about your
-password typing patterns for purely research purposes. The details of
-what we collect, how we collect and store, and the security blueprint
-of this software can be found in the GitHub page (probably {url}).
-The participation in the study is completely voluntary, and you can
-opt out at any time while still keep using the software.
-
-You have to install this for each user who intend to use the benefit
-of adaptive typo-tolerant password login.
-""".format
-
-def initiate_typodb():
-    print(first_msg(url=GITHUB_URL, version=VERSION))
-    user = raw_input("Please enter your username: ")
-    try:
-        # checks that such a user exists:
-        homedir = pwd.getpwnam(user).pw_dir
-    except KeyError as e:
-        print "Error: {}".format(e.message)
-    else:
-        right_pw = False
-        for tries in range(3):
-            pw = getpass.getpass()
-            right_pw = (check_pw(user, pw) == 0)
-            if right_pw:
-                print("Initiating the database...",)
-                from adaptive_typo.typo_db_access import UserTypoDB
-                tb = UserTypoDB(user)
-                tb.init_typotoler(pw)
-                print("Done!")
-                return 0
-            else:
-                print("Doesn't look like a correct password. Please try again.")
-
-        print "Failed to enter a correct password 3 times."
-        # to stop the installation process
-        raise ValueError("incorrect pw given 3 times")
 
 class CustomInstaller(install):
     def run(self):
@@ -104,7 +49,7 @@ class CustomInstaller(install):
                     '@include typo_auth\n')
             f.write(open(common_auth_orig).read())
         install.run(self)
-        initiate_typodb()
+        # initiate_typodb() # Because pip install is non-interactive
 
 
 # With the help from http://peterdowns.com/posts/first-time-with-pypi.html
@@ -122,15 +67,49 @@ setup(
         'login-with-errors', 'Login'
     ],
     classifiers = ['Development Status :: 4 - Beta'],
-    scripts = ['pam-typoauth'],
     install_requires=[
         'joblib',
         'pycryptodome',
-        # 'python-Levenshtein',
         'word2keypress',
         'dataset',
         'zxcvbn',
         'requests'
     ],
-    cmdclass={'install': CustomInstaller}
+    cmdclass={'install': CustomInstaller},
+    zipsage=False
 )
+
+first_msg = """\n\n\n
+----------------------------------------------------------------------
+    / \   __| | __ _ _ __ | |_(_)_   _____  |_   _|   _ _ __   ___  
+   / _ \ / _` |/ _` | '_ \| __| \ \ / / _ \   | || | | | '_ \ / _ \ 
+  / ___ \ (_| | (_| | |_) | |_| |\ V /  __/   | || |_| | |_) | (_) | 
+ /_/   \_\__,_|\__,_| .__/ \__|_| \_/ \___|   |_| \__, | .__/ \___/ 
+                    |_|                           |___/|_| 
+---------------------------------------------------------------------\n
+Hello!
+
+Thanks for installing Adaptive Typo Tolerance (version: {version}).
+This software attaches a new Pluggable Authentication Module (PAM) to
+almost all of your common authentication processes, and observes your
+password typing mistakes. Eventually this learns about your frequent
+typing mistakes, and enable logging in with slight but popular
+vairation of your actual login password. 
+
+We would like to collect some anonymous non-sensitive data about your
+password typing patterns for purely research purposes. The details of
+what we collect, how we collect and store, and the security blueprint
+of this software can be found in the GitHub page ({url}).
+The participation in the study is completely voluntary, and you can
+opt out at any time while still keep using the software.
+
+You have to install this for each user who intend to use the benefit
+of adaptive typo-tolerant password login.
+
+Please run the following command in the terminal to initialize the 
+typo database.
+
+$ sudo pam-typoauth --init
+""".format
+
+print(first_msg(url=GITHUB_URL, version=VERSION), file=sys.stderr)

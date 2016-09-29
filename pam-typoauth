@@ -1,8 +1,11 @@
-import os
+#!/usr/bin/python
+
+import os, sys
 import pwd
 import argparse
 from adaptive_typo.typo_db_access import UserTypoDB
-
+import subprocess
+import getpass
 
 def _get_username():
     # change to login user?
@@ -16,11 +19,66 @@ def _get_typoDB():
     if not typoDB.is_typotoler_init():
         raise Exception("{}:{} not initiated".format(
             str(typoDB),
-            typoDB.get_db_path(user))
+            typoDB.get_db_path())
         )
     return typoDB
 
-parser = argparse.ArgumentParser("Change settings of the adaptive_typo module.")
+def initiate_typodb():
+    assert os.getuid() == 0, "You need root priviledge to run the installation"
+    user = raw_input("Please enter your username: ")
+    try:
+        # checks that such a user exists:
+        homedir = pwd.getpwnam(user).pw_dir
+    except KeyError as e:
+        print "Error: {}".format(e.message)
+    else:
+        from pam_typotolerant import check_pw
+        right_pw = False
+        for tries in range(3):
+            pw = getpass.getpass()
+            right_pw = (check_pw(user, pw) == 0)
+            if right_pw:
+                print("Initiating the database...",)
+                from adaptive_typo.typo_db_access import UserTypoDB
+                tb = UserTypoDB(user)
+                tb.init_typotoler(pw)
+                print("Done!")
+                return 0
+            else:
+                print("Doesn't look like a correct password. Please try again.")
+
+        print "Failed to enter a correct password 3 times."
+        # to stop the installation process
+        raise ValueError("incorrect pw given 3 times")
+
+def uninstall_adaptive_typo():
+    assert os.getuid() == 0, "You need root priviledge to run the installation"
+    cmd = '''
+#!/bin/bash
+set -e
+set -u
+
+# remove dawg
+common_auth_file=/etc/pam.d/common-auth
+if [ -e ${common_auth_file}.orig ]; then
+    mv ${common_auth_file}.orig ${common_auth_file}
+fi
+bindir=/usr/local/bin/
+rm -rf ${bindir}/pam_typotolerant.py $bindir/chkpw $bindir/send_typo_log.py
+rm -rf ${bindir}/pam-typoauth
+rm -rf /etc/adaptive_typo/
+rm -rf /etc/pam.d/typo_auth
+pip -q uninstall --yes adaptive-typo
+if [ -e ffile.txt ]; then
+    cat ffile.txt | xargs rm -i
+    rm -rf ffile.txt
+fi
+
+apt-get -y remove libpam-python libdawgdic-dev
+    '''
+    os.system(cmd)
+
+parser = argparse.ArgumentParser("pam-typoauth ")
 parser.add_argument(
     "--allowtypo", type=str.lower, choices=['yes','no'],
     help='Allow login with typos of the password'
@@ -38,9 +96,28 @@ parser.add_argument(
     help="Prints the installation id, which you have to submit while filling up the google form"
 )
 
-typoDB = _get_typoDB()
+parser.add_argument(
+    "--init", action="store_true",
+    help="To initialize the DB. You have to run this once you install adaptive_typo"
+)
+
+parser.add_argument(
+    "--uninstall", action="store_true",
+    help="To initialize the DB. You have to run this once you install adaptive_typo"
+)
+
+parser.add_argument( # TODO: We can defer it for next release
+    "--disable", type=str.lower, 
+    help="Disables typo tolerance for a user"
+)
+
 args = parser.parse_args()
+if len(sys.argv) <=1:
+    print(parser.print_help())
+    exit(0)
+
 if args.allowtypo:
+    typoDB = _get_typoDB()
     if args.allowtypo == "no":
         # typoDB.allow_login(True)
         print "Turning OFF login with typos. The software will still monitor\n"\
@@ -51,6 +128,7 @@ if args.allowtypo:
         # typoDB.allow_login(False)
 
 if args.allowupload:
+    typoDB = _get_typoDB()
     if args.allowupload == "yes":
         # allowupload(False)
         print "Uploading data is enabled. You are awesome. Thanks!!"
@@ -59,8 +137,18 @@ if args.allowupload:
         print "Uploading data is disabled.  :( :'( :-(!"
     print "Thanks for using the software anyway."
 
+if args.init:
+    print("Initializing the typo database..")
+    initiate_typodb()
+
 if args.status:
+    typoDB = _get_typoDB()
     print("Login with typos: {}".format(typoDB.is_allowed_login()))
     print("Participate in the study: {}")#.format(typoDB.allowupload()))
 
 
+if args.uninstall:
+    r = raw_input("Uninstalling adaptive_typo. Will delete all the databases.\n"
+              "Please confirm. (yN)")
+    if r and r.lower() == 'y':
+        uninstall_adaptive_typo()
