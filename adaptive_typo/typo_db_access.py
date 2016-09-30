@@ -887,7 +887,7 @@ def on_correct_password(typo_db, password):
     logger.info("sm_auth: it's the right password")
     # log the entry of the original pwd
     try:
-        sysStatLine = self._db[auxT].find_one(desc=SysStatus)
+        sysStatLine = typo_db._db[auxT].find_one(desc=SysStatus)
         if not sysStatLine: # if not found in table
             raise UserTypoDB.NoneInitiatedDB("Typotoler DB wasn't initiated yet!")
         sysStatVal = int(sysStatLine['data'])
@@ -920,7 +920,7 @@ def on_correct_password(typo_db, password):
 
 def on_wrong_password(typo_db, password):
     try:
-        sysStatLine = self._db[auxT].find_one(desc=SysStatus)
+        sysStatLine = typo_db._db[auxT].find_one(desc=SysStatus)
         if not sysStatLine: # if not found in table
             raise UserTypoDB.NoneInitiatedDB("Typotoler DB wasn't initiated yet!")
         sysStatVal = int(sysStatLine['data'])
