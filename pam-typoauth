@@ -23,7 +23,7 @@ def _get_typoDB():
         )
     return typoDB
 
-def initiate_typodb():
+def initiate_typodb(RE_INIT = False):
     assert os.getuid() == 0, "You need root priviledge to run the installation"
     user = raw_input("Please enter your username: ")
     try:
@@ -38,10 +38,14 @@ def initiate_typodb():
             pw = getpass.getpass()
             right_pw = (check_pw(user, pw) == 0)
             if right_pw:
-                print("Initiating the database...",)
+                stub = "RE-" if RE_INIT else ""
+                print("{}Initiating the database...".format(stub),)
                 from adaptive_typo.typo_db_access import UserTypoDB
                 tb = UserTypoDB(user)
-                tb.init_typotoler(pw)
+                if RE_INIT:
+                    tb.update_after_pw_change(pw)
+                else: # Normal Init
+                    tb.init_typotoler(pw)
                 print("Done!")
                 return 0
             else:
@@ -50,6 +54,9 @@ def initiate_typodb():
         print "Failed to enter a correct password 3 times."
         # to stop the installation process
         raise ValueError("incorrect pw given 3 times")
+
+
+    
 
 def uninstall_adaptive_typo():
     assert os.getuid() == 0, "You need root priviledge to run the installation"
@@ -106,6 +113,11 @@ parser.add_argument(
     help="To initialize the DB. You have to run this once you install adaptive_typo"
 )
 
+parser.add_argument(
+    "--reinit", action="store_true",
+    help="To re-initiate the DB, especially after the user's pw has changed"
+)
+
 parser.add_argument( # TODO: We can defer it for next release
     "--disable", type=str.lower, 
     help="Disables typo tolerance for a user"
@@ -141,10 +153,16 @@ if args.init:
     print("Initializing the typo database..")
     initiate_typodb()
 
+if args.reinit:
+    print "RE-initiating adaptive_typo"
+    initiate_typodb(RE_INIT=True)
+    
+        
 if args.status:
     typoDB = _get_typoDB()
     print("Login with typos: {}".format(typoDB.is_allowed_login()))
     print("Participate in the study: {}")#.format(typoDB.allowupload()))
+    print("Version:{}") # TODO
 
 
 if args.uninstall:
