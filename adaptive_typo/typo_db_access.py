@@ -381,10 +381,6 @@ class UserTypoDB:
         db[logT].delete()
         self.set_status('0') #sets status to init
         logger.info("RE-Initialization Complete")        
-
-    def is_typotoler_on(self):
-        dataLine = self._db[auxT].find_one(desc=AllowedTypoLogin)
-        return dataLine and bool(dataLine['data'])
         
     def is_in_top5_fixes(self, orig_pw, typo):
         return orig_pw in (
@@ -439,6 +435,7 @@ class UserTypoDB:
         @sk_dict (dict) : is a dictionar from t_h_id -> ECC secret_key, 
         """
         global_salt = self.get_global_salt(sk_dict)
+        logger.debug("Got global salt") # TODO REMOVE
         typo_id = compute_id(bytes(typo.encode('utf-8')), global_salt)
         return typo_id
     
@@ -489,8 +486,9 @@ class UserTypoDB:
                 typo_count += 1
                 cacheT.update(dict(H_typo=t_h_id, count=typo_count), ['H_typo'])
             if updateLog:
-                typo_id = self._hmac_id(typo, sk_dict)
-                self.update_log(typo_id, cacheline)
+                #typo_id = self._hmac_id(typo, sk_dict)
+                #logger.debug("Computed typoID") # TODO REMOVE
+                self.update_log(typo, sk_dict, cacheline)
             return sk_dict, True
         
         logger.debug("Typo wasn't found in {}".format(hashCacheT))
@@ -505,10 +503,16 @@ class UserTypoDB:
         other_info['t_id'] = self._hmac_id(typo, sk_dict) if sk_dict else typo
         other_info['ts'] = get_time()
 
-        for col in ['editdist', 'top5fixable', 'in_cache', 
+        for col in ['edit_dist', 'top5fixable', 'in_cache', 
                     'allowed_login', 'rel_entropy']:
             if col not in other_info:
-                other_info[col] = 0 
+                other_info[col] = 0
+        # the 'id' columns is a uniq column that is added to the table automatically
+        # in some instances we get a dictionary from another table
+        # so we need to delete it in order to avoid clashes
+        if 'id' in other_info: # TODO CHANGE to try?
+            del other_info['id']
+            
         self._db[logT].insert(other_info)
 
     def log_orig_pw_use(self):
@@ -936,7 +940,7 @@ def on_wrong_password(typo_db, password):
         else: # it's in cach
             logger.info("typo in cach") # TODO REMOVE
             typo_db.update_hash_cache_by_waitlist(sk_dict, typo=password) # also updates the log
-            if typo_db.is_typotoler_on():
+            if typo_db.is_allowed_login():
                 logger.info("Returning SUCEESS TypoToler")
                 return True
             else:
