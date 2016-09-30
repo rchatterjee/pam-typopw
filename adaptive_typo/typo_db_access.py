@@ -923,6 +923,7 @@ def on_correct_password(typo_db, password):
 
 
 def on_wrong_password(typo_db, password):
+    pam_result = False #
     try:
         sysStatLine = typo_db._db[auxT].find_one(desc=SysStatus)
         if not sysStatLine: # if not found in table
@@ -942,6 +943,7 @@ def on_wrong_password(typo_db, password):
             typo_db.update_hash_cache_by_waitlist(sk_dict, typo=password) # also updates the log
             if typo_db.is_allowed_login():
                 logger.info("Returning SUCEESS TypoToler")
+                pam_result = True # for the 'finally' block
                 return True
             else:
                 logger.info("but typoToler is OFF") # TODO REMOVE
@@ -959,10 +961,10 @@ def on_wrong_password(typo_db, password):
     except Exception as e:
         logger.error("Unexpected error while on_wrong_password:\n{}\n".format(
             e.message))
-    # if reached here it means there was some kind of an error.
-    # returns False to be on the safe side
+        
+    # finnaly block always run
     finally:
-        return False
+        return pam_result
         
 
 
