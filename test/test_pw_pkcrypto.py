@@ -4,7 +4,8 @@ from adaptive_typo.pw_pkcrypto import (
     encrypt, decrypt, derive_public_key,
     derive_secret_key, serialize_pub_key,
     compute_id, hash_pw, match_hashes,
-    compute_id_w_saltctx, sign, verify
+    compute_id_w_saltctx, sign, verify,
+    encrypt_symmetric, decrypt_symmetric
 )
 
 def test_hash_pw():
@@ -21,7 +22,6 @@ def test_hash_pw():
     assert pk_enc == pk_both[0]
     assert pk_sgn == pk_both[1]
     assert pk_enc != pk_sgn
-
 
 def test_match_hashes():
     salts = [os.urandom(16) for _ in xrange(10)]
@@ -106,5 +106,12 @@ def test_compute_id():
     assert isinstance(id1, int)
     assert id1 == id2
     assert id1 == id3
-    
-test_functionality()
+
+def test_summetric_encryption():
+    k = b'The greatest key ever'[:16]
+    m = b'The most secrete message'
+    c = encrypt_symmetric(m, k)
+    assert decrypt_symmetric(c, k) == m
+
+    m = 123
+    assert int(decrypt_symmetric(encrypt_symmetric(bytes(m), k), k)) == m
