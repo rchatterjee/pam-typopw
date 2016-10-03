@@ -114,4 +114,6 @@ def test_summetric_encryption():
     assert decrypt_symmetric(c, k) == m
 
     m = 123
+    kgarbage = '000000000000000000000'[:16]
     assert int(decrypt_symmetric(encrypt_symmetric(bytes(m), k), k)) == m
+    assert decrypt_symmetric(encrypt_symmetric(bytes(m), k), kgarbage) == ''
