@@ -126,13 +126,39 @@ def decrypt(_sk_dict, ctx):
                      .decrypt_and_verify(ctx, tag)
             failed_to_decrypt = False
             break
-        except KeyError:
-            print "Wrong key with id: {}".format(_id)
+        except (KeyError, ValueError) as e:
+            print "Wrong key with id: {} and/or the ciphertext has been tampered".format(_id)
     if failed_to_decrypt:
         raise KeyError("None of the secret keys ({}) could decrypt the "\
                          "ciphertext with keys=({}) (count={})".format(
                              ctx_sk_ids, give_sk_ids, n_pk)
         )
+    return msg
+
+def encrypt_symmetric(msg, k):
+    """
+    Encrypts @msg with key @k using AES.
+    @msg (bytes)
+    """
+    # IV is not required for EAX mode
+    nonce = os.urandom(16) # the key is generated random every time so, small
+                           # nonce is OK
+    ctx, tag = AES.new(key=k, mode=AES.MODE_EAX, nonce=nonce)\
+                  .encrypt_and_digest(msg)
+    serialized_msgctx = nonce + tag + ctx
+    return serialized_msgctx
+
+def decrypt_symmetric(ctx, k):
+    """
+    Decrypts @msg with key @k using AES
+    """
+    nonce, tag, ctx = ctx[:16], ctx[16:32], ctx[32:]
+    msg = ''
+    try:
+        msg = AES.new(key=k, mode=AES.MODE_EAX, nonce=nonce)\
+                 .decrypt_and_verify(ctx, tag)
+    except ValueError as e:
+        print("The ciphertext has been tampered or this is a wrong key !!")
     return msg
 
 def sign(sk, msg):
