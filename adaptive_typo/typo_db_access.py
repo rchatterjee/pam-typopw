@@ -10,7 +10,8 @@ import pwd
 from pw_pkcrypto import (
     encrypt, decrypt, derive_public_key,
     derive_secret_key, update_ctx, compute_id,
-    sign, verify
+    sign, verify,
+    encrypt_symmetric, decrypt_symmetric
 )
 
 import binascii
