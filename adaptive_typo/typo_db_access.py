@@ -44,7 +44,7 @@ logT = 'Log'
 # table cols:   timestamp, t_id, edit_dist, top5fixable,
 #               is_in_hash, allowed_login, rel_bit_str
 hashCacheT = 'HashCache'
-# table cols: H_typo, salt, count, pk, t_id , top5fixable, rel_bit_str'
+# table cols: H_typo, salt, count, pk, top5fixable'
 # 
 waitlistT = 'Waitlist'
 # table col: base64(enc(json(typo, ts, hash, salt, entropy)))'
@@ -319,6 +319,36 @@ class UserTypoDB:
         pk_salt_t.create_index(['desc'])
 
         self.set_status('0') #sets status to init
+
+        # 3.
+        # Filling the HashCache with garbage
+        logger.debug("Filling HashCache with garbage")
+        garbage_list = []
+        _, pw_sgn_sk = derive_secret_key(pw, sgn_pk_salt, for_='sign')
+        for i in range(self.N):
+            g_salt = os.urandom(16)
+            g_salt_bs64 = binascii.b2a_base64(g_salt)
+            garb = os.urandom(20)
+            g_edit_dist = 1
+            isTop5 = ord(os.urandom(1)[0]) % 2
+            g_count = -(ord(os.urandom(1)[0]))
+            # encrypt count TODO
+            garb_h,garb_pk = derive_public_key(garb, g_salt)
+            garb_h_bs64 = binascii.b2a_base64(garb_h)
+            sgn_hash = sign(pw_sgn_sk, (garb_h_bs64+garb_pk).encode('utf-8'))
+            sgn_hash_b64 = binascii.b2a_base64(sgn_hash)
+            # sign the pk TODO
+            garbage_list.append(dict(
+                H_typo = garb_h_bs64,
+                salt = g_salt_bs64,
+                count = g_count,
+                pk = garb_pk,
+                top5fixable = isTop5,
+                sign = sgn_hash_b64,
+                edit_dist = g_edit_dist))
+        
+        self._db[hashCacheT].insert_many(garbage_list)
+            
         logger.debug("Initialization Complete")
 
     def update_after_pw_change(self, newPw):
@@ -466,19 +496,22 @@ class UserTypoDB:
             hs_bytes, sk = derive_secret_key(typo, sa)
             t_h_id = cacheline['H_typo'] # the hash id is in base64 form
             sgn = binascii.a2b_base64(cacheline['sign']) #
-
-            # verifing the integrity of the hash data
-            if not verify(bytes(sgn_pk), bytes(t_h_id), sgn): # unverified data in DB
+            t_pk = cacheline['pk'] # the pk is a string
+            # verifing the integrity of the hash data and the pk #
+            if not verify(bytes(sgn_pk), bytes(t_h_id + t_pk), sgn): # unverified data in DB
                 err_msg = "Unverified hash in {}. Sign:{}, Hash:{}".format(
                     hashCacheT, sgn, t_h_id)
                 logger.critical(err_msg)
                 raise UserTypoDB.CorruptedDB(err_msg)
-            
-            # Check if the hash(typo, sa) matches the stored hash 
-            if binascii.a2b_base64(t_h_id) != hs_bytes: continue
+
+            typo_count = cacheline['count'] # TODO decrypt and decode
+            # Check if the hash(typo, sa) matches the stored hash
+            # and that it isn't an initial garbage fill
+            if binascii.a2b_base64(t_h_id) != hs_bytes: continue #notEq
+            if typo_count <= 0: continue #garbage
 
             logger.debug("Typo found in {} (t_h_id={!r})".format(hashCacheT, t_h_id))
-            typo_count = cacheline['count']
+            
 
             # update table with new count
             sk_dict = {t_h_id: sk}
@@ -669,7 +702,9 @@ class UserTypoDB:
             notTooWeak = (typo_ent >= strict_bound)       
             
             if  closeEdit and notMuchWeaker and notTooWeak:
-                sgn_hash = sign(pw_sgn_sk, t_hs_bs64.encode('utf-8'))
+                #
+                logger.debug("adding typo to top N") # TODO DELETE
+                sgn_hash = sign(pw_sgn_sk, t_hs_bs64.encode('utf-8') + typo_pk.encode('utf-8'))
                 sgn_hash_bs64 = binascii.b2a_base64(sgn_hash)
                 typo_list.append({
                     'H_typo': t_hs_bs64,
@@ -741,6 +776,8 @@ class UserTypoDB:
 
     # TODO FUTURE
     def cache_insert_policy(self, old_t_c, new_t_c):
+        if old_t_c < 0: # for garbage rows in cache
+            return True
         chance = float(new_t_c)/(int(old_t_c)+1)
         debug_info =  "the chance is:{}".format(chance) 
         rnd = random()
@@ -755,6 +792,7 @@ class UserTypoDB:
         return result
 
 
+    # OLD FUNCTION TODO DELETE
     def add_top_N_typo_list_to_hash_cache(self, typo_list, sk_dict):
         '''
         updates the hashCacheTable according to the update scheme
@@ -786,6 +824,40 @@ class UserTypoDB:
                 hashT.delete(H_typo = oldLine['H_typo'])
                 hashT.insert(typoDict)
 
+    # the newer function
+    def add_top_N_typos(self,typo_list,sk_dict):
+        # typo list is already sorted in DECRREASING order
+        
+        # get count_enc_key TODO
+        # decrypt
+        cache_t = self._db[hashCacheT]
+
+        def cache_dict_sort(d1,d2):
+            # decrypting the count TODO
+            count1 = d1['count']
+            count2 = d2['count']
+            cmp = 1 if count1 > count2 else 0
+            if cmp: return cmp
+            return -(count2 > count1)
+        currently_in_cache = []
+        for row in cache_t.all():
+            currently_in_cache.append(row)
+        currently_in_cache.sort(cache_dict_sort)
+        # TODO - make sure it's ordered in INCREASING order
+
+        for ii in range(len(typo_list)):
+            typo_d = typo_list[ii]
+            h_line_d  = currently_in_cache[ii] #
+            typo_c = typo_d['count']
+            line_c = h_line_d['count']
+            if self.cache_insert_policy(line_c,typo_c):
+                typo_d['count'] = (line_c + 1) if (line_c > 0) else typo_c 
+                # TODO ENCRYPTION
+                typo_d['id'] = h_line_d['id'] # the primary col in hashCache
+                cache_t.update(typo_d,['id'])
+        # shuffle ? TODO
+
+    
     def update_aux_ctx(self, sk_dict):
         """
         Assumes that the auxT is ok with both password and global salt
@@ -850,7 +922,7 @@ class UserTypoDB:
         topNList = self.get_top_N_typos_within_distance(
             waitlistTypoDict, orig_pw, pw_entropy, sk_dict, updateLog
         )
-        self.add_top_N_typo_list_to_hash_cache(topNList, sk_dict)
+        self.add_top_N_typos(topNList, sk_dict)
         # update the ctx of the original password and the global salt because
         # HashCache hash Changed
         self.update_aux_ctx(sk_dict)
