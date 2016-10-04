@@ -5,7 +5,8 @@ from adaptive_typo.typo_db_access import (
     DB_NAME,
     waitlistT,
     hashCacheT,
-    get_time_str
+    get_time_str,
+    decode_decrypt_sym_count
 )
 from adaptive_typo.pw_pkcrypto import (
     encrypt, decrypt, derive_public_key,
@@ -14,6 +15,8 @@ from adaptive_typo.pw_pkcrypto import (
 import pytest
 
 NN = 5
+secretAuxSysT = "SecretAuxData"
+ORIG_PW_ID = 'OrgPwID'
 
 def get_username():
     return pwd.getpwuid(os.getuid()).pw_name
@@ -33,6 +36,32 @@ def start_DB():
     db = UserTypoDB(get_username(), debug_mode=True)
     db.init_typotoler(get_pw(), NN)
     return db
+
+def get_sk_dict(t_db,PW_CHANGED = False):
+    print "get_sk_dict"
+    sk_salt = t_db.get_pw_sk_salt()
+    print "got sk salt"
+    pw = get_pw() if not PW_CHANGED else new_pw()
+    _, pw_sk = derive_secret_key(pw, sk_salt)
+    pw_id = int(t_db._sec_db[secretAuxSysT].find_one(desc=ORIG_PW_ID)['data'])
+    return {pw_id: pw_sk}
+
+
+def count_real_typos_in_cache(t_db,PW_CHANGE = False):
+    print "count_real_typos_in_cache"
+    print "PW_CH: {}".format(PW_CHANGE)
+    sk_dict = get_sk_dict(t_db,PW_CHANGE)
+    print "trying to get count_key"
+    count_key = t_db.get_count_key(sk_dict)
+    print "got count key"
+    
+    count = 0
+    for row in t_db._db['HashCache']:
+        count_ctx = row['count']
+        row_count = decode_decrypt_sym_count(count_key,count_ctx)
+        if row_count > 0:
+            count += 1
+    return count
 
 def test_login_settings():
     typoDB = start_DB()
@@ -55,7 +84,7 @@ def test_added_to_hash(isStandAlone = True):
     
     assert len(typoDB.getdb()[waitlistT]) == 0
     hash_t = typoDB.getdb()[hashCacheT]
-    assert len(hash_t) == 2
+    assert count_real_typos_in_cache(typoDB) == 2
     sk_dict1, isIn_t1 = typoDB.fetch_from_cache(t_1(), False, False)
     t1_h,_ = sk_dict1.popitem()
     assert isIn_t1
@@ -74,8 +103,8 @@ def test_alt_typo(isStandAlone = True):
     print "TEST ALT TYPO"
     typoDB = test_added_to_hash(False)
     hash_t = typoDB.getdb()[hashCacheT]
-    assert len(hash_t) > 0
-    count = len(hash_t)
+    assert count_real_typos_in_cache(typoDB) > 0
+    count = count_real_typos_in_cache(typoDB)
     for ii in range(5):
         typoDB.add_typo_to_waitlist(t_4())
     ##    print "added 5 typos to waitlist"
@@ -87,7 +116,7 @@ def test_alt_typo(isStandAlone = True):
     salt = typo_hash_line['salt']
     assert isIn_t1
     typoDB.update_hash_cache_by_waitlist(sk_dict1)
-    assert len(hash_t) == count+1
+    assert count_real_typos_in_cache(typoDB) == count+1
     if isStandAlone:
         remove_DB()
     else:
@@ -112,10 +141,10 @@ def test_many_entries(isStandAlone = True):
     assert (len(wait_t) == BIG)
     typoDB.original_password_entered(get_pw())
     print "log len:{}".format(len(log_t))
-    print "hash len:{}".format(len(hash_t))
+    print "hash len:{}".format(count_real_typos_in_cache(typoDB))
     assert(len(log_t) == BIG+1 ) # plus the original password
     realIn = min(BIG, NN)
-    assert (len(hash_t) == realIn)
+    assert (count_real_typos_in_cache(typoDB) == realIn)
     if isStandAlone:
         remove_DB()
     else:
@@ -146,7 +175,7 @@ def test_pw_change(isStandAlone = True):
     typoDB = test_alt_typo(isStandAlone = False)
     db = typoDB.getdb()
     typoDB.update_after_pw_change(new_pw())
-    assert len(db['HashCache']) == 0
+    assert count_real_typos_in_cache(typoDB,True) == 0
     assert len(db['Log']) == 0
     assert len(db['Waitlist']) == 0
     failed_to_decrypt_with_old_pw = False
@@ -155,7 +184,7 @@ def test_pw_change(isStandAlone = True):
         for newTypo in listOfOneDist(5):
             typoDB.add_typo_to_waitlist(newTypo)
         typoDB.original_password_entered(new_pw())
-        assert len(db['HashCache']) == 0        
+        assert count_real_typos_in_cache(typoDB,True) == 0        
         with_new_pw = False
         for newTypo in listOfOneDist(5):
             typoDB.add_typo_to_waitlist(newTypo)    
@@ -175,6 +204,7 @@ def test_pw_change(isStandAlone = True):
             # i.e - failed with the new pw:
             assert 0
     finally:
+        assert failed_to_decrypt_with_old_pw
         if isStandAlone:
             remove_DB()
         else:

@@ -412,10 +412,13 @@ class UserTypoDB:
         
         pw_entropy = encode_encrypt(enc_pk_dict, bytes(get_entropy_stat(newPw)))
         pw_cipher = encode_encrypt(enc_pk_dict, newPw)
+        count_key = os.urandom(16)
+        count_key_ctx = encode_encrypt(enc_pk_dict,count_key)
         
         info_t.update(dict(desc=GLOBAL_SALT_CTX, data=global_salt_cipher), ['desc'])
         info_t.update(dict(desc=ORIG_PW_CTX, data=pw_cipher), ['desc'])
         info_t.update(dict(desc=ORIG_PW_ENTROPY_CTX, data=pw_entropy), ['desc'])
+        info_t.update(dict(desc=COUNT_KEY_CTX, data=count_key_ctx),['desc']) #
 
 
         # 2.5
@@ -436,11 +439,38 @@ class UserTypoDB:
         db[hashCacheT].delete()
         db[waitlistT].delete()
         db[logT].delete()
+
+        # Filling the HashCache with garbage
+        logger.debug("Filling HashCache with garbage")
+        garbage_list = []
+        _, pw_sgn_sk = derive_secret_key(newPw, sgn_pk_salt, for_='sign')
+        for i in range(self.N):
+            g_salt = os.urandom(16)
+            g_salt_bs64 = binascii.b2a_base64(g_salt)
+            garb = os.urandom(20)
+            g_edit_dist = 1
+            isTop5 = ord(os.urandom(1)[0]) % 2
+            g_count = -(ord(os.urandom(1)[0]))
+            # print "key,key_l: {},{}".format(count_key,len(count_key)) # TODO REMOVE
+            ctx_count_bs64 = encode_encrypt_sym_count(count_key,g_count)
+            garb_h,garb_pk = derive_public_key(garb, g_salt)
+            garb_h_bs64 = binascii.b2a_base64(garb_h)
+            sgn_hash = sign(pw_sgn_sk, (garb_h_bs64+garb_pk).encode('utf-8'))
+            sgn_hash_b64 = binascii.b2a_base64(sgn_hash)
+            # sign the pk TODO
+            garbage_list.append(dict(
+                H_typo = garb_h_bs64,
+                salt = g_salt_bs64,
+                count = ctx_count_bs64,
+                pk = garb_pk,
+                top5fixable = isTop5,
+                sign = sgn_hash_b64,
+                edit_dist = g_edit_dist))
+        
+        self._db[hashCacheT].insert_many(garbage_list)
+        
         self.set_status('0') #sets status to init
 
-        # TODO
-        # ************** ADD GARBAGE SEGMENT FOR HASH_CACHE
-        #
         logger.info("RE-Initialization Complete")        
         
     def is_in_top5_fixes(self, orig_pw, typo):
