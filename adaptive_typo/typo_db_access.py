@@ -13,7 +13,7 @@ from pw_pkcrypto import (
     sign, verify,
     encrypt_symmetric, decrypt_symmetric
 )
-
+import struct
 import binascii
 from word2keypress import distance
 from random import random # 
@@ -33,6 +33,7 @@ ORIG_PW_SGN_PK = 'SgnPublicKey'
 ORIG_SGN_SALT = 'OriginalPwSaltForVerifySecretKey'
 REL_ENT_BIT_DEC_ALLOWED = "RelativeEntropyDecAllowed"
 LOWEST_ENT_BIT_ALLOWED = "LowestEntBitAllowed"
+COUNT_KEY_CTX = "CountKeyCtx"
 
 # default values
 CACHE_SIZE = 5
@@ -89,6 +90,27 @@ def setup_logger(logfile_path, log_level):
         )
         handler.setFormatter(formatter)
         logger.addHandler(handler)
+
+def encode_encrypt_sym_count(key,count):
+    """
+    Receives a number, represent it as an interger
+    than it encrypts it and encode it in base64
+    """
+    #print "in encode_encrypt_sym"
+    #print "k: {}".format(key)
+    #print "k_l:{}".format(len(key))
+    #print "count:{}".format(count) # TODO REMOVE
+    count_in_bytes = struct.pack('<i',count)
+    return binascii.b2a_base64(encrypt_symmetric(count_in_bytes,key))
+
+def decode_decrypt_sym_count(key,ctx):
+    """
+    Receives the count ctx, decrypts it, decode it from base64
+    and than from bytes to int
+    """
+    count_in_bytes = decrypt_symmetric(bytes(binascii.a2b_base64(ctx)),key)
+    return struct.unpack('<i',count_in_bytes)[0] # raise error if bigger? TODO
+    
 
 def encode_encrypt(pk_dict, msg):
     return binascii.b2a_base64(encrypt(pk_dict, msg))
@@ -293,12 +315,15 @@ class UserTypoDB:
         
         pw_entropy = encode_encrypt(enc_pk_dict, bytes(get_entropy_stat(pw)))
         pw_cipher = encode_encrypt(enc_pk_dict, pw)
+        count_key = os.urandom(16)
+        count_key_ctx = encode_encrypt(enc_pk_dict,count_key)
         
         
         info_t.insert_many([
             dict(desc=GLOBAL_SALT_CTX, data=global_salt_cipher),
             dict(desc=ORIG_PW_CTX, data=pw_cipher),
-            dict(desc=ORIG_PW_ENTROPY_CTX, data=pw_entropy)
+            dict(desc=ORIG_PW_ENTROPY_CTX, data=pw_entropy),
+            dict(desc=COUNT_KEY_CTX, data=count_key_ctx)
         ])
         info_t.create_index(['desc']) # To speed up the queries to the table
         # 2.5
@@ -333,7 +358,8 @@ class UserTypoDB:
             g_edit_dist = 1
             isTop5 = ord(os.urandom(1)[0]) % 2
             g_count = -(ord(os.urandom(1)[0]))
-            # encrypt count TODO
+            # print "key,key_l: {},{}".format(count_key,len(count_key)) # TODO REMOVE
+            ctx_count_bs64 = encode_encrypt_sym_count(count_key,g_count)
             garb_h,garb_pk = derive_public_key(garb, g_salt)
             garb_h_bs64 = binascii.b2a_base64(garb_h)
             sgn_hash = sign(pw_sgn_sk, (garb_h_bs64+garb_pk).encode('utf-8'))
@@ -342,7 +368,7 @@ class UserTypoDB:
             garbage_list.append(dict(
                 H_typo = garb_h_bs64,
                 salt = g_salt_bs64,
-                count = g_count,
+                count = ctx_count_bs64,
                 pk = garb_pk,
                 top5fixable = isTop5,
                 sign = sgn_hash_b64,
@@ -411,6 +437,10 @@ class UserTypoDB:
         db[waitlistT].delete()
         db[logT].delete()
         self.set_status('0') #sets status to init
+
+        # TODO
+        # ************** ADD GARBAGE SEGMENT FOR HASH_CACHE
+        #
         logger.info("RE-Initialization Complete")        
         
     def is_in_top5_fixes(self, orig_pw, typo):
@@ -419,7 +449,10 @@ class UserTypoDB:
             typo.upper(), typo[1:], typo[:-1]
         )
 
-
+    def get_count_key(self,sk_dict):
+        key_ctx = self._db[auxT].find_one(desc=COUNT_KEY_CTX)['data']
+        return bytes(decode_decrypt(sk_dict,key_ctx))
+    
     def get_installation_id(self):
         if not self.is_typotoler_init():
             raise UserTypoDB.NoneInitiatedDB("Typotoler uninitialized")
@@ -504,21 +537,26 @@ class UserTypoDB:
                     hashCacheT, sgn, t_h_id)
                 logger.critical(err_msg)
                 raise UserTypoDB.CorruptedDB(err_msg)
-
-            typo_count = cacheline['count'] # TODO decrypt and decode
+            
+            
             # Check if the hash(typo, sa) matches the stored hash
             # and that it isn't an initial garbage fill
             if binascii.a2b_base64(t_h_id) != hs_bytes: continue #notEq
+            logger.debug("found a match") # TODO DELETE
+            sk_dict = {t_h_id: sk}
+            count_key = self.get_count_key(sk_dict)
+            typo_count = decode_decrypt_sym_count(count_key,cacheline['count'])
             if typo_count <= 0: continue #garbage
 
             logger.debug("Typo found in {} (t_h_id={!r})".format(hashCacheT, t_h_id))
             
 
             # update table with new count
-            sk_dict = {t_h_id: sk}
+            
             if increaseCount:
                 typo_count += 1
-                cacheT.update(dict(H_typo=t_h_id, count=typo_count), ['H_typo'])
+                typo_count_ctx_bs64 = encode_encrypt_sym_count(count_key,typo_count)
+                cacheT.update(dict(H_typo=t_h_id, count=typo_count_ctx_bs64), ['H_typo'])
             if updateLog:
                 #typo_id = self._hmac_id(typo, sk_dict)
                 #logger.debug("Computed typoID") # TODO REMOVE
@@ -831,19 +869,26 @@ class UserTypoDB:
         
         # get count_enc_key TODO
         # decrypt
+        logger.debug("add_top_N_typos")
         cache_t = self._db[hashCacheT]
+        count_key = self.get_count_key(sk_dict)
 
         def cache_dict_sort(d1,d2):
-            # decrypting the count TODO
+            # compares and return -< -1, 0, 1
             count1 = d1['count']
             count2 = d2['count']
             cmp = 1 if count1 > count2 else 0
             if cmp: return cmp
             return -(count2 > count1)
         currently_in_cache = []
+        logger.debug("getting into list and decrypting") # TODO REMOVE
         for row in cache_t.all():
+            # print "row_count: {}".format(row['count']) # TODO REMOVE
+            row['count'] = decode_decrypt_sym_count(count_key,row['count'])
+            #row['count'] = int(plain_count) # TODO DELETE
             currently_in_cache.append(row)
-        currently_in_cache.sort(cache_dict_sort)
+        logger.debug("sorting the list")
+        currently_in_cache.sort(cmp=cache_dict_sort)
         # TODO - make sure it's ordered in INCREASING order
 
         for ii in range(len(typo_list)):
@@ -852,8 +897,8 @@ class UserTypoDB:
             typo_c = typo_d['count']
             line_c = h_line_d['count']
             if self.cache_insert_policy(line_c,typo_c):
-                typo_d['count'] = (line_c + 1) if (line_c > 0) else typo_c 
-                # TODO ENCRYPTION
+                new_count = (line_c + 1) if (line_c > 0) else typo_c 
+                typo_d['count'] = encode_encrypt_sym_count(count_key,new_count)
                 typo_d['id'] = h_line_d['id'] # the primary col in hashCache
                 cache_t.update(typo_d,['id'])
         # shuffle ? TODO
@@ -866,7 +911,8 @@ class UserTypoDB:
         logger.info("Updating {}".format(auxT))
         infoT = self._db[auxT]
         pk_dict = self.get_approved_pk_dict()
-        for field in [ORIG_PW_CTX, GLOBAL_SALT_CTX, ORIG_PW_ENTROPY_CTX]:
+        for field in [ORIG_PW_CTX, GLOBAL_SALT_CTX,
+                      ORIG_PW_ENTROPY_CTX,COUNT_KEY_CTX]:
             new_ctx = encode_decode_update(
                 pk_dict, sk_dict, infoT.find_one(desc=field)['data']
             )
@@ -903,6 +949,8 @@ class UserTypoDB:
         if not_pass:
 
             # making sure the hashCache hadn't been tempered with
+            # by making sure the typo is still a legit typo
+            # i.e - within edit distance and entropy difference
             editDist = distance(str(orig_pw), str(typo))
             typo_ent = get_entropy_stat(typo)
             rel_entropy = typo_ent - pw_entropy
