@@ -82,6 +82,7 @@ In order to to allow the loging-in, run
 >> `sudo pam-typoauth --allowtypo yes`
 
 * **Can I opt out after I've entered this project?**
+Of course!
 Our script has two parts, one which is responsible to manage the necessary data and send it *securely* to us, and the other which allows you to enter with a close, given before, typo of your password. Both of these part can be disabled
 - To disallow logging in with a typo, run 
  `sudo pam-typoauth --allowtypo no`
