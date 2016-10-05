@@ -243,7 +243,7 @@ class UserTypoDB:
             'Corrupted data in {}: {}={}'.format(auxT, AllowedTypoLogin, is_on)
         return is_on == 'True'
 
-    def init_typotoler(self, pw, N=CACHE_SIZE, maxEditDist=1, typoTolerOn=True):
+    def init_typotoler(self, pw, N=CACHE_SIZE, maxEditDist=1, typoTolerOn=False):
         """Create the 'typotoler' database in user's home-directory.  Changes the DB
         permission to ensure its only readable by the user.  Also, it intializes
         the required tables as well as the reuired variables, such as, the
