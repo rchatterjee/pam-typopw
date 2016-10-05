@@ -5,7 +5,7 @@ from setuptools import setup
 from setuptools.command.install import install
 from subprocess import Popen, call, PIPE
 import stat
-VERSION = "0.4"
+VERSION = "0.4.1"
 GITHUB_URL = 'https://github.com/rchatterjee/pam-typopw' # URL in github repo
 BINDIR = '/usr/local/bin'
 SEC_DB_PATH = '/etc/adaptive_typo'
@@ -15,6 +15,38 @@ SCRIPTS = [
 ]
 LIB_DEPENDENCIES = ['libpam-python', 'python-pam', 
                     'python-setuptools', 'python-dev']
+first_msg = """\n\n\n
+----------------------------------------------------------------------
+    / \   __| | __ _ _ __ | |_(_)_   _____  |_   _|   _ _ __   ___  
+   / _ \ / _` |/ _` | '_ \| __| \ \ / / _ \   | || | | | '_ \ / _ \ 
+  / ___ \ (_| | (_| | |_) | |_| |\ V /  __/   | || |_| | |_) | (_) | 
+ /_/   \_\__,_|\__,_| .__/ \__|_| \_/ \___|   |_| \__, | .__/ \___/ 
+                    |_|                           |___/|_| 
+---------------------------------------------------------------------\n
+Hello!
+
+Thanks for installing Adaptive Typo Tolerance (version: {version}).
+This software attaches a new Pluggable Authentication Module (PAM) to
+almost all of your common authentication processes, and observes your
+password typing mistakes. Eventually this learns about your frequent
+typing mistakes, and enable logging in with slight but popular
+vairation of your actual login password. 
+
+We would like to collect some anonymous non-sensitive data about your
+password typing patterns for purely research purposes. The details of
+what we collect, how we collect and store, and the security blueprint
+of this software can be found in the GitHub page ({url}).
+The participation in the study is completely voluntary, and you can
+opt out at any time while still keep using the software.
+
+You have to install this for each user who intend to use the benefit
+of adaptive typo-tolerant password login.
+
+Please run the following command in the terminal to initialize the 
+typo database.
+
+$ sudo pam-typoauth --init
+""".format
 
 class CustomInstaller(install):
     def run(self):
@@ -50,6 +82,7 @@ class CustomInstaller(install):
             f.write(open(common_auth_orig).read())
         # install.run(self) # this ignores all install_requires
         self.do_egg_install()
+        print(first_msg(url=GITHUB_URL, version=VERSION), file=sys.stderr)
         # initiate_typodb() # Because pip install is non-interactive
 
 
@@ -67,50 +100,17 @@ setup(
         'Password', 'typo-tolerance', 
         'login-with-errors', 'Login'
     ],
+    package_data={'': ['chkpw.c']},
     classifiers = ['Development Status :: 4 - Beta'],
     install_requires=[
         'joblib',
         'pycryptodome',
-        'word2keypress',
+        'word2keypress==0.6',
         'dataset',
         'zxcvbn',
         'requests'
     ],
     cmdclass={'install': CustomInstaller},
-    zipsafe=False
+    zip_safe=False
 )
 
-first_msg = """\n\n\n
-----------------------------------------------------------------------
-    / \   __| | __ _ _ __ | |_(_)_   _____  |_   _|   _ _ __   ___  
-   / _ \ / _` |/ _` | '_ \| __| \ \ / / _ \   | || | | | '_ \ / _ \ 
-  / ___ \ (_| | (_| | |_) | |_| |\ V /  __/   | || |_| | |_) | (_) | 
- /_/   \_\__,_|\__,_| .__/ \__|_| \_/ \___|   |_| \__, | .__/ \___/ 
-                    |_|                           |___/|_| 
----------------------------------------------------------------------\n
-Hello!
-
-Thanks for installing Adaptive Typo Tolerance (version: {version}).
-This software attaches a new Pluggable Authentication Module (PAM) to
-almost all of your common authentication processes, and observes your
-password typing mistakes. Eventually this learns about your frequent
-typing mistakes, and enable logging in with slight but popular
-vairation of your actual login password. 
-
-We would like to collect some anonymous non-sensitive data about your
-password typing patterns for purely research purposes. The details of
-what we collect, how we collect and store, and the security blueprint
-of this software can be found in the GitHub page ({url}).
-The participation in the study is completely voluntary, and you can
-opt out at any time while still keep using the software.
-
-You have to install this for each user who intend to use the benefit
-of adaptive typo-tolerant password login.
-
-Please run the following command in the terminal to initialize the 
-typo database.
-
-$ sudo pam-typoauth --init
-""".format
-
-print(first_msg(url=GITHUB_URL, version=VERSION), file=sys.stderr)
