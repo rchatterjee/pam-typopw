@@ -9,7 +9,7 @@ import getpass
 
 
 USER = ""
-
+ALLOW_TYPO_LOGIN = True
 class AbortSettings(RuntimeError):
     pass
 
@@ -75,7 +75,7 @@ def initiate_typodb(RE_INIT = False):
                 if RE_INIT:
                     tb.update_after_pw_change(pw)
                 else: # Normal Init
-                    tb.init_typotoler(pw)
+                    tb.init_typotoler(pw, typoTolerOn=ALLOW_TYPO_LOGIN)
                 print("Done!")
                 return 0
             else:

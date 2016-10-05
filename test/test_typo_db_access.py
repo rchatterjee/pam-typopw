@@ -34,7 +34,7 @@ def remove_DB():
 def start_DB():
     remove_DB()
     db = UserTypoDB(get_username(), debug_mode=True)
-    db.init_typotoler(get_pw(), NN)
+    db.init_typotoler(get_pw(), NN, typoTolerOn=True)
     return db
 
 def get_sk_dict(t_db,PW_CHANGED = False):
