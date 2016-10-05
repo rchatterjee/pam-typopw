@@ -1,3 +1,5 @@
 include README.md
 include LICENSE
 include chkpw.c
+include *.py 
+include *.sh
