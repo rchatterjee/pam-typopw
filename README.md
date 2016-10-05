@@ -76,9 +76,9 @@ When the user changes his password, the adaptive typo will be disabled until the
 In order to re-initiate the typo-tolerance, run `sudo pam-typoauth --reinit`
 
 ### FAQ
-* **I installed typo-tolerance, but I don't see any changes**
-The initial script's state doesn't allow logining in a typo, it just stores the necessery data for it.
-In order to to allow the loging-in, run
+* **I installed typo-tolerance, but I don't see any changes.**
+The initial script's state doesn't allow logining in a typo. Initially it just stores the necessery data for it to work once you enable it.
+In order to allow the logging-in, run
 >> `sudo pam-typoauth --allowtypo yes`
 
 * **Can I opt out after I've entered this project?**
