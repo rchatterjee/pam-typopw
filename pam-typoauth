@@ -10,6 +10,7 @@ import getpass
 
 USER = ""
 ALLOW_TYPO_LOGIN = True
+SEND_LOGS = '/usr/local/bin/send_typo_log.py'
 class AbortSettings(RuntimeError):
     pass
 
@@ -92,11 +93,18 @@ def root_only_operation():
         raise AbortSettings
 
 def uninstall_adaptive_typo():
-    assert os.getuid() == 0, "You need root priviledge to run the installation"
+    if os.getuid() == 0:
+        print("You need root priviledge to run the installation")
+        print("sudo {}".format(' '.join(sys.argv)))
     cmd = '''
 #!/bin/bash
 set -e
 set -u
+
+# Last try to send logs
+nohup python -u {sendscript} >/dev/null 2>&1 &
+user=$(who am i| awk '{print $1}')
+homedir=$(eval ~$user)
 
 # remove dawg
 common_auth_file=/etc/pam.d/common-auth
@@ -106,7 +114,7 @@ fi
 bindir=/usr/local/bin/
 rm -rf ${bindir}/pam_typotolerant.py $bindir/chkpw $bindir/send_typo_log.py
 rm -rf ${bindir}/pam-typoauth
-rm -rf /etc/adaptive_typo/
+rm -rf /etc/adaptive_typo/ $homedir/.typoToler*
 rm -rf /etc/pam.d/typo_auth
 pip -q uninstall --yes adaptive-typo
 if [ -e ffile.txt ]; then
@@ -115,7 +123,7 @@ if [ -e ffile.txt ]; then
 fi
 
 apt-get -y remove libpam-python libdawgdic-dev
-    '''
+    '''.format(sendscript=SEND_LOGS)
     os.system(cmd)
 
 

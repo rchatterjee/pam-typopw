@@ -32,7 +32,7 @@ if need_to_send:
         data=dict(
             uid=install_id,
             data=dbdata,
-            test=1
+            test=0
         ),
         allow_redirects=True,
         verify=False
