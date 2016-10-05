@@ -7,10 +7,36 @@ from adaptive_typo.typo_db_access import UserTypoDB
 import subprocess
 import getpass
 
+
+USER = ""
+
+class AbortSettings(RuntimeError):
+    pass
+
+def _get_login_user():
+    # gets the username of the logging user
+    pp = subprocess.Popen('who', stdout=subprocess.PIPE)
+    output = pp.stdout.read()
+    first_line = output.splitlines()[0]
+    user = first_line.split()[0]
+    return user
+
 def _get_username():
-    # change to login user?
-    user =  pwd.getpwuid(os.getuid()).pw_name
-    print user
+    # trying to go over the problem of 
+    if USER:
+        print "Designated user: {}".format(USER)
+        return USER
+    uid = os.getuid()
+    is_root = uid == 0
+    user = _get_login_user()
+    if is_root:
+        r = raw_input("Setting will be done for login user: {}.\n"
+              "Please confirm. (Yn) ".format(user))
+        abort = r and r.lower() == 'n'
+        if abort:
+            raise AbortSettings()
+    else:
+        print "Designated user: {}".format(user)
     return user
 
 def _get_typoDB():
@@ -25,7 +51,11 @@ def _get_typoDB():
 
 def initiate_typodb(RE_INIT = False):
     assert os.getuid() == 0, "You need root priviledge to run the installation"
-    user = raw_input("Please enter your username: ")
+    if not USER:
+        user = raw_input("Please enter your username: ")
+    else:
+        print "Operation will be done for user: {}".format(USER)
+        user = USER
     try:
         # checks that such a user exists:
         homedir = pwd.getpwnam(user).pw_dir
@@ -56,7 +86,10 @@ def initiate_typodb(RE_INIT = False):
         raise ValueError("incorrect pw given 3 times")
 
 
-    
+def root_only_operation():
+    if os.getuid() != 0:
+        print "You need root priviledge to run this operation"
+        raise AbortSettings
 
 def uninstall_adaptive_typo():
     assert os.getuid() == 0, "You need root priviledge to run the installation"
@@ -85,8 +118,13 @@ apt-get -y remove libpam-python libdawgdic-dev
     '''
     os.system(cmd)
 
+
 parser = argparse.ArgumentParser("pam-typoauth ")
 
+parser.add_argument(
+    "--user",
+    help="To set the username. Otherwise login user will be the target"
+)
 parser.add_argument(
     "--init", action="store_true",
     help="To initialize the DB. You have to run this once you install adaptive_typo"
@@ -133,45 +171,60 @@ if len(sys.argv) <=1:
     print(parser.print_help())
     exit(0)
 
-if args.allowtypo:
-    typoDB = _get_typoDB()
-    if args.allowtypo == "no":
-        # typoDB.allow_login(True)
-        print "Turning OFF login with typos. The software will still monitor\n"\
-            "your typos and build cache of popular typos. You can switch on this\n"\
-            "whenever you want"# :{}".format(typoDB.is_allowed_login())
-    elif args.allowtypo == "yes":
-        print "Turning ON login with typos...",
-        # typoDB.allow_login(False)
-
-if args.allowupload:
-    typoDB = _get_typoDB()
-    if args.allowupload == "yes":
-        # allowupload(False)
-        print "Uploading data is enabled. You are awesome. Thanks!!"
-    elif args.allowupload == "no":
-        # allowupload(True)
-        print "Uploading data is disabled.  :( :'( :-(!"
-    print "Thanks for using the software anyway."
-
-if args.init:
-    print("Initializing the typo database..")
-    initiate_typodb()
-
-if args.reinit:
-    print "RE-initiating adaptive_typo"
-    initiate_typodb(RE_INIT=True)
+# ITS IMPORTENT THIS ONE WILL BE FIRST
+if args.user:
+    USER = args.user
+    # print "User settings have been set to {}".format(USER)
     
+try:
+    if args.allowtypo:
+        root_only_operation()
+        typoDB = _get_typoDB()
+        if args.allowtypo == "no":
+            typoDB.allow_login(False)
+            print "Turning OFF login with typos. The software will still monitor\n"\
+                "your typos and build cache of popular typos. You can switch on this\n"\
+                "whenever you want"# :{}".format(typoDB.is_allowed_login())
+        elif args.allowtypo == "yes":
+            print "Turning ON login with typos...",
+            typoDB.allow_login(True)
+
+    if args.allowupload:
+        root_only_operation()
+        typoDB = _get_typoDB()
+        if args.allowupload == "yes":
+            typoDB.allow_upload(True)
+            print "Uploading data is enabled. You are awesome. Thanks!!"
+        elif args.allowupload == "no":
+            typoDB.allow_upload(False)
+            print "Uploading data is disabled.  :( :'( :-(!"
+            print "Thanks for using the software anyway."
+
+    if args.init:
+        root_only_operation()
+        print("Initializing the typo database..")
+        initiate_typodb()
+
+    if args.reinit:
+        root_only_operation()
+        print "RE-initiating adaptive_typo"
+        initiate_typodb(RE_INIT=True)
         
-if args.status:
-    typoDB = _get_typoDB()
-    print("Login with typos: {}".format(typoDB.is_allowed_login()))
-    print("Participate in the study: {}")#.format(typoDB.allowupload()))
-    print("Version:{}") # TODO
+            
+    if args.status:
+        typoDB = _get_typoDB()
+        print("\nTypotoler status:")
+        print("Login with typos: {}".format(typoDB.is_allowed_login()))
+        print("Participate in the study: {}".format(typoDB.is_allowed_upload()))
+        #print("Version:{}") # TODO
 
 
-if args.uninstall:
-    r = raw_input("Uninstalling adaptive_typo. Will delete all the databases.\n"
-              "Please confirm. (yN)")
-    if r and r.lower() == 'y':
-        uninstall_adaptive_typo()
+    if args.uninstall:
+        r = raw_input("Uninstalling adaptive_typo. Will delete all the databases.\n"
+                  "Please confirm. (yN)")
+        if r and r.lower() == 'y':
+            uninstall_adaptive_typo()
+            
+except AbortSettings as abort:
+    print "Settings' change had been aborted"
+

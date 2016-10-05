@@ -64,6 +64,7 @@ InstallationID = "Install_id"
 LastSent="Last_sent"
 SendEvery="SendEvery(sec)"
 UPDATE_GAPS= 24 * 60 * 60 # 24 hours, in seconds
+AllowUpload = "AllowedLogUpload"
 
 SysStatus = "PasswordHasBeenChanged"
 CacheSize = "CacheSize"
@@ -340,7 +341,8 @@ class UserTypoDB:
             dict(desc=REL_ENT_BIT_DEC_ALLOWED, data=str(REL_ENT_CUTOFF)),
             dict(desc=LOWEST_ENT_BIT_ALLOWED, data=str(LOWER_ENT_CUTOFF)),
             dict(desc=CacheSize, data=str(N)),
-            dict(desc=AllowedTypoLogin, data=str(typoTolerOn))
+            dict(desc=AllowedTypoLogin, data=str(typoTolerOn)),
+            dict(desc=AllowUpload, data='True')
         ]) 
         pk_salt_t.create_index(['desc'])
 
@@ -493,7 +495,18 @@ class UserTypoDB:
         Check what was the last time the log has been sent,
         And returns whether the log should be sent
         """
+        logger.debug("Getting last unsent logs")
         if not self.is_typotoler_init():
+            logger.debug("Could not send. Typotoler not initiated")
+            return False, iter([])
+        upload_stat_row = self._sec_db[secretAuxSysT].find_one(desc=AllowUpload)
+        if not upload_stat_row:
+            raise UserTypoDB.CorruptedDB("Missing {} in {}".format(
+                AllowUpload, secretAuxSysT))
+        upload_status = upload_stat_row['data']
+        if upload_status != 'True':
+            logger.info("Not sending logs because send status set to {}".format(
+                upload_status))
             return False, iter([])
         aux_t = self._db[auxT]
         last_sending = float(aux_t.find_one(desc=LastSent)['data'])
@@ -506,7 +519,7 @@ class UserTypoDB:
             return False, iter([])
         log_t = self._db[logT]
         new_logs = log_t.find(log_t.table.columns.ts >= last_sending)
-        logger.info("Prepared newe logs to be sent, from {} to {}".format(
+        logger.info("Prepared new logs to be sent, from {} to {}".format(
             str(last_sending), str(time_now))
         )
         return True, new_logs
@@ -522,6 +535,21 @@ class UserTypoDB:
             log_t = self._db[logT]
             deleted = log_t.table.delete().where(log_t.table.columns.ts <= float(sent_time)).execute()
 
+    def allow_upload(self,allow):
+        upload_status = 'True' if allow else 'False'
+        self._sec_db[secretAuxSysT].upsert(
+            dict(desc=AllowUpload,data=upload_status),
+            ['desc']
+            )
+        assert type(allow) == bool
+        self.isON = allow
+
+    def is_allowed_upload(self):
+        send_stat_row = self._sec_db[secretAuxSysT].find_one(desc=AllowUpload)
+        if not send_stat_row:
+            return False
+        return send_stat_row['data'] == 'True'
+    
     def _hmac_id(self, typo, sk_dict):
         """
         Calculates the typo_id required for logging.
@@ -917,7 +945,7 @@ class UserTypoDB:
             row['count'] = decode_decrypt_sym_count(count_key,row['count'])
             #row['count'] = int(plain_count) # TODO DELETE
             currently_in_cache.append(row)
-        logger.debug("sorting the list")
+        #logger.debug("sorting the list") # TODO REMOVE
         currently_in_cache.sort(cmp=cache_dict_sort)
         # TODO - make sure it's ordered in INCREASING order
 
