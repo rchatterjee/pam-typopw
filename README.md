@@ -47,12 +47,14 @@ To **uninstall** run `pam-typoauth --uninstall` (requires root priviledges).
 ### `pam-typoauth` Utility
 ```bash
 $ pam-typoauth 
-usage: pam-typoauth  [-h] [--init] [--allowtypo {yes,no}]
+usage: pam-typoauth  [-h] [--user USER] [--init] [--allowtypo {yes,no}]
                      [--allowupload {yes,no}] [--installid] [--status]
-                     [--uninstall]
+                     [--uninstall] [--reinit]
 
 optional arguments:
   -h, --help            show this help message and exit
+  --user USER           To set the username. Otherwise login user will be the
+                        target
   --init                To initialize the DB. You have to run this once you
                         install adaptive_typo
   --allowtypo {yes,no}  Allow login with typos of the password
@@ -64,17 +66,33 @@ optional arguments:
   --status              Prints current states of the typotolerance.
   --uninstall           To initialize the DB. You have to run this once you
                         install adaptive_typo
+  --reinit              To re-initiate the DB, especially after the user's pw
+                        has changed
 
 ```
 
 ### If the user change his password
 When the user changes his password, the adaptive typo will be disabled until the system is re-initialized for the new password
-*****ADD more details about using the settings ******
+In order to re-initiate the typo-tolerance, run `sudo pam-typoauth --reinit`
 
 ### FAQ
+* **I installed typo-tolerance, but I don't see any changes**
+The initial script's state doesn't allow logining in a typo, it just stores the necessery data for it.
+In order to to allow the loging-in, run
+>> `sudo pam-typoauth --allowtypo yes`
+
 * **Can I opt out after I've entered this project?**
-Our script has two parts, one which is responsible to manage the necessary data and send it securely to us, and the other which allows you to enter with a close, given before, typo of your password. Both of these part can be disabled
-*****ADD more details about using the settings ******
+Our script has two parts, one which is responsible to manage the necessary data and send it *securely* to us, and the other which allows you to enter with a close, given before, typo of your password. Both of these part can be disabled
+- To disallow logging in with a typo, run 
+ `sudo pam-typoauth --allowtypo no`
+- To allow logging in with a typo, run
+ `sudo pam-typoauth --allowtypo yes`
+- To disable the sending of logs, run
+ `sudo pam-typoauth --allowupload no`
+- To enable the sending of logs, run
+ `sudo pam-typoauth --allowupload yes`
+
+Also, you can uninstall the whole things by running `sudo bash ~/pam-typopw/uninstall.sh `, and it will remove all store-data and reset your setting to the usual log-in settings
 
 * **What if the typo-tolerance PAM module is buggy? Shall I be locked out?**   
 No, your PAM should move onto next correct modules in common-auth, and you will be asked to re-enter your credentials.   
