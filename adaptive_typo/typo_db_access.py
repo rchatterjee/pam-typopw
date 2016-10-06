@@ -382,7 +382,7 @@ class UserTypoDB:
 
     def install_id(self):
         try:
-            return db[auxT].find_one(desc=InstallationID)['data']
+            return self._db[auxT].find_one(desc=InstallationID)['data']
         except Exception as e:
             return ''
 
