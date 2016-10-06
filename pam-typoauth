@@ -10,7 +10,7 @@ import getpass
 
 USER = ""
 ALLOW_TYPO_LOGIN = True
-SEND_LOGS = '/usr/local/bin/send_typo_log.py'
+
 class AbortSettings(RuntimeError):
     pass
 
@@ -50,8 +50,13 @@ def _get_typoDB():
         )
     return typoDB
 
+def root_only_operation():
+    if os.getuid() != 0:
+        print("ERROR!! You need root priviledge to run this operation")
+        raise AbortSettings
+
 def initiate_typodb(RE_INIT = False):
-    assert os.getuid() == 0, "You need root priviledge to run the installation"
+    root_only_operation()
     if not USER:
         user = raw_input("Please enter your username: ")
     else:
@@ -87,24 +92,17 @@ def initiate_typodb(RE_INIT = False):
         raise ValueError("incorrect pw given 3 times")
 
 
-def root_only_operation():
-    if os.getuid() != 0:
-        print "You need root priviledge to run this operation"
-        raise AbortSettings
-
 def uninstall_adaptive_typo():
-    if os.getuid() == 0:
-        print("You need root priviledge to run the installation")
-        print("sudo {}".format(' '.join(sys.argv)))
+    root_only_operation()
     cmd = '''
 #!/bin/bash
 set -e
 set -u
 
 # Last try to send logs
-nohup python -u {sendscript} >/dev/null 2>&1 &
+nohup python -u /usr/local/bin/send_typo_log.py >/dev/null 2>&1 &
 user=$(who am i| awk '{print $1}')
-homedir=$(eval ~$user)
+homedir=$(echo ~$user)
 
 # remove dawg
 common_auth_file=/etc/pam.d/common-auth
@@ -123,7 +121,7 @@ if [ -e ffile.txt ]; then
 fi
 
 apt-get -y remove libpam-python libdawgdic-dev
-    '''.format(sendscript=SEND_LOGS)
+    '''
     os.system(cmd)
 
 
