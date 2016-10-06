@@ -380,6 +380,12 @@ class UserTypoDB:
             
         logger.debug("Initialization Complete")
 
+    def install_id(self):
+        try:
+            return db[auxT].find_one(desc=InstallationID)['data']
+        except Exception as e:
+            return ''
+
     def update_after_pw_change(self, newPw):
         """
         Re-initiate the DB after a pw change.

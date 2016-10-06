@@ -222,6 +222,7 @@ try:
         print("\nTypotoler status:")
         print("Login with typos: {}".format(typoDB.is_allowed_login()))
         print("Participate in the study: {}".format(typoDB.is_allowed_upload()))
+        print("Install Id: {}".format(typoDB.install_id()))
         #print("Version:{}") # TODO
 
 
