@@ -1,22 +1,21 @@
+
 import logging
 import dataset
 import time
 import json
 import os
-from copy import deepcopy
 from zxcvbn import password_strength
-from collections import OrderedDict
 import pwd
-from pw_pkcrypto import (
+from adaptive_typo.pw_pkcrypto import (
     encrypt, decrypt, derive_public_key,
-    derive_secret_key, update_ctx, compute_id,
+    derive_secret_key, compute_id,
     sign, verify,
     encrypt_symmetric, decrypt_symmetric
 )
 import struct
 import binascii
 from word2keypress import distance
-from random import random # 
+from random import random
 
 DB_NAME = ".typoToler"
 ORIG_PW = 'OriginalPw'
@@ -39,7 +38,7 @@ COUNT_KEY_CTX = "CountKeyCtx"
 CACHE_SIZE = 5
 EDIT_DIST_CUTOFF = 1
 REL_ENT_CUTOFF = -3
-LOWER_ENT_CUTOFF = -1
+LOWER_ENT_CUTOFF = 10
 
 # Tables' names:
 logT = 'Log'
@@ -101,7 +100,7 @@ def encode_encrypt_sym_count(key,count):
     #print "k: {}".format(key)
     #print "k_l:{}".format(len(key))
     #print "count:{}".format(count) # TODO REMOVE
-    count_in_bytes = struct.pack('<i',count)
+    count_in_bytes = struct.pack('<i', count)
     return binascii.b2a_base64(encrypt_symmetric(count_in_bytes,key))
 
 def decode_decrypt_sym_count(key,ctx):

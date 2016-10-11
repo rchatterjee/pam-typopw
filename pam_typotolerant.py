@@ -1,14 +1,13 @@
+
 from __future__ import print_function
-import crypt
 import pwd
 import os, sys
-import datetime
 from adaptive_typo import (
-    typo_db_access, 
-    on_wrong_password, 
+    typo_db_access,
+    on_wrong_password,
     on_correct_password
 )
-from subprocess import Popen, STDOUT
+from subprocess import Popen, PIPE
 
 # module_path = os.path.dirname(os.path.abspath(__file__))
 # CHKPW_EXE = '/sbin/unix_chkpwd'
@@ -17,6 +16,7 @@ SEND_LOGS = '/usr/local/bin/send_typo_log.py'
 NN = 5 # hash cache's size
 
 DEBUG=0
+
 def eprint(*args, **kwargs):
     if DEBUG==1:
         print(*args, file=sys.stdout, **kwargs)
@@ -52,7 +52,6 @@ def get_password(tmpPrompt, pamh, flags, argv):
     return 'pw', password
 
 def check_pw(user, pw):
-    from subprocess import Popen, PIPE, STDOUT, call
     p = Popen([CHKPW_EXE, user], stdin=PIPE, stdout=PIPE)
     p.stdin.write(str(pw) + '\n')
     p.stdin.close()
