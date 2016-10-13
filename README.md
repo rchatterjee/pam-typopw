@@ -1,24 +1,31 @@
-## pam-typopw / Adaptive typo tolerance
+## Adaptive typo tolerance
 
-Password typing mistakes are prevalent and annoying as it unnecessarily stops legimate users from doing something more productive than merely retyping their passwords. Usability of passwords will imrpove significantly, if we allow some small typographical errors while checking passwords. As passwords are not stored in plaintext, it is not trivial to check whether or not an entered password is a typo or an adversarial guess. One possible solution to that is to check a set of possible corrections of the entered password. However this requires learning proper set of corrections, or in a way the distributions of typographical errors. Here, we propose a typo correcting system that is built specifically for your mistakes, that is, the system monitors your password typing mistakes and allow you to log in with five most probable mistyped version of your passwod. We believe users make only a few different types of typos over and over again, so, we can keep the number of corrections low (saving in computation overhead and security), while maximize the benefit of correction.
+Password typing mistakes are prevalent and annoying as it unnecessarily stops legimate users from doing something more productive than merely retyping their passwords. Usability of passwords will imrpove significantly, if we allow some small typographical errors while checking passwords. However, as passwords are not stored in plaintext, it is not trivial to check whether or not an entered password is a typo of the stored password or an adversarial guess. One possible solution is to check a set of possible corrections of the entered password, and test each of them against stored hash of the original password; if any of the corrections produce correct hash, then let the user login. The major drawback of this approch is that, to be effective in correcting typos, we need to learn an optimal set of correctors, or the distribution of typographical errors, so that a small set of correctors can cover a large swath of corrections. 
+
+We believe that not every people make all typo of typing mistakes, rather users tend to repeate their mistakes, so having global set of correctors that try to correct all password mistakes is wasteful and insecure. Here, we propose a typo correcting system that learns about the mistakes that in individual makes by monitoring his/her password typing mistakes, and allow the user to log in with five most probable mistyped variants of his/her passwod. In this way, we can keep the number of corrections low (saving in computation overhead and security), while maximize the benefit of correction.
 
 ### Requirements  
-This module **only works with Debian linux distros**, for example, **Ubuntu, Lubuntu, Kubuntu, Debian**, etc.  
+This module **only works with Debian linux distributions**, for example, **Ubuntu, Lubuntu, Kubuntu, Debian**, etc.  
 
 This pam_module depends on the following packages. These will be installed automatically once you call
-`python setup.py install`.  **Do not use pip to install this pam_module**.
+`sudo pip install adaptive_typo`. 
 >1. `libpam-dev`, for security/pam_modules.h etc.
 >2. `libpam-python`, to write pam modules in Python.
 >3. `python-pam`, for testing `tet_pam.py` script. Not required in production.
 >4. `python-setputools`, if you are a python user, then this is most likely already isntalled. 
->5. `python-dev`, for `python.h` dependency with some cypthon modules.
+>5. `python-dev`, for `python.h` dependency with some Cython modules.
 
 
 ### Install
-
+**Using pip**
+```bash
+$ sudo pip install -U adaptive_typo --ignore-installed
+```
+For those snarky people, who do not want to install pip, can run the following
+command. 
 ```bash
 $ git clone https://github.com/rchatterjee/pam-typopw.git
-$ cd pam-typopw && sudo python setup.py install
+$ cd pam-typopw && sudo python setup.py install -f
 ```
 
 This should install all the depenedencies and setup the PAM config files. This
@@ -82,7 +89,7 @@ The script will report the following information back to us for research purpose
 5. The relative change in the strength of the typo with respect to the original password.
 6. The edit distance between the typo and the original password
 
-### If the user change his password
+### If the user changes his password
 When the user changes his password, the adaptive typo will be disabled until the system is re-initialized for the new password
 In order to re-initiate the typo-tolerance, run `sudo pam-typoauth --reinit`
 
@@ -90,35 +97,33 @@ In order to re-initiate the typo-tolerance, run `sudo pam-typoauth --reinit`
 * **I installed typo-tolerance, but I don't see any changes.**
 The initial script's state doesn't allow logging in with a typo. Initially it just stores the necessery data for it to work once you enable it.
 In order to allow the logging-in, run
->> `sudo pam-typoauth --allowtypo yes`
+> `sudo pam-typoauth --allowtypo yes`
 
-* **Can I opt out from participating in the study after I install the software?**
-Of course!
-Our script has two parts. The first part is responsible for managing the necessary database of typos
-and send the annonymous logs *securely* to us. The second part allows you to enter with a
-previously seen typo of your password which meets certain password policies. 
+1. **Can I opt out from participating in the study after I install the software?**
+ Of course!
+ Our script has two parts. The first part is responsible for managing the necessary database of typos
+ and send the annonymous logs *securely* to us. The second part allows you to enter with a
+ previously seen typo of your password which meets certain password policies. 
 
-- To allow/disallow logging in with a typoed password,  
- `$ sudo pam-typoauth --allowtypo yes/no`
-- To enable/disable sending the logs (and participating in the research study),   
- `$ sudo pam-typoauth --allowupload yes/no`
+ - To allow/disallow logging in with a typoed password,  
+  `$ sudo pam-typoauth --allowtypo yes/no`
+ - To enable/disable sending the logs (and participating in the research study),   
+  `$ sudo pam-typoauth --allowupload yes/no`
+ - By default the software will send the logs and will allow you to log in with your mistyped password. 
+ Also, you can uninstall the whole things by running `$ sudo pam-typoauth --uninstall`, and it will remove all store-data and reset your setting to the usual log-in settings
 
-- By default the software will send the logs and will allow you to log in with your mistyped password. 
+2. **What if the typo-tolerance PAM module is buggy? Shall I be locked out?**   
+ No, your PAM should move onto the next correct modules in `/etc/pam.d/common-auth`, and you will be asked to re-enter your password.   
 
-Also, you can uninstall the whole things by running `$ sudo pam-typoauth --uninstall`, and it will remove all store-data and reset your setting to the usual log-in settings
-
-* **What if the typo-tolerance PAM module is buggy? Shall I be locked out?**   
-No, your PAM should move onto the next correct modules in `/etc/pam.d/common-auth`, and you will be
-asked to re-enter your password.   
-
-* **In case you are locked out**, go to recovery mode, open root shell, and replace the `/etc/pam.d/common-auth` with 
-`/etc/pam.d/common-auth.orig`. You might need to remount the file-system in write mode via `mount -o remount,rw /`.
-```bash
-root> mount -o remount,rw /
-root> cp /etc/pam.d/common-auth.orig /etc/pam.d/common-auth
-```
-Also, make sure there is no `@include typo-auth` line in `/etc/pam.d/common-auth`.
-If this does not work, you can [http://www.ubuntu.com/download/desktop/try-ubuntu-before-you-install](use live-cd of your linux distribution), and remove the line with `@include typo-auth` from `/etc/pam.d/common-auth`, in the original linux installation.
+3. **In case you are locked out**, go to recovery mode, open root shell, and replace the `/etc/pam.d/common-auth` with 
+ `/etc/pam.d/common-auth.orig`. You might need to remount the file-system in write mode via `mount -o remount,rw /`.
+ ```bash
+ root> mount -o remount,rw /
+ root> cp /etc/pam.d/common-auth.orig /etc/pam.d/common-auth
+ ```
+ Also, make sure there is no `@include typo-auth` line in `/etc/pam.d/common-auth`.  
+ If this does not work, you can [http://www.ubuntu.com/download/desktop/try-ubuntu-before-you-install](use live-cd of your linux distribution), and remove the line with `@include typo-auth` from `/etc/pam.d/common-auth`, in the original linux installation.
 
 
 Enjoy!
+Write to us with your feedbacks, and comments. 
