@@ -30,6 +30,14 @@ To check successful installtion, run `$ su <your username>`. The password prompt
 should appear as `aDAPTIVE pASSWORD:`. 
 
 To **uninstall** run `pam-typoauth --uninstall` (requires root priviledges).
+#### Common trouble shooting.
+After installing `adaptive_typo`, if you run `su <username>` and don't
+see the password promt as `aDAPTIVE pASSWORD:`, then most likely means the installation
+was not successful. Here are some common fixes that worked for some users. 
+* Run, `$ sudo pip install --ignore-installed adaptive_typo`. This will ignore any existing
+installation of the dependencies and re-install everything.
+* Reinitializing the database by running, `$ pam-typoauth --init` or `$pam-typoauth --reinit`. 
+
 
 ### `pam-typoauth` Utility
 You can use this utility to control the settings of adaptive typo-tolernace. 
