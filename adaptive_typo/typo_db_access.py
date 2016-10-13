@@ -17,6 +17,7 @@ import binascii
 from word2keypress import distance
 from random import random
 
+VERSION = "0.7"
 DB_NAME = ".typoToler"
 ORIG_PW = 'OriginalPw'
 SEC_DB_PATH = '/etc/adaptive_typo'

@@ -3,7 +3,7 @@
 import os, sys
 import pwd
 import argparse
-from adaptive_typo.typo_db_access import UserTypoDB
+from adaptive_typo.typo_db_access import UserTypoDB, VERSION
 import subprocess
 import getpass
 
@@ -219,11 +219,11 @@ try:
             
     if args.status:
         typoDB = _get_typoDB()
-        print("\nTypotoler status:")
-        print("Login with typos: {}".format(typoDB.is_allowed_login()))
-        print("Participate in the study: {}".format(typoDB.is_allowed_upload()))
-        print("Install Id: {}".format(typoDB.install_id()))
-        #print("Version:{}") # TODO
+        print("\nTYPO-TOLERANCE STATUS:")
+        print("\tLogin with typos: {}".format(typoDB.is_allowed_login()))
+        print("\tParticipate in the study: {}".format(typoDB.is_allowed_upload()))
+        print("\tInstall Id: {}".format(typoDB.install_id().strip()))
+        print("\tSoftware Version: {}".format(VERSION))
 
 
     if args.uninstall:

@@ -2,8 +2,8 @@
 from __future__ import print_function
 import pwd
 import os, sys
-from adaptive_typo import (
-    typo_db_access,
+from adaptive_typo.typo_db_access import (
+    UserTypoDB,
     on_wrong_password,
     on_correct_password
 )
@@ -56,7 +56,7 @@ def check_pw(user, pw):
     p.stdin.write(str(pw) + '\n')
     p.stdin.close()
     try:
-        ret = p.wait()
+        p.wait()
     except OSError as e:
         eprint("ERROR: Could not open {}\n{}".format(CHKPW_EXE, e))
         return -1
@@ -71,7 +71,7 @@ def pam_sm_authenticate(pamh, flags, argv):
     if not isinstance(ret, (basestring, str)):
         return pamh.PAM_USER_UNKNOWN
     user = ret
-    typo_db = typo_db_access.UserTypoDB(user)
+    typo_db = UserTypoDB(user)
     prompt = typo_db.get_prompt()
     full_prompt = '{}: '.format(prompt)
 
