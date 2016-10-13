@@ -1,6 +1,6 @@
 ## Adaptive typo tolerance
 
-Password typing mistakes are prevalent and annoying as it unnecessarily stops legimate users from doing something more productive than merely retyping their passwords. Usability of passwords will imrpove significantly, if we allow some small typographical errors while checking passwords. However, as passwords are not stored in plaintext, it is not trivial to check whether or not an entered password is a typo of the stored password or an adversarial guess. One possible solution is to check a set of possible corrections of the entered password, and test each of them against stored hash of the original password; if any of the corrections produce correct hash, then let the user login. The major drawback of this approch is that, to be effective in correcting typos, we need to learn an optimal set of correctors, or the distribution of typographical errors, so that a small set of correctors can cover a large swath of corrections. 
+Password typing mistakes are prevalent and annoying, as it unnecessarily stops legimate users from doing something more productive than merely retyping their passwords. Usability of passwords will imrpove significantly, if we allow some small typographical errors while checking passwords. However, as passwords are not stored in plaintext, it is not trivial to check whether or not an entered password is a typo of the stored password or an adversarial guess. One possible solution is to check a set of possible corrections of the entered password, and test each of them against stored hash of the original password; if any of the corrections produce correct hash, then let the user login. The major drawback of this approch is that, to be effective in correcting typos, we need to learn an optimal set of correctors, or the distribution of typographical errors, so that a small set of correctors can cover a large swath of corrections. 
 
 We believe that not every people make all typo of typing mistakes, rather users tend to repeate their mistakes, so having global set of correctors that try to correct all password mistakes is wasteful and insecure. Here, we propose a typo correcting system that learns about the mistakes that in individual makes by monitoring his/her password typing mistakes, and allow the user to log in with five most probable mistyped variants of his/her passwod. In this way, we can keep the number of corrections low (saving in computation overhead and security), while maximize the benefit of correction.
 
@@ -126,4 +126,4 @@ In order to allow the logging-in, run
 
 
 Enjoy!
-Write to us with your feedbacks, and comments. 
+Write to us with your feedbacks and comments. 
