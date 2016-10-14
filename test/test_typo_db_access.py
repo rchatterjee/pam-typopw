@@ -6,7 +6,9 @@ from adaptive_typo.typo_db_access import (
     waitlistT,
     hashCacheT,
     get_time_str,
-    decode_decrypt_sym_count
+    decode_decrypt_sym_count,
+    on_wrong_password,
+    on_correct_password
 )
 from adaptive_typo.pw_pkcrypto import (
     encrypt, decrypt, derive_public_key,
@@ -210,6 +212,23 @@ def test_pw_change(isStandAlone = True):
         else:
             return typoDB
 
+# this test takes a bit longer
+def test_disabling_first_30_times(isStandAlone = True):
+    typoDB = start_DB()
+    assert not on_wrong_password(typoDB, t_1())
+    assert not on_wrong_password(typoDB, t_2())
+    assert on_correct_password(typoDB, get_pw())
+    # count = 3
+    # 27 = 9*3 left
+    for i in xrange(9):
+        print "{}th try".format(i)
+        assert not on_wrong_password(typoDB, t_1())
+        assert not on_wrong_password(typoDB, t_2())
+        assert on_correct_password(typoDB, get_pw())
+    # 30 entries have been done
+    assert on_wrong_password(typoDB,t_1())
+    assert on_wrong_password(typoDB,t_2())
+    
     
 def get_pw():
     return 'GoldApp&3'
