@@ -214,13 +214,15 @@ def test_pw_change(isStandAlone = True):
 
 # this test takes a bit longer
 def test_disabling_first_30_times(isStandAlone = True):
+    # checks that entry with a typo is allowed
+    # only after the real pw was entered more than 30 times
     typoDB = start_DB()
     assert not on_wrong_password(typoDB, t_1())
     assert not on_wrong_password(typoDB, t_2())
     assert on_correct_password(typoDB, get_pw())
-    # count = 3
-    # 27 = 9*3 left
-    for i in xrange(9):
+    # count = 1
+    # 30 left
+    for i in xrange(30):
         print "{}th try".format(i)
         assert not on_wrong_password(typoDB, t_1())
         assert not on_wrong_password(typoDB, t_2())
@@ -228,6 +230,11 @@ def test_disabling_first_30_times(isStandAlone = True):
     # 30 entries have been done
     assert on_wrong_password(typoDB,t_1())
     assert on_wrong_password(typoDB,t_2())
+
+    if isStandAlone:
+        remove_DB()
+    else:
+        return typoDB
     
     
 def get_pw():
