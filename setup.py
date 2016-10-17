@@ -92,21 +92,21 @@ class CustomInstaller(install):
 
 # With the help from http://peterdowns.com/posts/first-time-with-pypi.html
 setup(
-    name = 'adaptive_typo', # 'loginwitherror',
-    packages = ['adaptive_typo'], # this must be the same as the name above
-    version = VERSION,
-    description = 'Adaptive Typo Tolerance for Debian logins',
-    author = 'Rahul Chatterjee, Yuval Pnueli',
-    author_email = 'rc737@cornell.edu',
-    url = GITHUB_URL,
-    download_url = '{}/tarball/{}'.format(GITHUB_URL, VERSION),
-    keywords = [
-        'Password', 'typo-tolerance', 
+    name='adaptive_typo', # 'loginwitherror',
+    packages=['adaptive_typo'], # this must be the same as the name above
+    version=VERSION,
+    description='Adaptive Typo Tolerance for Debian logins',
+    author='Rahul Chatterjee, Yuval Pnueli',
+    author_email='rc737@cornell.edu',
+    url=GITHUB_URL,
+    download_url='{}/tarball/{}'.format(GITHUB_URL, VERSION),
+    keywords=[
+        'Password', 'typo-tolerance',
         'login-with-errors', 'Login'
     ],
     package_data={'': ['chkpw.c', 'LICENSE', 'README.md']},
     include_package_data=True,
-    classifiers = ['Development Status :: 4 - Beta'],
+    classifiers=['Development Status :: 4 - Beta'],
     install_requires=[
         'joblib',
         'pycryptodome',

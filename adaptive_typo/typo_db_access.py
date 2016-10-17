@@ -1,21 +1,21 @@
 
 import logging
-import dataset
+import os
 import time
 import json
-import os
-from zxcvbn import password_strength
 import pwd
+import struct
+import binascii
+from random import random
+import dataset
+from zxcvbn import password_strength
 from adaptive_typo.pw_pkcrypto import (
     encrypt, decrypt, derive_public_key,
     derive_secret_key, compute_id,
     sign, verify,
     encrypt_symmetric, decrypt_symmetric
 )
-import struct
-import binascii
 from word2keypress import distance
-from random import random
 
 VERSION = "0.7"
 DB_NAME = ".typoToler"
@@ -200,7 +200,7 @@ class UserTypoDB:
 
     def getdb(self):
         return self._db
-    
+
     def get_db_path(self):
         return self._db_path
 
