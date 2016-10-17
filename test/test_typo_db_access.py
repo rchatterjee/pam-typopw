@@ -221,8 +221,8 @@ def test_disabling_first_30_times(isStandAlone = True):
     assert not on_wrong_password(typoDB, t_2())
     assert on_correct_password(typoDB, get_pw())
     # count = 1
-    # 30 left
-    for i in xrange(30):
+    # 29 left
+    for i in xrange(29):
         print "{}th try".format(i)
         assert not on_wrong_password(typoDB, t_1())
         assert not on_wrong_password(typoDB, t_2())

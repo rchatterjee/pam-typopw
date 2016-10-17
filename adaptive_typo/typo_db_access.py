@@ -1099,8 +1099,9 @@ def on_correct_password(typo_db, password):
             desc=LoginCount)['data'])
         count_entry += 1
         typo_db._db[auxT].update(
-            dict(desc=LoginCount,data=str(count_entry)),['desc'])
-            
+            dict(desc=LoginCount,data=str(count_entry)), ['desc']
+        )
+
         typo_db.original_password_entered(password) # also updates the log
     except UserTypoDB.CorruptedDB as e:
         logger.error("Corrupted DB!")
@@ -1122,7 +1123,6 @@ def on_correct_password(typo_db, password):
 
 
 def on_wrong_password(typo_db, password):
-    pam_result = False #
     try:
         sysStatLine = typo_db._db[auxT].find_one(desc=SysStatus)
         if not sysStatLine: # if not found in table
@@ -1134,26 +1134,24 @@ def on_wrong_password(typo_db, password):
              raise UserTypoDB.CorruptedDB("")
 
         # if reached here - db should be initiated
-                        
         sk_dict, is_in = typo_db.fetch_from_cache(password) # also updates the log
         if not is_in: # aka it's not in the cache, 
             logger.info("a new typo appeared!") # TODO REMOVE
             typo_db.add_typo_to_waitlist(password)
             return False
-        else: # it's in cach
+        else: # it's in cache
             logger.info("typo in cach") # TODO REMOVE
-            typo_db.update_hash_cache_by_waitlist(sk_dict, typo=password) # also updates the log
+            # also updates the log
+            typo_db.update_hash_cache_by_waitlist(sk_dict, typo=password)
             if typo_db.is_allowed_login():
                 logger.info("Returning SUCEESS TypoToler")
-                # pam_result - for the 'finally' block
                 # entery by typo is allowed only after some initial number of entry
-                count_entry = int(typo_db._db[auxT].find_one(
-                    desc=LoginCount)['data'])
-                pam_result = count_entry >  NUMBER_OF_ENTRIES_BEFORE_TYPOTOLER_CAN_BE_USED
-                if not pam_result:
-                    logger.info("User not entered because entry_count is {}".format(
-                        count_entry))
-                return pam_result
+                count_entry = int(typo_db._db[auxT].find_one(desc=LoginCount)['data'])
+                if count_entry < NUMBER_OF_ENTRIES_BEFORE_TYPOTOLER_CAN_BE_USED:
+                    logger.info("User not entered because entry_count is {}"\
+                                .format(count_entry))
+                    return False
+                return True
             else:
                 logger.info("but typoToler is OFF") # TODO REMOVE
                 return False
@@ -1170,10 +1168,6 @@ def on_wrong_password(typo_db, password):
     except Exception as e:
         logger.error("Unexpected error while on_wrong_password:\n{}\n".format(
             e.message))
-        
     # finnaly block always run
     #finally:
-    return pam_result # previously inside "finally"
-        
-
-
+    return False # previously inside "finally"
