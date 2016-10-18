@@ -8,7 +8,6 @@ from Crypto.PublicKey import RSA, ECC
 from Crypto.Cipher import AES
 from Crypto.Hash import SHA256, HMAC
 import os
-import struct
 
 # In production let's make it 10000. 150 millisecond
 HASH_CNT = 1000 # Number of hashes to compute one SHA256 takes 15 microsec,

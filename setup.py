@@ -108,7 +108,6 @@ setup(
     include_package_data=True,
     classifiers=['Development Status :: 4 - Beta'],
     install_requires=[
-        'joblib',
         'pycryptodome',
         'word2keypress',
         'dataset',

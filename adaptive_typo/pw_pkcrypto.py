@@ -1,12 +1,15 @@
+
+from multiprocessing import Pool
 from Crypto.Protocol.KDF import PBKDF2
 from Crypto.PublicKey import ECC
 from Crypto.Cipher import AES
 from Crypto.Signature import DSS
 from Crypto.Hash import SHA256
 import os, struct
-from pwcryptolib import (HASH_CNT, RandomWSeed, hash256, hmac256, aes1block)
-import joblib
-from copy import deepcopy
+from adaptive_typo.pwcryptolib import (
+    HASH_CNT, RandomWSeed, hash256, hmac256, aes1block
+)
+
 # All Crypto operation parameters are of length 32 bytes (256 bits)
 # However AES block size is ALWAYS 16 bytes. (That's the standard!)
 
@@ -289,7 +292,8 @@ def compute_id_w_saltctx(pwtypo, sk_dict, saltctx):
 
 
 
-def _match_hash(i, pw, h, sa):
+def _match_hash(args):
+    i, pw, h, sa = args
     if hash_pw(pw, sa)==h:
         return i
     return -1
@@ -299,14 +303,19 @@ def match_hashes(pw, hashlist, saltlist):
     corresponding salt.
     returns the @index if found else -1
     """
-    with joblib.Parallel(n_jobs=4) as parallel:
-        ret = filter(
-            lambda x: x!= -1,
-            parallel(joblib.delayed(_match_hash)(i, pw, h, sa)
-                     for i, (h,sa) in enumerate(zip(hashlist, saltlist)))
-        )
-    assert len(ret)<=1, "There are multiple hashes with the same underlying password"
+    p = Pool()
+    ret = [
+        x 
+        for x in p.map(_match_hash, [
+                (i, pw, h, sa)
+                for i, (h,sa) in enumerate(zip(hashlist, saltlist))
+        ])
+        if x!= -1
+    ]
+    assert len(ret)<=1, \
+        "There are multiple hashes with the same underlying password"
     if ret:
         return ret[0]
     else:
         return -1
+        
