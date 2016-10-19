@@ -10,7 +10,7 @@ from Crypto.Hash import SHA256, HMAC
 import os
 
 # In production let's make it 10000. 150 millisecond
-HASH_CNT = 1000 # Number of hashes to compute one SHA256 takes 15 microsec,
+HASH_CNT = 1 # Number of hashes to compute one SHA256 takes 15 microsec,
 
 def hash256(*args):
     """short function for Hashing the arguments with SHA-256"""
