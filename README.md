@@ -1,25 +1,9 @@
-## Adaptive typo tolerance
+# Adaptive typo tolerance
 
 **tldr;**  
 This software will let you log in to your laptop with small typos in the password.
 
-Password typing mistakes are prevalent and annoying, as it unnecessarily stops legimate users from doing something more productive than merely retyping their passwords. Usability of passwords will imrpove significantly, if we allow some small typographical errors while checking passwords. However, as passwords are not stored in plaintext, it is not trivial to check whether or not an entered password is a typo of the stored password or an adversarial guess. One possible solution is to check a set of possible corrections of the entered password, and test each of them against stored hash of the original password; if any of the corrections produce correct hash, then let the user login. The major drawback of this approch is that, to be effective in correcting typos, we need to learn an optimal set of correctors, or the distribution of typographical errors, so that a small set of correctors can cover a large swath of corrections. 
-
-We believe that not every people make all typo of typing mistakes, rather users tend to repeate their mistakes, so having global set of correctors that try to correct all password mistakes is wasteful and insecure. Here, we propose a typo correcting system that learns about the mistakes that in individual makes by monitoring his/her password typing mistakes, and allow the user to log in with five most probable mistyped variants of his/her passwod. In this way, we can keep the number of corrections low (saving in computation overhead and security), while maximize the benefit of correction.
-
-### Requirements  
-This module **only works with Debian linux distributions**, for example, **Ubuntu, Lubuntu, Kubuntu, Debian**, etc.  
-
-This pam_module depends on the following packages. These will be installed automatically once you call
-`sudo pip install adaptive_typo`. 
->1. `libpam-dev`, for security/pam_modules.h etc.
->2. `libpam-python`, to write pam modules in Python.
->3. `python-pam`, for testing `tet_pam.py` script. Not required in production.
->4. `python-setputools`, if you are a python user, then this is most likely already isntalled. 
->5. `python-dev`, for `python.h` dependency with some Cython modules.
-
-
-### Install
+## Install
 **Using pip**
 ```bash
 $ sudo pip install -U adaptive_typo --ignore-installed
@@ -40,6 +24,23 @@ To check successful installtion, run `$ su <your username>`. The password prompt
 should appear as `aDAPTIVE pASSWORD:`. 
 
 To **uninstall** run `pam-typoauth --uninstall` (requires root priviledges).
+
+### Detailed description
+Password typing mistakes are prevalent and annoying, as it unnecessarily stops legimate users from doing something more productive than merely retyping their passwords. Usability of passwords will imrpove significantly, if we allow some small typographical errors while checking passwords. However, as passwords are not stored in plaintext, it is not trivial to check whether or not an entered password is a typo of the stored password or an adversarial guess. One possible solution is to check a set of possible corrections of the entered password, and test each of them against stored hash of the original password; if any of the corrections produce correct hash, then let the user login. The major drawback of this approch is that, to be effective in correcting typos, we need to learn an optimal set of correctors, or the distribution of typographical errors, so that a small set of correctors can cover a large swath of corrections. 
+
+We believe that not every people make all typo of typing mistakes, rather users tend to repeate their mistakes, so having global set of correctors that try to correct all password mistakes is wasteful and insecure. Here, we propose a typo correcting system that learns about the mistakes that in individual makes by monitoring his/her password typing mistakes, and allow the user to log in with five most probable mistyped variants of his/her passwod. In this way, we can keep the number of corrections low (saving in computation overhead and security), while maximize the benefit of correction.
+
+### Requirements  
+This module **only works with Debian linux distributions**, for example, **Ubuntu, Lubuntu, Kubuntu, Debian**, etc.  
+
+This pam_module depends on the following packages. These will be installed automatically once you call
+`sudo pip install adaptive_typo`. 
+>1. `libpam-dev`, for security/pam_modules.h etc.
+>2. `libpam-python`, to write pam modules in Python.
+>3. `python-pam`, for testing `tet_pam.py` script. Not required in production.
+>4. `python-setputools`, if you are a python user, then this is most likely already isntalled. 
+>5. `python-dev`, for `python.h` dependency with some Cython modules.
+
 #### Common trouble shooting.
 After installing `adaptive_typo`, if you run `su <username>` and don't
 see the password promt as `aDAPTIVE pASSWORD:`, then most likely means the installation
