@@ -43,13 +43,12 @@ NUMBER_OF_ENTRIES_BEFORE_TYPOTOLER_CAN_BE_USED = 30
 
 # Tables' names:
 logT = 'Log'
-logT_cols = ['timestamp', 't_id', 'edit_dist', 'top5fixable', 
-             'is_in_hash', 'allowed_login', 'rel_bit_str']
-# table cols:   timestamp, t_id, edit_dist, top5fixable,
-#               is_in_hash, allowed_login, rel_bit_str
+logT_cols = ['id', 'ts', 't_id', 'edit_dist', 'top5fixable', 
+             'in_cache', 'allowed_login', 'rel_entropy']
+
 hashCacheT = 'HashCache'
-# table cols: H_typo, salt, count, pk, top5fixable'
-#
+hashCacheT_cols = ['H_typo', 'salt', 'count', 'pk', 'top5fixable']
+
 waitlistT = 'Waitlist'
 # table col: base64(enc(json(typo, ts, hash, salt, entropy)))'
 auxT = 'AuxSysData' # holds system's setting as well as glob_salt and enc(pw)
@@ -90,11 +89,18 @@ def find_one(table, key, apply_type=lambda x: x):
     try:
         res = list(table.database.query(q))
     except Exception as e:
+        print('ERROR in db.\n{}'.format(e))
         res = []
     if res:
         return apply_type(res[0]['data'])
     else:
         return None
+
+def is_in_top5_fixes(orig_pw, typo):
+    return orig_pw in (
+        typo.capitalize(), typo.swapcase(), typo.lower(),
+        typo.upper(), typo[1:], typo[:-1]
+    )
 
 logger = logging.getLogger(DB_NAME)
 def setup_logger(logfile_path, log_level):
@@ -249,7 +255,7 @@ class UserTypoDB(object):
     def allow_login(self, allow=True):
         if not self.is_typotoler_init():
             raise UserTypoDB.NoneInitiatedDB(
-                "Typotoler DB wasn't initiated yet!"
+                "allow_login: Typotoler DB wasn't initiated yet!"
             )
         assert allow in (True, False, 0, 1), "Expects a boolean"
         allow = True if allow else False
@@ -264,9 +270,9 @@ class UserTypoDB(object):
     def is_allowed_login(self):
         if not self.is_typotoler_init():
             raise UserTypoDB.NoneInitiatedDB(
-                "Typotoler DB wasn't initiated yet!"
+                "is_allowed_login: Typotoler DB wasn't initiated yet!"
             )
-        is_on = self._sec_tab.find_one(desc=AllowedTypoLogin)['data']
+        is_on = self._get_from_secdb(AllowedTypoLogin)
         assert is_on in ('True', 'False'), \
             'Corrupted data in {}: {}={}'.format(auxT, AllowedTypoLogin, is_on)
         return is_on == 'True'
@@ -513,12 +519,6 @@ class UserTypoDB(object):
 
         logger.info("RE-Initialization Complete")
 
-    def is_in_top5_fixes(self, orig_pw, typo):
-        return orig_pw in (
-            typo.capitalize(), typo.swapcase(), typo.lower(),
-            typo.upper(), typo[1:], typo[:-1]
-        )
-
     def get_count_key(self, sk_dict):
         key_ctx = self._db[auxT].find_one(desc=COUNT_KEY_CTX)['data']
         return bytes(decode_decrypt(sk_dict, key_ctx))
@@ -583,14 +583,12 @@ class UserTypoDB(object):
             dict(desc=AllowUpload,data=upload_status),
             ['desc']
         )
-        assert type(allow) == bool
+        assert isinstance(allow, bool)
         self.isON = allow
 
     def is_allowed_upload(self):
-        send_stat_row = self._sec_tab.find_one(desc=AllowUpload)
-        if not send_stat_row:
-            return False
-        return send_stat_row['data'] == 'True'
+        send_stat_row = self._get_from_secdb(AllowUpload)
+        return send_stat_row == 'True'
 
     def _hmac_id(self, typo, sk_dict):
         """
@@ -832,7 +830,7 @@ class UserTypoDB(object):
                         typo, sk_dict=sk_dict,
                         other_info={
                             'edit_dist': editDist,
-                            'top5fixable': self.is_in_top5_fixes(pw, typo),
+                            'top5fixable': is_in_top5_fixes(pw, typo),
                             'in_cache': False,
                             'allowed_login': False,
                             'rel_entropy': rel_entropy
@@ -858,7 +856,7 @@ class UserTypoDB(object):
                     'count': count,
                     'pk': typo_pk,
                     'edit_dist': editDist,
-                    'top5fixable': self.is_in_top5_fixes(pw, typo)
+                    'top5fixable': is_in_top5_fixes(pw, typo)
                 })
             else:
                 logger.debug(
@@ -1080,21 +1078,20 @@ def on_correct_password(typo_db, password):
     logger.info("sm_auth: it's the right password")
     # log the entry of the original pwd
     try:
-        sysStatLine = typo_db._db[auxT].find_one(desc=SysStatus)
-        if not sysStatLine: # if not found in table
-            raise UserTypoDB.NoneInitiatedDB(
-                "Typotoler DB wasn't initiated yet!"
-            )
-        sysStatVal = int(sysStatLine['data'])
-        if sysStatVal == 1:
-            raise KeyError
-        if sysStatVal == 2:
-            raise UserTypoDB.CorruptedDB("")
         if not typo_db.is_typotoler_init():
             raise UserTypoDB.NoneInitiatedDB(
-                "Typotoler DB wasn't initiated yet!"
+                "ERROR: (on_correct_pass) Typotoler DB wasn't initiated yet!"
             )
             # the initialization is now part of the installation process
+        sysStatVal = typo_db.get_from_auxtdb(SysStatus)
+        if not sysStatVal: # if not found in table
+            raise UserTypoDB.Corrupted(
+                "ERROR: (on_correct_password) Typotoler DB is Corrupted."
+            )
+        if int(sysStatVal) == 1:
+            raise KeyError
+        if int(sysStatVal) == 2:
+            raise UserTypoDB.CorruptedDB("")
 
         # if reached here - db should be initiated
         # updating the entry count
@@ -1117,23 +1114,22 @@ def on_correct_password(typo_db, password):
     # In order to avoid locking out - always return true for correct password
     return True
 
-
 def on_wrong_password(typo_db, password):
     try:
-        sysStatLine = typo_db._db[auxT].find_one(desc=SysStatus)
-        if not sysStatLine: # if not found in table
+        sysStatVal = typo_db.get_from_auxtdb(SysStatus)
+        if not sysStatVal: # if not found in table
             raise UserTypoDB.NoneInitiatedDB(
-                "Typotoler DB wasn't initiated yet!"
+                "on_wrong_password: Typotoler DB wasn't initiated yet!"
             )
-        sysStatVal = int(sysStatLine['data'])
-        if sysStatVal == 1:
+        if int(sysStatVal) == 1:
             raise KeyError
-        if sysStatVal == 2:
+        if int(sysStatVal) == 2:
             raise UserTypoDB.CorruptedDB("")
 
         # if reached here - db should be initiated, also updates the log
         sk_dict, is_in = typo_db.fetch_from_cache(password)
         if not is_in: # aka it's not in the cache,
+            print("{} not found in the cache".format(password))
             typo_db.add_typo_to_waitlist(password)
             return False
         else: # it's in cache
@@ -1145,24 +1141,32 @@ def on_wrong_password(typo_db, password):
                 # of entry
                 count_entry = typo_db.get_from_auxtdb(LoginCount, int)
                 if count_entry < NUMBER_OF_ENTRIES_BEFORE_TYPOTOLER_CAN_BE_USED:
+                    print("User has not logged in enough (only {}, required {})"
+                          "to turn typo-tolerance on."\
+                          .format(
+                              count_entry, 
+                              NUMBER_OF_ENTRIES_BEFORE_TYPOTOLER_CAN_BE_USED
+                          )
+                      )
                     logger.info("User not entered because entry_count is {}"\
                                 .format(count_entry))
                     return False
                 return True
             else:
-                logger.info("but typoToler is OFF") # TODO REMOVE
+                print("Typotolerance is off!! {}".format(password))
                 return False
     except ValueError as e:
         # probably  failre in decryption
-        logger.error("ValueError:{}".format(e.message))
+        print("ValueError: {}".format(e))
     except UserTypoDB.CorruptedDB as e:
-        logger.error("Corrupted DB!")
+        print("Corrupted DB!")
         typo_db.set_status(2)
         # DB is corrupted, restart it
         # TODO
     except Exception as e:
-        logger.error("Unexpected error while on_wrong_password:\n{}\n".format(
-            e.message))
+        print("Unexpected error while on_wrong_password:\n{}\n"\
+              .format(e))
     # finnaly block always run
     #finally:
+    print("Nothing happened so returning false: {}".format(password))
     return False # previously inside "finally"

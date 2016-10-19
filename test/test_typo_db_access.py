@@ -8,7 +8,8 @@ from adaptive_typo.typo_db_access import (
     get_time_str,
     decode_decrypt_sym_count,
     on_wrong_password,
-    on_correct_password
+    on_correct_password,
+    logT, logT_cols, auxT, find_one
 )
 from adaptive_typo.pw_pkcrypto import (
     encrypt, decrypt, derive_public_key,
@@ -45,7 +46,7 @@ def get_sk_dict(t_db,PW_CHANGED = False):
     print "got sk salt"
     pw = get_pw() if not PW_CHANGED else new_pw()
     _, pw_sk = derive_secret_key(pw, sk_salt)
-    pw_id = int(t_db._sec_db[secretAuxSysT].find_one(desc=ORIG_PW_ID)['data'])
+    pw_id = t_db._get_from_secdb(ORIG_PW_ID, int)
     return {pw_id: pw_sk}
 
 
@@ -205,12 +206,32 @@ def test_pw_change(isStandAlone = True):
         else:
             # i.e - failed with the new pw:
             assert 0
-    finally:
-        assert failed_to_decrypt_with_old_pw
-        if isStandAlone:
-            remove_DB()
-        else:
-            return typoDB
+    except Exception as e:
+        raise e
+    assert failed_to_decrypt_with_old_pw
+    if isStandAlone:
+        remove_DB()
+    else:
+        return typoDB
+
+def test_logT(is_stand_alone=True):
+    typoDB = start_DB()
+    typoDB.allow_login()
+    assert typoDB.is_allowed_login()
+    assert not on_wrong_password(typoDB, t_1())
+    assert on_correct_password(typoDB, get_pw())
+    assert not on_wrong_password(typoDB, t_1()) # not enough login count
+    for _ in range(30):
+        on_wrong_password(typoDB, t_1()) # not enough login count
+        on_correct_password(typoDB, get_pw())
+    assert on_wrong_password(typoDB, t_1()) # now it should work
+    assert set(typoDB._db[logT].columns) == set(logT_cols)
+    if is_stand_alone:
+        remove_DB()
+    else:
+        return typoDB
+    # TODO: assert some property of logT
+
 
 # this test takes a bit longer
 def test_disabling_first_30_times(isStandAlone = True):
@@ -222,7 +243,7 @@ def test_disabling_first_30_times(isStandAlone = True):
     assert on_correct_password(typoDB, get_pw())
     # count = 1
     # 29 left
-    for i in xrange(29):
+    for i in xrange(30):
         print "{}th try".format(i)
         assert not on_wrong_password(typoDB, t_1())
         assert not on_wrong_password(typoDB, t_2())
@@ -283,16 +304,4 @@ def listOfOneDist(length):
     
     
 
-# "main"
-##print str(listOfOneDist(60))
-##print get_username()
-##print DB_path()
-##print str(start_DB())
-# print "************* test_login_settings ******************"
-# test_login_settings()
-# print "************* test_added_to_hash ******************"
-# test_added_to_hash()
-# print "************* test_many_entries ******************"
-# test_many_entries()
-# print "************* test_alt_typo ******************"
-# test_alt_typo(False)
+# pytest.main([__file__])

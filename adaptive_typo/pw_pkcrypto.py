@@ -57,7 +57,7 @@ def encrypt(_pk_dict, msg):
     sample_pk = pk_dict.values()[0]
     rand_point = ECC.generate(curve=sample_pk.curve)
 
-    # It is always 161 bytes, extra few bytes in case we runinto issues
+    # It is always 161 bytes, extra few bytes in case we run into issues
     serialized_rand_point = serialize_pub_key(rand_point.public_key())
     def _encrypt_w_one_pk(pk):
         if isinstance(pk, basestring):

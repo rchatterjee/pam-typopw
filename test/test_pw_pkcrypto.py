@@ -47,10 +47,12 @@ def test_functionality():
 def test_encrypt_with_string_keys():
     pw = 'aflashdfhaasdfadsf'
     sa = 'asdfkjashdflkashld'[:16]
-    m = 'The best secret message'
+    m = 'The best secret message ever written by any human!!'
     pwhash, pk = derive_public_key(pw, sa)
     pwhash_, sk = derive_secret_key(pw, sa)
-    assert decrypt({'abc': sk}, encrypt({'abc': pk}, m)) == m
+    assert pwhash == pwhash_
+    for i in range(len(m)):
+        assert decrypt({'abc': sk}, encrypt({'abc': pk}, m[:i])) == m[:i]
     
 def test_derive_key():
     pw = 'thebest ever secret'
