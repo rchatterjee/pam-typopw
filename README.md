@@ -1,4 +1,4 @@
-# Adaptive typo tolerance
+# Adaptive Typo Tolerance
 
 **tldr;**  
 This software will let you log in to your laptop with small typos in the password.
