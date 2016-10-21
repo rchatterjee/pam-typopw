@@ -82,19 +82,16 @@ rel_bit_strength = 'rel_bit_str'
 #   - joint hashes/salt computations
 #   - more efficent SQL actions
 
-def find_one(table, key, apply_type=lambda x: x):
+def find_one(table, key, apply_type=str):
     q = 'select data from {} where desc="{}" limit 1'.format(
         table.table.name, key
     )
     try:
         res = list(table.database.query(q))
-    except Exception as e:
-        print('ERROR in db.\n{}'.format(e))
-        res = []
-    if res:
         return apply_type(res[0]['data'])
-    else:
-        return None
+    except Exception as e:
+        logger.debug('ERROR in db/table: ({}).'.format(table, e))
+        return apply_type()
 
 def is_in_top5_fixes(orig_pw, typo):
     return orig_pw in (
@@ -129,7 +126,6 @@ def decode_decrypt_sym_count(key, ctx):
     """
     count_in_bytes = decrypt_symmetric(bytes(binascii.a2b_base64(ctx)),key)
     return struct.unpack('<i',count_in_bytes)[0] # raise error if bigger? TODO
-
 
 def encode_encrypt(pk_dict, msg):
     return binascii.b2a_base64(encrypt(pk_dict, msg))
@@ -175,7 +171,6 @@ class UserTypoDB(object):
         return "UserTypoDB ({})".format(self._user)
 
     def __init__(self, user, debug_mode=True): # TODO CHANGE to False
-
         self._user = user  # this is a real user.
         homedir = pwd.getpwnam(self._user).pw_dir
         typo_dir = os.path.join(SEC_DB_PATH, user)
@@ -185,8 +180,8 @@ class UserTypoDB(object):
             try:
                 os.makedirs(typo_dir)
             except OSError as error:
-                print("Trying to create: {}, but raninto some issues."\
-                      .format(typo_dir))
+                print("Trying to create: {}, but seems like the database "
+                      "is not initialized.".format(typo_dir))
                 raise(error)
         self._db_path = "{}/{}.db".format(homedir, DB_NAME)
         self._sec_db_path="{}/{}.db".format(typo_dir, SEC_DB_NAME) #
@@ -196,7 +191,7 @@ class UserTypoDB(object):
         self._sec_tab = _sec_db.get_table(
             secretAuxSysT, 
             primary_id='desc', 
-            primary_type='VARCHAR(100)'
+            primary_type='String(100)'
         )
         # only will be available if correct pw is provided
         self._global_salt = None
@@ -209,7 +204,7 @@ class UserTypoDB(object):
             self.N = dataLine_N
             logger.info("{}: N={}".format(hashCacheT, self.N))
         else:
-            self.N =  CACHE_SIZE
+            self.N = CACHE_SIZE
 
         dataLine_IsON = self._get_from_secdb(AllowedTypoLogin)
         if dataLine_IsON == 'True':
@@ -233,9 +228,8 @@ class UserTypoDB(object):
         Returns whether the typotoler has been set (might be installed
         but not active)
         """
-        infoT = self._db[auxT]
-        encPw = infoT.find_one(desc=ORIG_PW_CTX)
-        globSalt = infoT.find_one(desc=GLOBAL_SALT_CTX)
+        encPw = self.get_from_auxtdb(ORIG_PW_CTX)
+        globSalt = self.get_from_auxtdb(GLOBAL_SALT_CTX)
         if ((not globSalt) != (not encPw)):
             # if globSalt and pw aren't in the same initialization state
             if not globSalt:
@@ -418,12 +412,6 @@ class UserTypoDB(object):
 
         logger.debug("Initialization Complete")
 
-    def install_id(self):
-        try:
-            return self._db[auxT].find_one(desc=InstallationID)['data']
-        except Exception as e:
-            return ''
-
     def update_after_pw_change(self, newPw):
         """
         Re-initiate the DB after a pw change.
@@ -520,13 +508,13 @@ class UserTypoDB(object):
         logger.info("RE-Initialization Complete")
 
     def get_count_key(self, sk_dict):
-        key_ctx = self._db[auxT].find_one(desc=COUNT_KEY_CTX)['data']
+        key_ctx = self.get_from_auxtdb(COUNT_KEY_CTX)
         return bytes(decode_decrypt(sk_dict, key_ctx))
 
     def get_installation_id(self):
         if not self.is_typotoler_init():
             raise UserTypoDB.NoneInitiatedDB("Typotoler uninitialized")
-        return self._db[auxT].find_one(desc=InstallationID)['data']
+        return self.get_from_auxtdb(InstallationID)
 
     def get_last_unsent_logs_iter(self):
         """
@@ -537,18 +525,16 @@ class UserTypoDB(object):
         if not self.is_typotoler_init():
             logger.debug("Could not send. Typotoler not initiated")
             return False, iter([])
-        upload_stat_row = self._sec_tab.find_one(desc=AllowUpload)
-        if not upload_stat_row:
+        upload_status = self._get_from_secdb(AllowUpload)
+        if not upload_status:
             raise UserTypoDB.CorruptedDB("Missing {} in {}".format(
                 AllowUpload, secretAuxSysT))
-        upload_status = upload_stat_row['data']
         if upload_status != 'True':
             logger.info("Not sending logs because send status set to {}".format(
                 upload_status))
             return False, iter([])
-        aux_t = self._db[auxT]
-        last_sending = float(aux_t.find_one(desc=LastSent)['data'])
-        update_gap = float(aux_t.find_one(desc=SendEvery)['data'])
+        last_sending = self.get_from_auxtdb(LastSent, float)
+        update_gap = self.get_from_auxtdb(SendEvery, float)
         time_now = time.time()
         passed_enough_time = ((time_now - last_sending) >= update_gap)
         if not passed_enough_time:
@@ -618,7 +604,7 @@ class UserTypoDB(object):
         '''
         logger.debug("Searching for typo in {}".format(hashCacheT))
         # getting the pw's verify pk
-        sgn_pk = self._sec_tab.find_one(desc=ORIG_PW_SGN_PK)['data']
+        sgn_pk = self._get_from_secdb(ORIG_PW_SGN_PK)
         logger.debug("found signing key:{}".format(sgn_pk))
 
         cacheT = self._db[hashCacheT]
@@ -716,16 +702,15 @@ class UserTypoDB(object):
         }
 
         # original pw's pk
-        pks_t = self._sec_tab #
-        orig_pw_pk = pks_t.find_one(desc=ORIG_PW_ENC_PK)['data']
-        orig_pw_id = int(pks_t.find_one(desc=ORIG_PW_ID)['data'])
+        orig_pw_pk = self._get_from_secdb(ORIG_PW_ENC_PK)
+        orig_pw_id = self._get_from_secdb(ORIG_PW_ID, int)
         pk_dict[orig_pw_id] = orig_pw_pk #
         assert len(pk_dict)>0, "PK_dict size is zero!!"
         logger.debug("PK_dict keys: {}".format(pk_dict.keys()))
         return pk_dict
 
     def get_pw_sign_sk(self, pw):
-        sgn_salt_bs64 = self._sec_tab.find_one(desc=ORIG_SGN_SALT)['data']
+        sgn_salt_bs64 = self._get_from_secdb(ORIG_SGN_SALT)
         sgn_salt = binascii.a2b_base64(sgn_salt_bs64)
         _, pw_sgn_sk = derive_secret_key(pw, sgn_salt, for_='sign')
         return pw_sgn_sk
@@ -805,14 +790,12 @@ class UserTypoDB(object):
         logger.debug("getting the top N typos within edit distance")
 
         # getting the signing key of the pw
-        sgn_salt_bs64 = self._sec_tab.find_one(desc=ORIG_SGN_SALT)['data']
+        sgn_salt_bs64 = self._get_from_secdb(ORIG_SGN_SALT)
+        maxEditDist = self._get_from_secdb(EditCutoff, int)
+
         sgn_salt = binascii.a2b_base64(sgn_salt_bs64)
         _, pw_sgn_sk = derive_secret_key(pw, sgn_salt, for_='sign')
 
-        dataLine_editDist = self._sec_tab.find_one(desc = EditCutoff) #
-        if dataLine_editDist == None:
-            raise UserTypoDB.NoneInitiatedDB("Edit Dist hadn't been set")
-        maxEditDist = int(dataLine_editDist['data'])
         global_salt = self.get_global_salt(sk_dict)
         typo_list = []
 
@@ -876,12 +859,11 @@ class UserTypoDB(object):
         return self.get_table_size(hashCacheT)
 
     def get_pw_sk_salt(self):
-        sk_salt_base64 =  self._sec_tab.find_one(
-            desc=ORIG_SK_SALT)
+        sk_salt_base64 = self._get_from_secdb(ORIG_SK_SALT)
         assert sk_salt_base64, \
             "{}[{}] = {!r}. It should not be None."\
                 .format(auxT, ORIG_SK_SALT, sk_salt_base64)
-        return binascii.a2b_base64(sk_salt_base64['data'])
+        return binascii.a2b_base64(sk_salt_base64)
 
     def get_orig_pw(self, sk_dict):
         """
@@ -893,11 +875,11 @@ class UserTypoDB(object):
         logger.debug("Getting original pw")
         orig_pw = decode_decrypt(
             sk_dict,
-            self._db[auxT].find_one(desc=ORIG_PW_CTX)['data']
+            self.get_from_auxtdb(ORIG_PW_CTX)
         )
         orig_pw_entropy = decode_decrypt(
             sk_dict,
-            self._db[auxT].find_one(desc=ORIG_PW_ENTROPY_CTX)['data']
+            self.get_from_auxtdb(ORIG_PW_ENTROPY_CTX)
         )
         logger.debug("Fetched original password successfully")
         return orig_pw, float(orig_pw_entropy)
@@ -908,7 +890,7 @@ class UserTypoDB(object):
         """
         if not self._global_salt:
             try:
-                salt_ctx = self._db[auxT].find_one(desc=GLOBAL_SALT_CTX)['data']
+                salt_ctx = self.get_from_auxtdb(GLOBAL_SALT_CTX)
                 self._global_salt = decode_decrypt(sk_dict, salt_ctx)
             except ValueError as e:
                 logging.debug(
@@ -969,7 +951,7 @@ class UserTypoDB(object):
         for field in [ORIG_PW_CTX, GLOBAL_SALT_CTX,
                       ORIG_PW_ENTROPY_CTX, COUNT_KEY_CTX]:
             new_ctx = encode_decode_update(
-                pk_dict, sk_dict, infoT.find_one(desc=field)['data']
+                pk_dict, sk_dict, self.get_from_auxtdb(field)
             )
             infoT.update(dict(desc=field, data=new_ctx), ['desc'])
         logger.debug("Aux ctx updated successfully: {}".format(len(pk_dict)))
@@ -993,13 +975,13 @@ class UserTypoDB(object):
         pw_salt = self.get_pw_sk_salt()
         logger.debug("Deriving secret key of the password")
         _, pw_sk = derive_secret_key(pw, pw_salt)
-        pw_id = int(self._sec_tab.find_one(desc=ORIG_PW_ID)['data'])
+        pw_id = self._get_from_secdb(ORIG_PW_ID, int)
         self.update_hash_cache_by_waitlist({pw_id: pw_sk}, pw)
 
-    def _get_from_secdb(self, key, apply_type=lambda x: x):
+    def _get_from_secdb(self, key, apply_type=str):
         return find_one(self._sec_tab, key, apply_type)
 
-    def get_from_auxtdb(self, key, apply_type=lambda x: x):
+    def get_from_auxtdb(self, key, apply_type=str):
         return find_one(self._db[auxT], key, apply_type)
 
     def update_hash_cache_by_waitlist(self, sk_dict, typo='', updateLog=True):
@@ -1046,7 +1028,7 @@ class UserTypoDB(object):
 
     def get_prompt(self):
         # pwd promts
-        NOT_INITIALIZED = "Password"
+        NOT_INITIALIZED = "(Adaptive typo not initialized) Password"
         ACTIVATED = 'aDAPTIVE pASSWORD'
         RE_INIT = 'Please re-init'
         CORRUPT_DB = "Corrupted DB !"
@@ -1054,7 +1036,7 @@ class UserTypoDB(object):
         linePwCh = self.get_from_auxtdb(SysStatus)
         if not linePwCh:
             return NOT_INITIALIZED
-        val = int(linePwCh['data'])
+        val = int(linePwCh)
         if val == 0:
             return ACTIVATED
         if val == 1:
@@ -1140,7 +1122,7 @@ def on_wrong_password(typo_db, password):
                 # entery by typo is allowed only after some initial number
                 # of entry
                 count_entry = typo_db.get_from_auxtdb(LoginCount, int)
-                if count_entry < NUMBER_OF_ENTRIES_BEFORE_TYPOTOLER_CAN_BE_USED:
+                if count_entry <= NUMBER_OF_ENTRIES_BEFORE_TYPOTOLER_CAN_BE_USED:
                     print("User has not logged in enough (only {}, required {})"
                           "to turn typo-tolerance on."\
                           .format(

@@ -29,25 +29,26 @@ Hello!
 Thanks for installing Adaptive Typo Tolerance (version: {version}).
 This software attaches a new Pluggable Authentication Module (PAM) to
 almost all of your common authentication processes, and observes your
-password typing mistakes. Eventually this learns about your frequent
-typing mistakes, and enable logging in with slight but popular
-vairation of your actual login password. 
+password typing mistakes. It learns about your frequent typing
+mistakes, and enable logging in with popular slight vairations of your
+actual login password that are safe to do so.
 
 We would like to collect some anonymous non-sensitive data about your
 password typing patterns for purely research purposes. The details of
 what we collect, how we collect and store, and the security blueprint
-of this software can be found in the GitHub page ({url}).
+of this software can be found in the GitHub page: {url}.
 The participation in the study is completely voluntary, and you can
 opt out at any time while still keep using the software.
 
 You have to install this for each user who intend to use the benefit
 of adaptive typo-tolerant password login.
 
-Please run the following command in the terminal to initialize the 
-typo database.
+Please run the following command in the terminal and follow the
+instructions to initialize the typo database.
 
 $ sudo pam-typoauth --init
 """.format
+
 
 class CustomInstaller(install):
     """

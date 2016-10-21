@@ -218,8 +218,8 @@ def test_logT(is_stand_alone=True):
     typoDB = start_DB()
     typoDB.allow_login()
     assert typoDB.is_allowed_login()
-    assert not on_wrong_password(typoDB, t_1())
-    assert on_correct_password(typoDB, get_pw())
+    assert not on_wrong_password(typoDB, t_1()) 
+    assert on_correct_password(typoDB, get_pw()) # 1
     assert not on_wrong_password(typoDB, t_1()) # not enough login count
     for _ in range(30):
         on_wrong_password(typoDB, t_1()) # not enough login count
