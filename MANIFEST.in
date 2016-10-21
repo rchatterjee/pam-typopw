@@ -1,6 +1,6 @@
 include README.md
 include LICENSE
 include chkpw.c
-include pam-typoauth
+include adaptypo
 include *.py 
 include *.sh

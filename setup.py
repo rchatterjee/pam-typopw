@@ -12,7 +12,7 @@ BINDIR = '/usr/local/bin'
 SEC_DB_PATH = '/etc/adaptive_typo'
 SCRIPTS = [
     'pam_typotolerant.py', 'send_typo_log.py',
-    'uninstall_adaptive_typo.sh', 'pam-typoauth'
+    'uninstall_adaptive_typo.sh', 'adaptypo'
 ]
 LIB_DEPENDENCIES = ['libpam-python', 'python-pam',
                     'python-setuptools', 'python-dev']
@@ -46,7 +46,7 @@ of adaptive typo-tolerant password login.
 Please run the following command in the terminal and follow the
 instructions to initialize the typo database.
 
-$ sudo pam-typoauth --init
+$ sudo adaptypo --init
 """.format
 
 
@@ -55,7 +55,8 @@ class CustomInstaller(install):
     It's a custom installer class, subclass of install.
     """
     def run(self):
-        assert os.getuid() == 0, "You need root priviledge to run the installation"
+        assert os.getuid() == 0, \
+            "You need root priviledge to run the installation"
         if not os.path.exists(BINDIR):
             os.makedirs(path=BINDIR, mode=0755) # drwxr-xr-x
         call(['apt-get', 'install', '-y'] + LIB_DEPENDENCIES)
@@ -65,7 +66,11 @@ class CustomInstaller(install):
         unix_chkpwd = chkpw_proc.stdout.read().strip()
         chkpw_proc.wait()
         unix_chkpwd_st = os.stat(unix_chkpwd)
-        os.chown('{}/chkpw'.format(BINDIR), unix_chkpwd_st.st_uid, unix_chkpwd_st.st_gid)
+        os.chown(
+            '{}/chkpw'.format(BINDIR), 
+            unix_chkpwd_st.st_uid, 
+            unix_chkpwd_st.st_gid
+        )
         os.chmod('{}/chkpw'.format(BINDIR), 0o2755)
 
         Popen('cp -vf {} {}/'.format(' '.join(SCRIPTS), BINDIR).split()).wait()
@@ -77,7 +82,8 @@ class CustomInstaller(install):
                 .format(BINDIR)
             )
         if os.path.exists(common_auth_orig):
-            print("Looks like you have an old installation of typo_auth. Removing it.")
+            print("Looks like you have an old installation of typo_auth."\
+                  "Removing it.")
             os.rename(common_auth_orig, common_auth)
         with open(common_auth_orig, 'wb') as f:
             f.write(open(common_auth).read())

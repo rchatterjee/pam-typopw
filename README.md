@@ -1,13 +1,15 @@
-# TypToP: Secure Adaptive _Typo Tolerant Password_ Checking
+# TypToP: Secure Adaptive __Typo Tolerant Password__ Checking
 
 **tl;dr**  
-TypToP (pronounced as 'taip-top') will let you log in to your laptop with small typos in the password.
+TypToP (pronounced as 'tAip-top') is a password checking scheme that
+learns from your mistakes in typing login password and let you log in
+to your laptop with small typos.
 
 ## Install  
 **Using pip (`pip` is a python package manger)**  
 ```bash  
 $ sudo pip install -U adaptive_typo --ignore-installed
-$ sudo pam-typoauth --init
+$ sudo adaptypo --init
 ```  
 
 For those snarky people, who do not want to install pip, can run the following
@@ -15,18 +17,19 @@ command.
 ```bash
 $ git clone https://github.com/rchatterjee/pam-typopw.git
 $ cd pam-typopw && sudo python setup.py install -f
-$ sudo pam-typoauth --init
+$ sudo adaptypo --init
 ```
 
 This should install all the dependencies and setup the PAM configuration
-files. This will also install a command-line control script called `pam-typoauth`,
+files. This will install a command-line control script called `adaptypo`,
+
 which can be used to control and monitor the behavior of the adaptive typo
 tolerance system. Details of the script is given below.   
 
 To **check successful installation**, run `$ su <your username>`. The password
 prompt should appear as `aDAPTIVE pASSWORD:`, instead of `Password`. 
 
-To **uninstall** run `$ sudo pam-typoauth --uninstall`. 
+To **uninstall** run `$ sudo adaptypo --uninstall`. 
 
 ### Detailed description  
 Password typing mistakes are prevalent and annoying, as it unnecessarily stops
@@ -72,7 +75,7 @@ not successful. Here are some common fixes that worked for some users.
 
 * Run, `$ sudo pip install -U --ignore-installed adaptive_typo`. This will ignore any existing
 installation of the dependencies and re-install everything.
-* Reinitializing the database by running, `$ pam-typoauth --init` or `$pam-typoauth --reinit`. 
+* Reinitializing the database by running, `$ adaptypo --init` or `$adaptypo --reinit`. 
 
 
 We have not seen the following issue in a long while, but mentioning it here for
@@ -95,11 +98,11 @@ live-cd of your Linux distribution), and then replace the file
 Linux installation. Shoot us an email if you face this situation.
     
 
-### `pam-typoauth` Utility
+### `adaptypo` Utility
 You can use this utility to control the settings of adaptive typo-tolerance. 
 ```bash
-$ pam-typoauth 
-usage: pam-typoauth  [-h] [--user USER] [--init] [--allowtypo {yes,no}]
+$ adaptypo 
+usage: adaptypo  [-h] [--user USER] [--init] [--allowtypo {yes,no}]
                      [--allowupload {yes,no}] [--installid] [--status]
                      [--uninstall] [--reinit]
 
@@ -155,9 +158,9 @@ strong as guessing the user's password or a typo of it.
 * **I installed typo-tolerance, but I don't see any changes.**  
 This could be for multiple reasons. The installations might be unsuccessful.
 Check out the common trouble shooting section above.  
-You can run `pam-typoauth --status`, and check if the line `Login with typos:
+You can run `adaptypo --status`, and check if the line `Login with typos:
 True` exists or not. If "Login with typos" is not true, you can set it to true
-by running `sudo pam-typoauth --allowtypo yes`.
+by running `sudo adaptypo --allowtypo yes`.
 
 1. **Can I opt out from participating in the study after I install the software?**  
 Of course!  Our script has two parts. The first part is responsible for managing
@@ -166,12 +169,12 @@ Of course!  Our script has two parts. The first part is responsible for managing
  typo of your password which meets certain password policies.
 
  - To allow/disallow logging in with a mistyped password,  
-  `$ sudo pam-typoauth --allowtypo yes/no`
+  `$ sudo adaptypo --allowtypo yes/no`
  - To enable/disable sending the logs (and participating in the research study),   
-  `$ sudo pam-typoauth --allowupload yes/no`
+  `$ sudo adaptypo --allowupload yes/no`
  - *By default the software will send the logs* and will allow you to log in
  with your mistyped password.  
- - Also, you can uninstall the whole things by running `$ sudo pam-typoauth
+ - Also, you can uninstall the whole things by running `$ sudo adaptypo
  --uninstall`, and it will remove all store-data and reset your setting to the
  usual log-in settings
 
@@ -181,7 +184,7 @@ Of course!  Our script has two parts. The first part is responsible for managing
 
 4. **If the password is changed**, the `adaptive_typo` will be automatically
 disabled until the system is re-initialized for the new password by running
-`sudo pam-typoauth --reinit`
+`sudo adaptypo --reinit`
 
 
 Enjoy!
