@@ -18,7 +18,7 @@ if [ -e ${common_auth_file}.orig ]; then
 fi
 bindir=/usr/local/bin/
 rm -rf ${bindir}/pam_typotolerant.py $bindir/chkpw $bindir/send_typo_log.py
-rm -rf ${bindir}/adaptypo
+rm -rf ${bindir}/typtop
 rm -rf /etc/adaptive_typo/
 rm -rf /etc/pam.d/typo_auth
 # pip uninstall adaptive-typo

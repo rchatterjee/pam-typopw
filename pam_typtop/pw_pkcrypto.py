@@ -6,7 +6,7 @@ from Crypto.Cipher import AES
 from Crypto.Signature import DSS
 from Crypto.Hash import SHA256
 import os, struct
-from adaptive_typo.pwcryptolib import (
+from pam_typtop.pwcryptolib import (
     HASH_CNT, RandomWSeed, hash256, hmac256, aes1block
 )
 
@@ -290,13 +290,12 @@ def compute_id_w_saltctx(pwtypo, sk_dict, saltctx):
     return struct.unpack('<I', h[:4])[0]
 
 
-
-
 def _match_hash(args):
     i, pw, h, sa = args
     if hash_pw(pw, sa)==h:
         return i
     return -1
+
 
 def match_hashes(pw, hashlist, saltlist):
     """Check parallely which of the hash matches with hash of pw with the

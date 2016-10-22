@@ -1,6 +1,6 @@
 import os
 import pwd
-from adaptive_typo.typo_db_access import (
+from pam_typtop.typo_db_access import (
     UserTypoDB,
     DB_NAME,
     waitlistT,
@@ -11,7 +11,7 @@ from adaptive_typo.typo_db_access import (
     on_correct_password,
     logT, logT_cols, auxT, find_one
 )
-from adaptive_typo.pw_pkcrypto import (
+from pam_typtop.pw_pkcrypto import (
     encrypt, decrypt, derive_public_key,
     derive_secret_key, update_ctx, compute_id
 )

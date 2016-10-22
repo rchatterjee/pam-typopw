@@ -8,7 +8,7 @@ import binascii
 from random import random
 import dataset
 from zxcvbn import password_strength
-from adaptive_typo.pw_pkcrypto import (
+from pam_typtop.pw_pkcrypto import (
     encrypt, decrypt, derive_public_key,
     derive_secret_key, compute_id,
     sign, verify,
@@ -19,7 +19,7 @@ from word2keypress import distance
 VERSION = "0.7"
 DB_NAME = ".typoToler"
 ORIG_PW = 'OriginalPw'
-SEC_DB_PATH = '/etc/adaptive_typo'
+SEC_DB_PATH = '/etc/pam_typtop'
 SEC_DB_NAME = DB_NAME + ".ro" # READ_ONLY // ROOT_ONLY
 
 ORIG_SK_SALT = 'OriginalPwSaltForEncSecretKey'
@@ -1111,7 +1111,6 @@ def on_wrong_password(typo_db, password):
         # if reached here - db should be initiated, also updates the log
         sk_dict, is_in = typo_db.fetch_from_cache(password)
         if not is_in: # aka it's not in the cache,
-            print("{} not found in the cache".format(password))
             typo_db.add_typo_to_waitlist(password)
             return False
         else: # it's in cache

@@ -2,7 +2,7 @@
 from __future__ import print_function
 import pwd
 import os, sys
-from adaptive_typo.typo_db_access import (
+from pam_typtop.typo_db_access import (
     UserTypoDB,
     on_wrong_password,
     on_correct_password

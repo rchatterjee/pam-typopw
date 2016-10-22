@@ -9,7 +9,7 @@ to your laptop with small typos.
 **Using pip (`pip` is a python package manger)**  
 ```bash  
 $ sudo pip install -U adaptive_typo --ignore-installed
-$ sudo adaptypo --init
+$ sudo typtop --init
 ```  
 
 For those snarky people, who do not want to install pip, can run the following
@@ -17,11 +17,11 @@ command.
 ```bash
 $ git clone https://github.com/rchatterjee/pam-typopw.git
 $ cd pam-typopw && sudo python setup.py install -f
-$ sudo adaptypo --init
+$ sudo typtop --init
 ```
 
 This should install all the dependencies and setup the PAM configuration
-files. This will install a command-line control script called `adaptypo`,
+files. This will install a command-line control script called `typtop`,
 
 which can be used to control and monitor the behavior of the adaptive typo
 tolerance system. Details of the script is given below.   
@@ -29,7 +29,7 @@ tolerance system. Details of the script is given below.
 To **check successful installation**, run `$ su <your username>`. The password
 prompt should appear as `aDAPTIVE pASSWORD:`, instead of `Password`. 
 
-To **uninstall** run `$ sudo adaptypo --uninstall`. 
+To **uninstall** run `$ sudo typtop --uninstall`. 
 
 ### Detailed description  
 Password typing mistakes are prevalent and annoying, as it unnecessarily stops
@@ -75,7 +75,7 @@ not successful. Here are some common fixes that worked for some users.
 
 * Run, `$ sudo pip install -U --ignore-installed adaptive_typo`. This will ignore any existing
 installation of the dependencies and re-install everything.
-* Reinitializing the database by running, `$ adaptypo --init` or `$adaptypo --reinit`. 
+* Reinitializing the database by running, `$ typtop --init` or `$typtop --reinit`. 
 
 
 We have not seen the following issue in a long while, but mentioning it here for
@@ -98,11 +98,11 @@ live-cd of your Linux distribution), and then replace the file
 Linux installation. Shoot us an email if you face this situation.
     
 
-### `adaptypo` Utility
+### `typtop` Utility
 You can use this utility to control the settings of adaptive typo-tolerance. 
 ```bash
-$ adaptypo 
-usage: adaptypo  [-h] [--user USER] [--init] [--allowtypo {yes,no}]
+$ typtop 
+usage: typtop  [-h] [--user USER] [--init] [--allowtypo {yes,no}]
                      [--allowupload {yes,no}] [--installid] [--status]
                      [--uninstall] [--reinit]
 
@@ -158,9 +158,9 @@ strong as guessing the user's password or a typo of it.
 * **I installed typo-tolerance, but I don't see any changes.**  
 This could be for multiple reasons. The installations might be unsuccessful.
 Check out the common trouble shooting section above.  
-You can run `adaptypo --status`, and check if the line `Login with typos:
+You can run `typtop --status`, and check if the line `Login with typos:
 True` exists or not. If "Login with typos" is not true, you can set it to true
-by running `sudo adaptypo --allowtypo yes`.
+by running `sudo typtop --allowtypo yes`.
 
 1. **Can I opt out from participating in the study after I install the software?**  
 Of course!  Our script has two parts. The first part is responsible for managing
@@ -169,12 +169,12 @@ Of course!  Our script has two parts. The first part is responsible for managing
  typo of your password which meets certain password policies.
 
  - To allow/disallow logging in with a mistyped password,  
-  `$ sudo adaptypo --allowtypo yes/no`
+  `$ sudo typtop --allowtypo yes/no`
  - To enable/disable sending the logs (and participating in the research study),   
-  `$ sudo adaptypo --allowupload yes/no`
+  `$ sudo typtop --allowupload yes/no`
  - *By default the software will send the logs* and will allow you to log in
  with your mistyped password.  
- - Also, you can uninstall the whole things by running `$ sudo adaptypo
+ - Also, you can uninstall the whole things by running `$ sudo typtop
  --uninstall`, and it will remove all store-data and reset your setting to the
  usual log-in settings
 
@@ -184,7 +184,7 @@ Of course!  Our script has two parts. The first part is responsible for managing
 
 4. **If the password is changed**, the `adaptive_typo` will be automatically
 disabled until the system is re-initialized for the new password by running
-`sudo adaptypo --reinit`
+`sudo typtop --reinit`
 
 
 Enjoy!

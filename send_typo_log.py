@@ -1,5 +1,5 @@
 #!/usr/bin/python
-from adaptive_typo.typo_db_access import UserTypoDB #,LastSent
+from pam_typtop.typo_db_access import UserTypoDB #,LastSent
 import json
 import pwd
 import os
