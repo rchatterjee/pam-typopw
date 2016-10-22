@@ -1,7 +1,7 @@
-# Secure Adaptive Typo Tolerant Password Checking
+# TypToP: Secure Adaptive _Typo Tolerant Password_ Checking
 
 **tl;dr**  
-This software will let you log in to your laptop with small typos in the password.
+TypToP (pronounced as 'taip-top') will let you log in to your laptop with small typos in the password.
 
 ## Install  
 **Using pip (`pip` is a python package manger)**  
@@ -19,7 +19,7 @@ $ sudo pam-typoauth --init
 ```
 
 This should install all the dependencies and setup the PAM configuration
-files. This will install a command-line control script called `pam-typoauth`,
+files. This will also install a command-line control script called `pam-typoauth`,
 which can be used to control and monitor the behavior of the adaptive typo
 tolerance system. Details of the script is given below.   
 
