@@ -155,15 +155,15 @@ strong as guessing the user's password or a typo of it.
 
 
 ### FAQ
-* **I installed typo-tolerance, but I don't see any changes.**  
-This could be for multiple reasons. The installations might be unsuccessful.
-Check out the common trouble shooting section above.  
-You can run `typtop --status`, and check if the line `Login with typos:
-True` exists or not. If "Login with typos" is not true, you can set it to true
-by running `sudo typtop --allowtypo yes`.
+1. **I installed typo-tolerance, but I don't see any changes.**  
+ This could be for multiple reasons. The installations might be unsuccessful.
+ Check out the common trouble shooting section above.  
+ You can run `typtop --status`, and check if the line `Login with typos:
+ True` exists or not. If "Login with typos" is not true, you can set it to true
+ by running `sudo typtop --allowtypo yes`.
 
-1. **Can I opt out from participating in the study after I install the software?**  
-Of course!  Our script has two parts. The first part is responsible for managing
+2. **Can I opt out from participating in the study after I install the software?**  
+ Of course!  Our script has two parts. The first part is responsible for managing
  the necessary database of typos and sending the anonymous and non-sensitive
  logs to the server. The second part allows you to log in with a previously seen
  typo of your password which meets certain password policies.
@@ -178,13 +178,13 @@ Of course!  Our script has two parts. The first part is responsible for managing
  --uninstall`, and it will remove all store-data and reset your setting to the
  usual log-in settings
 
-2. **What if the typo-tolerance PAM module is buggy? Shall I be locked out?**   
+3. **What if the typo-tolerance PAM module is buggy? Shall I be locked out?**   
  No, your PAM should move onto the next correct modules in `/etc/pam.d/common-auth`,
  and in the worst case you will be asked to re-enter your password.   
 
 4. **If the password is changed**, the `pam_typtop` will be automatically
-disabled until the system is re-initialized for the new password by running
-`sudo typtop --reinit`
+ disabled until the system is re-initialized for the new password by running
+ `sudo typtop --reinit`
 
 
 Enjoy!
