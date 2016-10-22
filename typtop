@@ -85,7 +85,7 @@ def _get_typoDB():
     except Exception as e:
         print(
             "It seems you have not initialized the db. Try running"\
-            " \"sudo {} --init\" to initialize the {}.\nThe error "\
+            " \"sudo {} --init\" to initialize the db.\nThe error "\
             "I ran into is the following:\n{}"\
             .format(sys.argv[0], e)
         )

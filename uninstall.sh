@@ -21,7 +21,7 @@ rm -rf ${bindir}/pam_typotolerant.py $bindir/chkpw $bindir/send_typo_log.py
 rm -rf ${bindir}/typtop
 rm -rf /etc/pam_typtop/
 rm -rf /etc/pam.d/typo_auth
-# pip uninstall adaptive-typo
+# pip uninstall typtop
 if [ -e ffile.txt ]; then
     cat ffile.txt | xargs rm -i
     rm -rf ffile.txt
