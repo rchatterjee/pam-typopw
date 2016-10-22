@@ -1,4 +1,4 @@
-# TypToP: Secure Adaptive __Typo Tolerant Password__ Checking
+# TypToP: Secure Adaptive __Typo-tolerant Password__ Checking
 
 **tl;dr**  
 TypToP (pronounced as 'tAip-top') is a password checking scheme that
@@ -47,12 +47,11 @@ corrections. This is not only difficult to obtain, but also having a global set
 of correctors is wasteful and insecure, as not every people make all types of
 typing mistakes.
 
-Here, we propose a typo correcting system that learns about the typos that an
-individual makes by monitoring his/her password typing mistakes, and allow the
-user to log in with five most probable mistyped variants of his/her password
-that are safe to do so. In this way, we can keep the number of corrections low
-(saving in computation overhead and security), while maximize the benefit of
-correction.
+Here, we propose a typo correcting system that learns about the typos made by an
+individual while typing their passwords, and allows the user to log in with five
+most probable mistyped variants of their password which are safe to do so. In
+this way, we can keep the number of corrections low (saving in computation
+overhead and security loss), while maximize the benefits of password typo correction.
 
 ### Requirements  
 Currently this module **only works with Debian Linux distributions**, for
@@ -68,7 +67,8 @@ about the software :)
 >4. `python-setputools`, if you are a python user, then this is most likely already installed.  
 >5. `python-dev`, for `python.h` dependency with some Cython modules.
 
-### Common trouble shooting.  
+
+### Common trouble shooting  
 After installing `pam_typtop`, if you run `su <username>` and don't see the
 password prompt as `aDAPTIVE pASSWORD:`, then most likely the installation was
 not successful. Here are some common fixes that worked for some users.
