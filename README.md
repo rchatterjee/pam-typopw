@@ -8,7 +8,7 @@ to your laptop with small typos.
 ## Install  
 **Using pip (`pip` is a python package manger)**  
 ```bash  
-$ sudo pip install -U adaptive_typo --ignore-installed
+$ sudo pip install -U pam_typtop --ignore-installed
 $ sudo typtop --init
 ```  
 
@@ -69,11 +69,11 @@ about the software :)
 >5. `python-dev`, for `python.h` dependency with some Cython modules.
 
 ### Common trouble shooting.  
-After installing `adaptive_typo`, if you run `su <username>` and don't see the
+After installing `pam_typtop`, if you run `su <username>` and don't see the
 password prompt as `aDAPTIVE pASSWORD:`, then most likely the installation was
 not successful. Here are some common fixes that worked for some users.
 
-* Run, `$ sudo pip install -U --ignore-installed adaptive_typo`. This will ignore any existing
+* Run, `$ sudo pip install -U --ignore-installed pam_typtop`. This will ignore any existing
 installation of the dependencies and re-install everything.
 * Reinitializing the database by running, `$ typtop --init` or `$typtop --reinit`. 
 
@@ -111,7 +111,7 @@ optional arguments:
   --user USER           To set the username. Otherwise login user will be the
                         target
   --init                To initialize the DB. You have to run this once you
-                        install adaptive_typo
+                        install pam_typtop
   --allowtypo {yes,no}  Allow login with typos of the password
   --allowupload {yes,no}
                         Allow uploading the non-sensive annonymous data into
@@ -120,7 +120,7 @@ optional arguments:
                         while filling up the google form
   --status              Prints current states of the typotolerance.
   --uninstall           To initialize the DB. You have to run this once you
-                        install adaptive_typo
+                        install pam_typtop
   --reinit              To re-initiate the DB, especially after the user's pw
                         has changed
 
@@ -182,7 +182,7 @@ Of course!  Our script has two parts. The first part is responsible for managing
  No, your PAM should move onto the next correct modules in `/etc/pam.d/common-auth`,
  and in the worst case you will be asked to re-enter your password.   
 
-4. **If the password is changed**, the `adaptive_typo` will be automatically
+4. **If the password is changed**, the `pam_typtop` will be automatically
 disabled until the system is re-initialized for the new password by running
 `sudo typtop --reinit`
 

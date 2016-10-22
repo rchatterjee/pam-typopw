@@ -12,7 +12,7 @@ BINDIR = '/usr/local/bin'
 SEC_DB_PATH = '/etc/pam_typtop'
 SCRIPTS = [
     'pam_typotolerant.py', 'send_typo_log.py',
-    'uninstall_pam_typtop.sh', 'typtop'
+    'typtop'
 ]
 LIB_DEPENDENCIES = ['libpam-python', 'python-pam',
                     'python-setuptools', 'python-dev']
@@ -64,8 +64,8 @@ class CustomInstaller(install):
 
 # With the help from http://peterdowns.com/posts/first-time-with-pypi.html
 setup(
-    name='pam-typtop', # 'loginwitherror',
-    packages=['pam-typtop'], # this must be the same as the name above
+    name='pam_typtop', # 'loginwitherror',
+    packages=['pam_typtop'], # this must be the same as the name above
     version=VERSION,
     description='Adaptive typo-tolerant password checking for Debian logins',
     author='Rahul Chatterjee, Yuval Pnueli',

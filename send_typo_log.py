@@ -40,8 +40,10 @@ if need_to_send:
     print r.status_code
     print r.text
 
-    sent_successfully = r.status_code == requests.codes.all_good
+    sent_successfully = (r.status_code == requests.codes.all_good)
     # deletes the logs that we have sent
     if sent_successfully: 
-        t_db.update_last_log_sent_time(sent_time=last_time,
-                                       delete_old_logs=True)
+        t_db.update_last_log_sent_time(
+            sent_time=last_time,
+            delete_old_logs=True
+        )

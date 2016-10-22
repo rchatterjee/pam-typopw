@@ -19,7 +19,7 @@ fi
 bindir=/usr/local/bin/
 rm -rf ${bindir}/pam_typotolerant.py $bindir/chkpw $bindir/send_typo_log.py
 rm -rf ${bindir}/typtop
-rm -rf /etc/adaptive_typo/
+rm -rf /etc/pam_typtop/
 rm -rf /etc/pam.d/typo_auth
 # pip uninstall adaptive-typo
 if [ -e ffile.txt ]; then

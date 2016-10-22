@@ -51,7 +51,7 @@ chkpw
 # Build dirs
 dist/
 build/
-adaptive_typo.egg-info/
+*.egg-info/
 ffile.txt
 .eggs/
 

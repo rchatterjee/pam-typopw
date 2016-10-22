@@ -3,7 +3,7 @@ from __future__ import print_function
 import os, sys
 import pwd
 import argparse
-from adaptive_typo.typo_db_access import UserTypoDB, VERSION
+from pam_typtop.typo_db_access import UserTypoDB, VERSION
 import subprocess
 import getpass
 
@@ -80,7 +80,16 @@ def _get_username():
 
 def _get_typoDB():
     user = _get_username()
-    typoDB = UserTypoDB(user)
+    try:
+        typoDB = UserTypoDB(user)
+    except Exception as e:
+        print(
+            "It seems you have not initialized the db. Try running"\
+            " \"sudo {} --init\" to initialize the {}.\nThe error "\
+            "I ran into is the following:\n{}"\
+            .format(sys.argv[0], e)
+        )
+        return None
     if not typoDB.is_typotoler_init():
         raise Exception("{}:{} not initiated".format(
             str(typoDB),
@@ -102,19 +111,18 @@ def initiate_typodb(RE_INIT = False):
         user = USER
     try:
         # checks that such a user exists:
-        homedir = pwd.getpwnam(user).pw_dir
+        _ = pwd.getpwnam(user).pw_dir
     except KeyError as e:
         print("Error: {}".format(e.message))
     else:
         from pam_typotolerant import check_pw
         right_pw = False
-        for tries in range(3):
+        for _ in range(3):
             pw = getpass.getpass()
             right_pw = (check_pw(user, pw) == 0)
             if right_pw:
                 stub = "RE-" if RE_INIT else ""
                 print("{}Initiating the database...".format(stub),)
-                from adaptive_typo.typo_db_access import UserTypoDB
                 tb = UserTypoDB(user)
                 if RE_INIT:
                     tb.update_after_pw_change(pw)
@@ -130,7 +138,7 @@ def initiate_typodb(RE_INIT = False):
         raise ValueError("incorrect pw given 3 times")
 
 
-def uninstall_adaptive_typo():
+def uninstall_pam_typtop():
     root_only_operation()
     cmd = '''
 #!/bin/bash
@@ -150,9 +158,9 @@ fi
 bindir=/usr/local/bin/
 rm -rf ${bindir}/pam_typotolerant.py $bindir/chkpw $bindir/send_typo_log.py
 rm -rf ${bindir}/typtop
-rm -rf /etc/adaptive_typo/ $homedir/.typoToler*
+rm -rf /etc/pam_typtop/ $homedir/.typoToler*
 rm -rf /etc/pam.d/typo_auth
-pip -q uninstall --yes adaptive-typo
+pip -q uninstall --yes pam_typtop
 if [ -e ffile.txt ]; then
     cat ffile.txt | xargs rm -i
     rm -rf ffile.txt
@@ -171,7 +179,7 @@ parser.add_argument(
 )
 parser.add_argument(
     "--init", action="store_true",
-    help="To initialize the DB. You have to run this once you install adaptive_typo"
+    help="To initialize the DB. You have to run this once you install pam_typtop"
 )
 
 parser.add_argument(
@@ -248,7 +256,7 @@ try:
 
     if args.reinit:
         root_only_operation()
-        print("RE-initiating adaptive_typo")
+        print("RE-initiating pam_typtop")
         initiate_typodb(RE_INIT=True)
         
             
@@ -262,10 +270,10 @@ try:
 
 
     if args.uninstall:
-        r = raw_input("Uninstalling adaptive_typo. Will delete all the "\
+        r = raw_input("Uninstalling pam_typtop. Will delete all the "\
                       "databases.\nPlease confirm. (yN)")
         if r and r.lower() == 'y':
-            uninstall_adaptive_typo()
+            uninstall_pam_typtop()
             
 except AbortSettings as abort:
     print("Settings' change had been aborted.")
