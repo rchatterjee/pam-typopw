@@ -79,8 +79,8 @@ installation of the dependencies and re-install everything.
 
 
 We have not seen the following issue in a long while, but mentioning it here for
-just in case...  **If you are locked out**, go to
-[http://askubuntu.com/a/172346/248067](recovery mode), open root-shell, and
+just in case...  **If you are locked out**, go to 
+[recovery mode](http://askubuntu.com/a/172346/248067), open root-shell, and
 replace the `/etc/pam.d/common-auth` with `/etc/pam.d/common-auth.orig`. You
 might need to remount the file-system in write mode via `mount -o remount,rw /`.
 
@@ -92,8 +92,8 @@ root> cp /etc/pam.d/common-auth.orig /etc/pam.d/common-auth
 Also, make sure there is no `@include typo-auth` line in `/etc/pam.d/common-auth`.  
 If you cannot get to the root-shell in recovery mode, as it requires password
 authentication, you can
-[http://www.ubuntu.com/download/desktop/try-ubuntu-before-you-install](use
-live-cd of your Linux distribution), and then replace the file
+[use live-cd of your Linux distribution](http://www.ubuntu.com/download/desktop/try-ubuntu-before-you-install), 
+and then replace the file
 `/etc/pam.d/common-auth` with `/etc/pam.d/common-auth.orig` in the original
 Linux installation. Shoot us an email if you face this situation.
     
