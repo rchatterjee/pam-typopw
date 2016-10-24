@@ -90,7 +90,7 @@ root> cp /etc/pam.d/common-auth.orig /etc/pam.d/common-auth
 ```  
 
 Also, make sure there is no `@include typo-auth` line in `/etc/pam.d/common-auth`.  
-If you cannot get to the root-shell in recovery mode, as it requires password
+If you cannot get to the root-shell in recovery mode, as it might require password
 authentication, you can
 [use live-cd of your Linux distribution](http://www.ubuntu.com/download/desktop/try-ubuntu-before-you-install), 
 and then replace the file
