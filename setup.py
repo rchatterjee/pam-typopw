@@ -5,7 +5,7 @@ from subprocess import Popen, call, PIPE
 from setuptools import setup
 from setuptools.command.install import install
 
-VERSION = "1.1"
+VERSION = "1.1.1"
 
 GITHUB_URL = 'https://github.com/rchatterjee/pam-typopw' # URL in github repo
 BINDIR = '/usr/local/bin'

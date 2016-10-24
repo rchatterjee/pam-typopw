@@ -25,27 +25,27 @@ $$$$$$/   $$ |  $$ |/$$$$$$  |$$$$$$/   /$$$$$$  |/$$$$$$  |
            $$$$$$/  $$/                           $$/       
 Hello!
 
-Thanks for installing Adaptive Typo Tolerance (version: {version}).
-This software attaches a new Pluggable Authentication Module (PAM) to
-almost all of your common authentication processes, and observes your
-password typing mistakes. It learns about your frequent typing
-mistakes, and enable logging in with popular slight vairations of your
-actual login password that are safe to do so.
+Thanks for installing TypToP (version: {version}).  This software
+attaches a new pluggable authentication module (PAM) to almost all of
+your common authentication processes, and observes your password
+typing mistakes. It records your frequent typing mistakes, and enable
+logging in with frequent but slight vairations of your actual login
+password that are safe to do so.
 
-We would like to collect some anonymous non-sensitive data about your
-password typing patterns for purely research purposes. The details of
-what we collect, how we collect and store, and the security blueprint
-of this software can be found in the GitHub page: {url}.
-The participation in the study is completely voluntary, and you can
-opt out at any time while still keep using the software.
+This is a research prototype, and we are collecting some anonymous
+non-sensitive data about your password typing patterns to verify our
+design. The details of what we collect, how we collect and store, and
+the security blueprint of this software can be found in the GitHub
+page: {url}.  The participation in the study is completely voluntary,
+and you can opt out at any time while still keep using the software.
 
-You have to install this for each user who intend to use the benefit
-of adaptive typo-tolerant password login.
+Checkout other options (such as opting out of the study) of the
+utility script typtop by running:
 
-Please run the following command in the terminal and follow the
-instructions to initialize the typo database.
+$ typtop --help
 
-$ sudo typtop --init
+Note, You have to initiate this for each user who intend to use the
+benefit of adaptive typo-tolerant password login.
 """.format
 
 
@@ -102,10 +102,10 @@ def root_only_operation():
         print("ERROR!! You need root priviledge to run this operation")
         raise AbortSettings
 
-def initiate_typodb(RE_INIT = False):
+def initiate_typodb(RE_INIT=False):
     root_only_operation()
     if not USER:
-        user = raw_input("Please enter your username: ")
+        user = raw_input("Username: ")
     else:
         print("Operation will be done for user: {}".format(USER))
         user = USER
@@ -114,6 +114,10 @@ def initiate_typodb(RE_INIT = False):
         _ = pwd.getpwnam(user).pw_dir
     except KeyError as e:
         print("Error: {}".format(e.message))
+        print("Hint: The user ({}) must have an account in this computer."\
+              .format(user))
+        print("Hint 2: It's not a registration. User the username for "\
+              "your account in the computer.")
     else:
         from pam_typotolerant import check_pw
         right_pw = False
