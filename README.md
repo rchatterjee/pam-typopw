@@ -8,8 +8,7 @@ to your laptop with small typos.
 ## Install  
 **Using pip (`pip` is a python package manger)**  
 ```bash  
-$ sudo pip install -U pam_typtop --ignore-installed
-$ sudo typtop --init
+$ sudo pip install -U --ignore-installed pam_typtop && sudo typtop --init --user $USER
 ```  
 
 For those snarky people, who do not want to install pip, can run the following
