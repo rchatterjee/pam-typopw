@@ -16,7 +16,7 @@ from pam_typtop.pw_pkcrypto import (
 )
 from word2keypress import distance
 
-VERSION = "1.0"
+VERSION = "1.1"
 DB_NAME = ".typoToler"
 ORIG_PW = 'OriginalPw'
 SEC_DB_PATH = '/etc/pam_typtop'

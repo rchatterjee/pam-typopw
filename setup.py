@@ -1,11 +1,11 @@
 
 from __future__ import print_function
 import os
-import sys
 from subprocess import Popen, call, PIPE
 from setuptools import setup
 from setuptools.command.install import install
-from pam_typtop import VERSION
+
+VERSION = "1.1"
 
 GITHUB_URL = 'https://github.com/rchatterjee/pam-typopw' # URL in github repo
 BINDIR = '/usr/local/bin'
