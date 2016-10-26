@@ -71,7 +71,10 @@ def pam_sm_authenticate(pamh, flags, argv):
     if not isinstance(ret, (basestring, str)):
         return pamh.PAM_USER_UNKNOWN
     user = ret
-    typo_db = UserTypoDB(user)
+    try:
+        typo_db = UserTypoDB(user)
+    except OSError:
+        print("Typo DB is probably not initiated.")
     prompt = typo_db.get_prompt()
     full_prompt = '{}: '.format(prompt)
 

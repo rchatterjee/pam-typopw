@@ -1,3 +1,1 @@
-from . import typo_db_access
-from . import pw_pkcrypto
-
+from pam_typtop.config import VERSION

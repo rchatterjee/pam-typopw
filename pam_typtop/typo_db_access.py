@@ -15,67 +15,7 @@ from pam_typtop.pw_pkcrypto import (
     encrypt_symmetric, decrypt_symmetric
 )
 from word2keypress import distance
-
-VERSION = "1.1.1"
-DB_NAME = ".typoToler"
-ORIG_PW = 'OriginalPw'
-SEC_DB_PATH = '/etc/pam_typtop'
-SEC_DB_NAME = DB_NAME + ".ro" # READ_ONLY // ROOT_ONLY
-
-ORIG_SK_SALT = 'OriginalPwSaltForEncSecretKey'
-ORIG_PW_CTX = 'OrignalPwCtx'
-ORIG_PW_ENTROPY_CTX = 'OrgignalPwEntropyCtx'
-GLOBAL_SALT_CTX = 'GlobalSaltCtx'
-ORIG_PW_ID = 'OrgPwID'
-ORIG_PW_ENC_PK = 'EncPublicKey'
-ORIG_PW_SGN_PK = 'SgnPublicKey'
-ORIG_SGN_SALT = 'OriginalPwSaltForVerifySecretKey'
-REL_ENT_BIT_DEC_ALLOWED = "RelativeEntropyDecAllowed"
-LOWEST_ENT_BIT_ALLOWED = "LowestEntBitAllowed"
-COUNT_KEY_CTX = "CountKeyCtx"
-
-# default values
-CACHE_SIZE = 5
-EDIT_DIST_CUTOFF = 1
-REL_ENT_CUTOFF = -3
-LOWER_ENT_CUTOFF = 10
-NUMBER_OF_ENTRIES_BEFORE_TYPOTOLER_CAN_BE_USED = 30
-
-# Tables' names:
-logT = 'Log'
-logT_cols = ['id', 'ts', 't_id', 'edit_dist', 'top5fixable', 
-             'in_cache', 'allowed_login', 'rel_entropy']
-
-hashCacheT = 'HashCache'
-hashCacheT_cols = ['H_typo', 'salt', 'count', 'pk', 'top5fixable']
-
-waitlistT = 'Waitlist'
-# table col: base64(enc(json(typo, ts, hash, salt, entropy)))'
-auxT = 'AuxSysData' # holds system's setting as well as glob_salt and enc(pw)
-# table cols: desc, data
-secretAuxSysT = "SecretAuxData"
-# table cols: desc, data
-
-# auxiley info 'desc's:
-AllowedTypoLogin = "AllowedTypoLogin"
-InstallDate = "InstallDate"
-InstallationID = "Install_id"
-LastSent="Last_sent"
-SendEvery="SendEvery(sec)"
-UPDATE_GAPS= 24 * 60 * 60 # 24 hours, in seconds
-AllowUpload = "AllowedLogUpload"
-LoginCount = 'NumOfLogins' # counts logins of real pw only
-# - in order to avoid early entry which will change the collected data
-# - initiated by typotoler_init. not re-initiated by re-init
-
-SysStatus = "PasswordHasBeenChanged"
-CacheSize = "CacheSize"
-EditCutoff = "EditCutoff"  # The edit from which (included) it's too far
-# PwAcceptPolicy = "PwAcceptPolicy"   # not yet implemented
-# LastPwChange = "LastPwChange"  # not yet implemented
-
-
-rel_bit_strength = 'rel_bit_str'
+from pam_typtop.config import *
 
 # GENERAL TODO:
 # - improve computation speed
@@ -170,7 +110,7 @@ class UserTypoDB(object):
     def __str__(self):
         return "UserTypoDB ({})".format(self._user)
 
-    def __init__(self, user, debug_mode=True): # TODO CHANGE to False
+    def __init__(self, user, debug_mode=False): # TODO CHANGE to False
         self._user = user  # this is a real user.
         homedir = pwd.getpwnam(self._user).pw_dir
         typo_dir = os.path.join(SEC_DB_PATH, user)
@@ -183,13 +123,14 @@ class UserTypoDB(object):
                 print("Trying to create: {}, but seems like the database "
                       "is not initialized.".format(typo_dir))
                 raise(error)
+        self._pw_sgn_sk = None
         self._db_path = "{}/{}.db".format(homedir, DB_NAME)
         self._sec_db_path="{}/{}.db".format(typo_dir, SEC_DB_NAME) #
         self._log_path = "{}/{}.log".format(homedir, DB_NAME)
         self._db = dataset.connect('sqlite:///{}'.format(self._db_path))
         _sec_db = dataset.connect('sqlite:///{}'.format(self._sec_db_path)) #
         self._sec_tab = _sec_db.get_table(
-            secretAuxSysT, 
+            secretAuxSysT,
             primary_id='desc', 
             primary_type='String(100)'
         )
@@ -271,7 +212,9 @@ class UserTypoDB(object):
             'Corrupted data in {}: {}={}'.format(auxT, AllowedTypoLogin, is_on)
         return is_on == 'True'
 
-    def init_typotoler(self, pw, N=CACHE_SIZE, maxEditDist=1, typoTolerOn=False):
+    def init_typotoler(self, pw, N=CACHE_SIZE, 
+                       maxEditDist=EDIT_DIST_CUTOFF, 
+                       typoTolerOn=False):
         """Create the 'typotoler' database in user's home-directory.  Changes
         the DB permission to ensure its only readable by the user.
         Also, it intializes the required tables as well as the reuired
@@ -710,10 +653,12 @@ class UserTypoDB(object):
         return pk_dict
 
     def get_pw_sign_sk(self, pw):
-        sgn_salt_bs64 = self._get_from_secdb(ORIG_SGN_SALT)
-        sgn_salt = binascii.a2b_base64(sgn_salt_bs64)
-        _, pw_sgn_sk = derive_secret_key(pw, sgn_salt, for_='sign')
-        return pw_sgn_sk
+        if not self._pw_sgn_sk:
+            sgn_salt_bs64 = self._get_from_secdb(ORIG_SGN_SALT)
+            sgn_salt = binascii.a2b_base64(sgn_salt_bs64)
+            _, pw_sgn_sk = derive_secret_key(pw, sgn_salt, for_='sign')
+            self._pw_sgn_sk = pw_sgn_sk
+        return self._pw_sgn_sk
 
     def add_typo_to_waitlist(self, typo):
         """
@@ -790,12 +735,8 @@ class UserTypoDB(object):
         logger.debug("getting the top N typos within edit distance")
 
         # getting the signing key of the pw
-        sgn_salt_bs64 = self._get_from_secdb(ORIG_SGN_SALT)
+        pw_sgn_sk = self.get_pw_sign_sk(pw)
         maxEditDist = self._get_from_secdb(EditCutoff, int)
-
-        sgn_salt = binascii.a2b_base64(sgn_salt_bs64)
-        _, pw_sgn_sk = derive_secret_key(pw, sgn_salt, for_='sign')
-
         global_salt = self.get_global_salt(sk_dict)
         typo_list = []
 
@@ -926,7 +867,7 @@ class UserTypoDB(object):
 
         currently_in_cache = []
         for row in cache_t.all():
-            row['count'] = decode_decrypt_sym_count(count_key,row['count'])
+            row['count'] = decode_decrypt_sym_count(count_key, row['count'])
             currently_in_cache.append(row)
         currently_in_cache.sort(key=lambda x: x['count'])
         # TODO - make sure it's ordered in INCREASING order
@@ -1122,7 +1063,7 @@ def on_wrong_password(typo_db, password):
                 # of entry
                 count_entry = typo_db.get_from_auxtdb(LoginCount, int)
                 if count_entry <= NUMBER_OF_ENTRIES_BEFORE_TYPOTOLER_CAN_BE_USED:
-                    print("User has not logged in enough (only {}, required {})"
+                    logger.error("User has not logged in enough (only {}, required {})"
                           "to turn typo-tolerance on."\
                           .format(
                               count_entry, 
@@ -1134,20 +1075,18 @@ def on_wrong_password(typo_db, password):
                     return False
                 return True
             else:
-                print("Typotolerance is off!! {}".format(password))
+                logger.error("Typotolerance is off!! {}".format(password))
                 return False
     except ValueError as e:
         # probably  failre in decryption
-        print("ValueError: {}".format(e))
+        logger.error("ValueError: {}".format(e))
     except UserTypoDB.CorruptedDB as e:
-        print("Corrupted DB!")
+        logger.error("Corrupted DB!")
         typo_db.set_status(2)
         # DB is corrupted, restart it
         # TODO
     except Exception as e:
-        print("Unexpected error while on_wrong_password:\n{}\n"\
+        logger.error("Unexpected error while on_wrong_password:\n{}\n"\
               .format(e))
-    # finnaly block always run
-    #finally:
-    print("Nothing happened so returning false: {}".format(password))
+        print("TypToP is not initialized.\n $ sudo typtop --init")
     return False # previously inside "finally"
