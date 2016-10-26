@@ -10,7 +10,7 @@ to your laptop with small typos.
 ```bash  
 $ sudo pip install -U --ignore-installed pam_typtop && sudo typtop --init --user $USER
 ```  
-(If `pip` is not installed you can install it as follows:`$ curl https://bootstrap.pypa.io/get-pip.py | sudo python`.)
+(If `pip` is not installed you can install it as follows:`curl https://bootstrap.pypa.io/get-pip.py | sudo python`.)
 
 For those snarky people, who do not want to install pip, can run the following
 command. 
