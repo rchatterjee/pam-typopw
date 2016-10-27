@@ -5,6 +5,8 @@ TypToP (pronounced as 'tAip-top') is a password checking scheme that
 learns from your mistakes in typing login password and let you log in
 to your laptop with small typos.
 
+If you install this software and want to participate in our research study, please fill in this [this short survey](https://docs.google.com/forms/d/e/1FAIpQLSfHWAPedMVT7ETaW3qUUaueOg87TaDAllQYIgoqJZ8nWjF88A/viewform). Thanks!!
+
 ## Install  
 **Using pip (`pip` is a python package manger)**  
 ```bash  
