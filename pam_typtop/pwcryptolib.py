@@ -11,6 +11,7 @@ import os
 
 # In production let's make it 10000. 150 millisecond
 HASH_CNT = 1000 # Number of hashes to compute one SHA256 takes 15 microsec,
+SALT_LENGTH = 16
 
 def hash256(*args):
     """short function for Hashing the arguments with SHA-256"""
