@@ -15,6 +15,7 @@ from pam_typtop.pwcryptolib import (
 )
 import os
 from base64 import urlsafe_b64encode, urlsafe_b64decode
+import struct
 
 def generate_key_pair():
     private_key = ec.generate_private_key(
@@ -34,6 +35,15 @@ def _slow_hash(pw, sa):
     key = kdf.derive(pw)
     return key
 
+def verify_pk_sk(pk, sk):
+    if isinstance(sk, (bytes, basestring)):
+        sk = deserialize_sk(sk)
+    if not isinstance(pk, (bytes, basestring)):
+        pk = serialize_pk(pk)
+    pkprime = serialize_pk(sk)
+    return pkprime == pk
+
+
 def verify(pw, sa, h):
     """Verifies if h(pw, sa) == h
     returns k in case it matches, otherwise None.
@@ -49,9 +59,9 @@ def harden_pw(pw):
     sa = os.urandom(SALT_LENGTH)
     k = _slow_hash(pw, sa)
     h = hash256(k)
-    return (sa, k, h)
+    return (urlsafe_b64encode(sa), k, urlsafe_b64encode(h))
 
-def _serialize_pk(pk):
+def serialize_pk(pk):
     if isinstance(pk, (basestring, bytes)):
         return pk
     elif isinstance(pk, ec.EllipticCurvePrivateKey):
@@ -61,7 +71,7 @@ def _serialize_pk(pk):
         format=serialization.PublicFormat.SubjectPublicKeyInfo
     )
 
-def _serialize_sk(sk):
+def serialize_sk(sk):
     if isinstance(sk, (basestring, bytes)):
         return sk
     else:
@@ -70,7 +80,7 @@ def _serialize_sk(sk):
             format=serialization.PrivateFormat.PKCS8
         )
 
-def _deserialize_sk(sk_s):
+def deserialize_sk(sk_s):
     if isinstance(sk_s, (bytes, basestring)):
         return serialization.load_pem_private_key(
             sk_s, password=None, backend=default_backend()
@@ -78,7 +88,7 @@ def _deserialize_sk(sk_s):
     else:
         return sk_s
 
-def _deserialize_pk(pk_s):
+def deserialize_pk(pk_s):
     if isinstance(pk_s, (bytes, basestring)):
         return serialization.load_pem_public_key(
             pk_s, backend=default_backend()
@@ -89,7 +99,8 @@ def _deserialize_pk(pk_s):
 def _encrypt(key, plaintext, associated_data=''):
     # Generate a random 96-bit IV.
     iv = os.urandom(12)
-
+    if len(key) not in algorithms.AES.key_sizes:
+        key = hash256(key)  # makes it 256-bit
     # Construct an AES-GCM Cipher object with the given key and a
     # randomly generated IV.
     encryptor = Cipher(
@@ -111,6 +122,9 @@ def _encrypt(key, plaintext, associated_data=''):
 def _decrypt(key, iv, ciphertext, tag, associated_data=''):
     # Construct a Cipher object, with the key, iv, and additionally the
     # GCM tag used for authenticating the message.
+    if len(key) not in algorithms.AES.key_sizes:
+        key = hash256(key)  # makes it 256-bit
+
     decryptor = Cipher(
         algorithms.AES(key),
         modes.GCM(iv, tag),
@@ -132,26 +146,44 @@ def encrypt(k, m):
     return urlsafe_b64encode(iv + ctx + tag)
 
 def decrypt(k, ctx):
-    """Symmetric encrpyt.
+    """Symmetric decrpyt.
     """
     ctx_bin = urlsafe_b64decode(ctx)
     iv, c, tag = ctx_bin[:12], ctx_bin[12:-16], ctx_bin[-16:]
-    return _decrypt(k, iv, c, tag)
+    try:
+        return _decrypt(k, iv, c, tag)
+    except Exception as e:
+        print(e)
+        raise(ValueError(e))
 
 def pkencrypt(pk, m):
     """Public key encrypt"""
     if not isinstance(pk, ec.EllipticCurvePublicKey):
-        pk = _deserialize_pk(pk)
+        pk = deserialize_pk(pk)
     rpk, rsk = generate_key_pair()
     common_key = rsk.exchange(ec.ECDH(), pk)
     c = encrypt(common_key, m)
-    rpk_s = _serialize_pk(rpk)
+    rpk_s = serialize_pk(rpk)
     return '||'.join((rpk_s, c))
 
 def pkdecrypt(sk, ctx):
+    """Public key decrypt"""
     rpk_s, c = ctx.split('||')
-    rpk = _deserialize_pk(rpk_s)
+    rpk = deserialize_pk(rpk_s)
     common_key = sk.exchange(ec.ECDH(), rpk)
     m = decrypt(common_key, c)
     return m
 
+def compute_id(pwtypo, salt):
+    """
+    Computes an ID for pwtypo. 
+    @pwtypo (byte string): mistyped (or correct) password
+    @salt (byte string): global salt
+    """
+    h = hmac256(salt, pwtypo)
+    return struct.unpack('<I', h[:4])[0]
+
+def encrpyt_sk(key, sk):
+    if not isinstance(sk, (bytes, basestring)):
+        sk = serialize_sk(sk)
+    return encrypt(key, sk)

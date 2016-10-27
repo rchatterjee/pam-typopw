@@ -1,4 +1,4 @@
-VERSION = "1.1.3"
+VERSION = "1.1.2"
 DB_NAME = ".typoToler"
 SEC_DB_PATH = '/etc/pam_typtop'
 SEC_DB_NAME = DB_NAME + ".ro" # READ_ONLY // ROOT_ONLY
@@ -27,8 +27,8 @@ logT = 'Log'
 logT_cols = ['id', 'ts', 't_id', 'edit_dist', 'top5fixable', 
              'in_cache', 'allowed_login', 'rel_entropy']
 
-hashCacheT = 'HashCache'
-hashCacheT_cols = ['H_typo', 'salt', 'count', 'pk', 'top5fixable']
+typocacheT = 'Typocache'
+typocacheT_cols = ['H_typo', 'salt', 'count', 'pk', 'top5fixable']
 
 waitlistT = 'Waitlist'
 # table col: base64(enc(json(typo, ts, hash, salt, entropy)))'
