@@ -21,11 +21,14 @@ SCRIPTS = [
     'pam_typotolerant.py', 'send_typo_log.py',
     'typtop'
 ]
-LIB_DEPENDENCIES = ['libpam-python', 'python-pam', 
-                    'python-pkg-resources', 'libssl-dev',
-                    'python-setuptools', 'python-dev']
+LIB_DEPENDENCIES = [
+    'libpam-python', 'python-pam',
+    'python-pkg-resources', 'libssl-dev',
+    'python-setuptools', 'python-dev'
+]
+
 PYTHON_DEPS = [ 
-    'cryptography==1.2.1', 
+    'cryptography', 
     'word2keypress', 
     'dataset', 
     'zxcvbn', 

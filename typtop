@@ -164,13 +164,13 @@ rm -rf ${bindir}/pam_typotolerant.py $bindir/chkpw $bindir/send_typo_log.py
 rm -rf ${bindir}/typtop
 rm -rf /etc/pam_typtop/ $homedir/.typoToler*
 rm -rf /etc/pam.d/typo_auth
-pip -q uninstall --yes pam_typtop
+pip -q uninstall --yes pam_typtop cryptography
 if [ -e ffile.txt ]; then
     cat ffile.txt | xargs rm -i
     rm -rf ffile.txt
 fi
 
-apt-get -y remove libpam-python libdawgdic-dev
+apt-get -y remove libpam-python libdawgdic-dev python-pam python-pkg-resources
     '''
     os.system(cmd)
 
