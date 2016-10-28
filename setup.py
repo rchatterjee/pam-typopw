@@ -22,7 +22,7 @@ SCRIPTS = [
     'typtop'
 ]
 LIB_DEPENDENCIES = ['libpam-python', 'python-pam', 
-                    'python-pkg-resources',
+                    'python-pkg-resources', 'libssl-dev',
                     'python-setuptools', 'python-dev']
 PYTHON_DEPS = [ 
     'cryptography==1.2.1', 
