@@ -48,8 +48,14 @@ def test_symencrypt():
 def test_compute_id():
     pw = 'asdadf'
     sa = '0'*16
-    compute_id(sa, pw)
-    
+    t1 = compute_id(sa, pw)
+    t2 = hmac256(sa, pw)
+    assert t1 == compute_id(sa, unicode(pw))
+    pw1 = 'asdadf1'
+    t3 = hmac256(sa, pw1)
+    assert t2 != t3
+    assert t1 != compute_id(sa, pw1)
+
 def test_verify_pk_sk():
     pk, sk = generate_key_pair()
     pks = serialize_pk(pk)

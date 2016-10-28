@@ -11,7 +11,7 @@ from zxcvbn import password_strength
 from pam_typtop.pw_pkcrypto2 import (
     encrypt, decrypt, generate_key_pair, compute_id,
     pkencrypt, pkdecrypt, harden_pw, verify,
-    serialize_pk, deserialize_pk, serialize_sk, deserialize_sk,
+    serialize_pk, deserialize_pk, serialize_sk,
     verify_pk_sk, SALT_LENGTH
 )
 from word2keypress import distance
@@ -51,14 +51,6 @@ def setup_logger(logfile_path, log_level):
         )
         handler.setFormatter(formatter)
         logger.addHandler(handler)
-
-def encode_encrypt_sym_count(key, count):
-    """
-    Receives a number, represent it as an interger
-    than it encrypts it and encode it in base64
-    """
-    count_in_bytes = struct.pack('<i', count)
-    return encrypt(key, count_in_bytes)
 
 def decode_decrypt_sym_count(key, ctx):
     """

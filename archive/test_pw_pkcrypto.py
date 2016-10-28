@@ -51,8 +51,7 @@ def test_encrypt_with_string_keys():
     pwhash, pk = derive_public_key(pw, sa)
     pwhash_, sk = derive_secret_key(pw, sa)
     assert pwhash == pwhash_
-    for i in range(len(m)):
-        assert decrypt({'abc': sk}, encrypt({'abc': pk}, m[:i])) == m[:i]
+    assert decrypt({'abc': sk}, encrypt({'abc': pk}, m)) == m
     
 def test_derive_key():
     pw = 'thebest ever secret'

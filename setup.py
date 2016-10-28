@@ -21,11 +21,15 @@ SCRIPTS = [
     'pam_typotolerant.py', 'send_typo_log.py',
     'typtop'
 ]
-LIB_DEPENDENCIES = [
-    'libpam-python', 'python-pam',
-    'python-pkg-resources', 'libssl-dev',
-    'python-setuptools', 'python-dev'
-]
+
+LIB_DEPENDENCIES_debian = [ 'libpam-python', 'python-pam',
+                            'libffi-dev', 'python-pkg-resources', 'libssl-dev',
+                            'python-setuptools', 'python-dev', ]
+
+# working on it
+LIB_DEPENDENCIES_redhat = [ 'libffi-devel', 'libssl-devel',
+                            'python-devel', 'python-pip', 'python-setuptools',
+                            'libpam-python', 'python-pam', 'libpam-python' ]
 
 PYTHON_DEPS = [ 
     'cryptography', 
@@ -44,7 +48,7 @@ class CustomInstaller(install):
             "You need root priviledge to run the installation"
         if not os.path.exists(BINDIR):
             os.makedirs(path=BINDIR, mode=0755) # drwxr-xr-x
-        call(['apt-get', 'install', '-y'] + LIB_DEPENDENCIES)
+        call(['apt-get', 'install', '-y'] + LIB_DEPENDENCIES_debian)
         call(['gcc', 'chkpw.c', '-o', '{}/chkpw'.format(BINDIR), '-lcrypt'])
         # Assuming there is a unix_chkpwd
         chkpw_proc = Popen('which unix_chkpwd'.split(), stdout=PIPE)

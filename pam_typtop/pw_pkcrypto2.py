@@ -2,20 +2,37 @@
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.hazmat.primitives import (
-    serialization, hashes
+    serialization, hashes, hmac
 )
 from cryptography.hazmat.primitives.ciphers import (
     Cipher, algorithms, modes
 )
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 
-from pam_typtop.pwcryptolib import (
-    HASH_CNT, SALT_LENGTH, 
-    hash256, hmac256
-)
 import os
 from base64 import urlsafe_b64encode, urlsafe_b64decode
 import struct
+
+HASH_CNT = 1000 # Number of hashes to compute one SHA256 takes 15 microsec,
+SALT_LENGTH = 16
+
+def hash256(*args):
+    """short function for Hashing the arguments with SHA-256"""
+    assert len(args)>0, "Should give at least 1 message"
+    assert all(isinstance(m, (bytes, basestring)) for m in args), \
+        "All inputs should be byte string"
+    h = hashes.Hash(hashes.SHA256(), backend=default_backend())
+    h.update(bytes(len(args)) + bytes(args[0]) + bytes(len(args[0])))
+    for m in args[1:]:
+        h.update(bytes(m))
+        h.update(bytes(len(m)))
+    h.update(bytes(len(args)))
+    return h.finalize()
+
+def hmac256(secret, m):
+    h = hmac.HMAC(bytes(secret), hashes.SHA256(), backend=default_backend())
+    h.update(bytes(m))
+    return h.finalize()
 
 def generate_key_pair():
     private_key = ec.generate_private_key(
