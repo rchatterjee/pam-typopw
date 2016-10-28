@@ -11,7 +11,7 @@ from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 
 from pam_typtop.pwcryptolib import (
     HASH_CNT, SALT_LENGTH, 
-    hash256, hmac256, aes1block
+    hash256, hmac256
 )
 import os
 from base64 import urlsafe_b64encode, urlsafe_b64decode
@@ -36,21 +36,26 @@ def _slow_hash(pw, sa):
     return key
 
 def verify_pk_sk(pk, sk):
-    if isinstance(sk, (bytes, basestring)):
-        sk = deserialize_sk(sk)
-    if not isinstance(pk, (bytes, basestring)):
-        pk = serialize_pk(pk)
-    pkprime = serialize_pk(sk)
-    return pkprime == pk
-
+    try:
+        if isinstance(sk, (bytes, basestring)):
+            sk = deserialize_sk(sk)
+        if not isinstance(pk, (bytes, basestring)):
+            pk = serialize_pk(pk)
+        pkprime = serialize_pk(sk.public_key())
+        return pkprime == pk
+    except Exception as e:
+        print("ERRROR: {}".format(e))
+        print("sk: {}\npk:{}".format(sk, pk))
+        raise(e)
 
 def verify(pw, sa, h):
     """Verifies if h(pw, sa) == h
     returns k in case it matches, otherwise None.
     """
+    sa = urlsafe_b64decode(bytes(sa))
     k = _slow_hash(pw, sa)
     hprime = hash256(k)
-    if h == hprime:
+    if h == urlsafe_b64encode(hprime):
         return k
     else:
         return None
@@ -77,21 +82,22 @@ def serialize_sk(sk):
     else:
         return sk.private_bytes(
             serialization.Encoding.PEM, 
-            format=serialization.PrivateFormat.PKCS8
+            format=serialization.PrivateFormat.PKCS8,
+            encryption_algorithm=serialization.NoEncryption()
         )
 
 def deserialize_sk(sk_s):
-    if isinstance(sk_s, (bytes, basestring)):
+    if isinstance(sk_s, (bytes, basestring, unicode)):
         return serialization.load_pem_private_key(
-            sk_s, password=None, backend=default_backend()
+            bytes(sk_s), password=None, backend=default_backend()
         )
     else:
         return sk_s
 
 def deserialize_pk(pk_s):
-    if isinstance(pk_s, (bytes, basestring)):
+    if isinstance(pk_s, (bytes, basestring, unicode)):
         return serialization.load_pem_public_key(
-            pk_s, backend=default_backend()
+            bytes(pk_s), backend=default_backend()
         )
     else:
         return pk_s
@@ -142,13 +148,17 @@ def _decrypt(key, iv, ciphertext, tag, associated_data=''):
 def encrypt(k, m):
     """Symmetric encrpyt.
     """
+    if not isinstance(m, bytes):
+        m = bytes(m)
     iv, ctx, tag = _encrypt(k, m)
     return urlsafe_b64encode(iv + ctx + tag)
 
 def decrypt(k, ctx):
     """Symmetric decrpyt.
     """
-    ctx_bin = urlsafe_b64decode(ctx)
+    if not isinstance(ctx, bytes):
+        ctx = bytes(ctx)
+    ctx_bin = urlsafe_b64decode(bytes(ctx))
     iv, c, tag = ctx_bin[:12], ctx_bin[12:-16], ctx_bin[-16:]
     try:
         return _decrypt(k, iv, c, tag)
@@ -168,19 +178,25 @@ def pkencrypt(pk, m):
 
 def pkdecrypt(sk, ctx):
     """Public key decrypt"""
+    if isinstance(sk, (bytes, basestring)):
+        sk = deserialize_sk(sk)
     rpk_s, c = ctx.split('||')
     rpk = deserialize_pk(rpk_s)
     common_key = sk.exchange(ec.ECDH(), rpk)
     m = decrypt(common_key, c)
     return m
 
-def compute_id(pwtypo, salt):
+def compute_id(salt, pwtypo):
     """
     Computes an ID for pwtypo. 
     @pwtypo (byte string): mistyped (or correct) password
     @salt (byte string): global salt
     """
-    h = hmac256(salt, pwtypo)
+    if len(salt)>SALT_LENGTH:
+        salt = urlsafe_b64decode(bytes(salt))
+    assert len(salt) == SALT_LENGTH, "len(salt)={} ({})"\
+        .format(len(salt), SALT_LENGTH)
+    h = hmac256(salt, bytes(pwtypo))
     return struct.unpack('<I', h[:4])[0]
 
 def encrpyt_sk(key, sk):
