@@ -22,14 +22,33 @@ SCRIPTS = [
     'typtop'
 ]
 
-LIB_DEPENDENCIES_debian = [ 'libpam-python', 'python-pam',
-                            'libffi-dev', 'python-pkg-resources', 'libssl-dev',
-                            'python-setuptools', 'python-dev', ]
 
-# working on it
-LIB_DEPENDENCIES_redhat = [ 'libffi-devel', 'libssl-devel',
-                            'python-devel', 'python-pip', 'python-setuptools',
-                            'libpam-python', 'python-pam', 'libpam-python' ]
+def set_distro():
+    import platform
+    dist = platform.linux_distribution()[0].lower()
+    if dist in ('ubuntu', 'debian', 'lubuntu', 'kubuntu'):
+        return 'debian'
+    elif dist in ('fedora', 'red-hat', 'centos'):
+        return 'fedora'
+    else:
+        raise ValueError("Not supported for your OS: {}".format(dist))
+
+DISTRO = set_distro()
+
+
+LIB_DEPENDENCIES = {
+    'debian': [ 'libpam-python', 'python-pam',
+                 'libffi-dev', 'python-pkg-resources', 'libssl-dev',
+                 'python-setuptools', 'python-dev', ],
+    'fedora': [ 'libffi-devel', 'openssl-devel',
+                 'python-devel', 'python-pip', 'python-setuptools',
+                 'libpam-python', 'python-pam', 'libpam-python' ]
+}[DISTRO]
+
+PACMAN = {
+    'debian': 'apt-get install -y'.split(),
+    'fedora': 'yum install -y'.split()
+}[DISTRO]
 
 PYTHON_DEPS = [ 
     'cryptography', 
@@ -48,7 +67,7 @@ class CustomInstaller(install):
             "You need root priviledge to run the installation"
         if not os.path.exists(BINDIR):
             os.makedirs(path=BINDIR, mode=0755) # drwxr-xr-x
-        call(['apt-get', 'install', '-y'] + LIB_DEPENDENCIES_debian)
+        call(PACMAN + LIB_DEPENDENCIES)
         call(['gcc', 'chkpw.c', '-o', '{}/chkpw'.format(BINDIR), '-lcrypt'])
         # Assuming there is a unix_chkpwd
         chkpw_proc = Popen('which unix_chkpwd'.split(), stdout=PIPE)
@@ -63,7 +82,10 @@ class CustomInstaller(install):
         os.chmod('{}/chkpw'.format(BINDIR), 0o2755)
 
         Popen('cp -vf {} {}/'.format(' '.join(SCRIPTS), BINDIR).split()).wait()
-        common_auth = '/etc/pam.d/common-auth'
+        common_auth = {
+            'debian': '/etc/pam.d/common-auth',
+            'fedora': '/etc/pam.d/system-auth'
+        }[DISTRO]
         common_auth_orig = '/etc/pam.d/common-auth.orig'
         with open('/etc/pam.d/typo_auth', 'wb') as f:
             f.write(
