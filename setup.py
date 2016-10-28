@@ -37,12 +37,14 @@ DISTRO = set_distro()
 
 
 LIB_DEPENDENCIES = {
-    'debian': [ 'libpam-python', 'python-pam',
+    'debian': [ 'python-pam',
                  'libffi-dev', 'python-pkg-resources', 'libssl-dev',
                  'python-setuptools', 'python-dev', ],
+    # Fedora does not have python-pam!! So, we cannot write the fedora
+    # version.
     'fedora': [ 'libffi-devel', 'openssl-devel',
-                 'python-devel', 'python-pip', 'python-setuptools',
-                 'libpam-python', 'python-pam', 'libpam-python' ]
+                'python-devel', 'python-pip', 'python-setuptools',
+                'python-pam' ]
 }[DISTRO]
 
 PACMAN = {
