@@ -130,7 +130,8 @@ def decrypt(_sk_dict, ctx):
             failed_to_decrypt = False
             break
         except (KeyError, ValueError) as e:
-            print "Wrong key with id: {} and/or the ciphertext has been tampered".format(_id)
+            print("Wrong key with id: {} and/or the ciphertext has been "
+                  "tampered".format(_id))
     if failed_to_decrypt:
         raise KeyError("None of the secret keys ({}) could decrypt the "\
                          "ciphertext with keys=({}) (count={})".format(

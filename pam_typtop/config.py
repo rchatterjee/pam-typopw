@@ -1,4 +1,4 @@
-VERSION = "1.1.3"
+VERSION = "1.1.2"
 DB_NAME = ".typoToler"
 SEC_DB_PATH = '/etc/pam_typtop'
 SEC_DB_NAME = DB_NAME + ".ro" # READ_ONLY // ROOT_ONLY
@@ -6,7 +6,7 @@ SEC_DB_NAME = DB_NAME + ".ro" # READ_ONLY // ROOT_ONLY
 ORIG_SK_SALT = 'OriginalPwSaltForEncSecretKey'
 ORIG_PW_CTX = 'OrignalPwCtx'
 ORIG_PW_ENTROPY_CTX = 'OrgignalPwEntropyCtx'
-GLOBAL_SALT_CTX = 'GlobalSaltCtx'
+HMAC_SALT_CTX = 'HMACSaltCtx'
 ORIG_PW_ID = 'OrgPwID'
 ORIG_PW_ENC_PK = 'EncPublicKey'
 ORIG_PW_SGN_PK = 'SgnPublicKey'
@@ -24,11 +24,11 @@ NUMBER_OF_ENTRIES_BEFORE_TYPOTOLER_CAN_BE_USED = 30
 
 # Tables' names:
 logT = 'Log'
-logT_cols = ['id', 'ts', 't_id', 'edit_dist', 'top5fixable', 
-             'in_cache', 'allowed_login', 'rel_entropy']
+logT_cols = {'tid', 'edit_dist', 'rel_entropy', 'ts',
+             'istop5fixable', 'in_cache', 'id'}
 
-hashCacheT = 'HashCache'
-hashCacheT_cols = ['H_typo', 'salt', 'count', 'pk', 'top5fixable']
+typocacheT = 'Typocache'
+typocacheT_cols = ['H_typo', 'salt', 'count', 'pk', 'top5fixable']
 
 waitlistT = 'Waitlist'
 # table col: base64(enc(json(typo, ts, hash, salt, entropy)))'
@@ -46,6 +46,7 @@ SendEvery="SendEvery(sec)"
 UPDATE_GAPS= 24 * 60 * 60 # 24 hours, in seconds
 AllowUpload = "AllowedLogUpload"
 LoginCount = 'NumOfLogins' # counts logins of real pw only
+FreqList = 'TypoFrequencies'
 # - in order to avoid early entry which will change the collected data
 # - initiated by typotoler_init. not re-initiated by re-init
 
