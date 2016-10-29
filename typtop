@@ -141,6 +141,11 @@ def initiate_typodb(RE_INIT=False):
         # to stop the installation process
         raise ValueError("incorrect pw given 3 times")
 
+DISTRO = 'debian'
+common_auth = {
+    'debian': '/etc/pam.d/common-auth',
+    'fedora': '/etc/pam.d/system-auth'
+}[DISTRO]
 
 def uninstall_pam_typtop():
     root_only_operation()
@@ -155,7 +160,7 @@ user=$(who am i| awk '{print $1}')
 homedir=$(echo ~$user)
 
 # remove dawg
-common_auth_file=/etc/pam.d/common-auth
+common_auth_file=%s
 if [ -e ${common_auth_file}.orig ]; then
     mv ${common_auth_file}.orig ${common_auth_file}
 fi
@@ -171,7 +176,7 @@ if [ -e ffile.txt ]; then
 fi
 
 apt-get -y remove libpam-python libdawgdic-dev python-pam python-pkg-resources
-    '''
+    ''' %(common_auth)
     os.system(cmd)
 
 

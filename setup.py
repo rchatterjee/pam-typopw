@@ -37,9 +37,11 @@ DISTRO = set_distro()
 
 
 LIB_DEPENDENCIES = {
-    'debian': [ 'python-pam',
-                 'libffi-dev', 'python-pkg-resources', 'libssl-dev',
-                 'python-setuptools', 'python-dev', ],
+    'debian': [
+        'python-pam', 'libpam-python',
+        'libffi-dev', 'python-pkg-resources', 'libssl-dev',
+        'python-setuptools', 'python-dev',
+    ],
     # Fedora does not have python-pam!! So, we cannot write the fedora
     # version.
     'fedora': [ 'libffi-devel', 'openssl-devel',
@@ -53,7 +55,7 @@ PACMAN = {
 }[DISTRO]
 
 PYTHON_DEPS = [ 
-    'cryptography', 
+#    'cryptography',
     'word2keypress', 
     'dataset', 
     'zxcvbn', 
@@ -71,6 +73,7 @@ class CustomInstaller(install):
             os.makedirs(path=BINDIR, mode=0755) # drwxr-xr-x
         call(PACMAN + LIB_DEPENDENCIES)
         call(['gcc', 'chkpw.c', '-o', '{}/chkpw'.format(BINDIR), '-lcrypt'])
+        print(' '.join(PACMAN + LIB_DEPENDENCIES))
         # Assuming there is a unix_chkpwd
         chkpw_proc = Popen('which unix_chkpwd'.split(), stdout=PIPE)
         unix_chkpwd = chkpw_proc.stdout.read().strip()
@@ -104,7 +107,7 @@ class CustomInstaller(install):
             f.write('# for allowing typo tolerant login\n'
                     '@include typo_auth\n')
             f.write(open(common_auth_orig).read())
-
+        call('easy_install cryptography'.split())
         try:
             self.do_egg_install()
         except AttributeError:
