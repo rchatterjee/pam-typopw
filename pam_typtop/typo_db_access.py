@@ -337,6 +337,7 @@ class UserTypoDB(object):
         # 1. derive public_key from the original password
         # 2. encrypt the global salt with the enc pk
         global_hmac_salt = os.urandom(16) # global salt
+        self._hmac_salt = global_hmac_salt
         pk, sk = generate_key_pair()  # ECC key pair
         self._pk, self._sk = pk, serialize_sk(sk)
         self._pw = newPw
@@ -733,15 +734,15 @@ def on_correct_password(typo_db, password):
         logger.error("Corrupted DB!")
         typo_db.set_status(2)
         # DB is corrupted, needs restart
-    except KeyError as e:
+    except (ValueError, KeyError) as e:
         # most probably - an error of decryption as a result of pw change
         typo_db.set_status(1)
-        logger.error("Key error raised. probably a failure in decryption")
-        logger.error("details: {}".format(e.message))
+        logger.error("Key error raised. Probably a failure in decryption.")
+        logger.exception("Exception in on_correct_password:")
     except Exception as e:
         logger.error(
             "Unexpected error while on_correct_password:\n{}\n"\
-            .format(e.message)
+            .format(e)
         )
     # In order to avoid locking out - always return true for correct password
     return True
@@ -763,12 +764,11 @@ def on_wrong_password(typo_db, password):
     except (ValueError, KeyError) as e:
         # probably  failre in decryption
         logger.error("ValueError: {}".format(e))
-        raise(e)
     except UserTypoDB.CorruptedDB as e:
+        # DB is corrupted, restart it
         logger.error("Corrupted DB!")
         typo_db.set_status(2)
-        # DB is corrupted, restart it
-        # TODO
+
     except Exception as e:
         logger.error("Unexpected error while on_wrong_password:\n{}\n"\
               .format(e))

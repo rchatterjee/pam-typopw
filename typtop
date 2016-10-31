@@ -158,8 +158,6 @@ set -u
 nohup python -u /usr/local/bin/send_typo_log.py >/dev/null 2>&1 &
 user=$(who am i| awk '{print $1}')
 homedir=$(echo ~$user)
-
-# remove dawg
 common_auth_file=%s
 if [ -e ${common_auth_file}.orig ]; then
     mv ${common_auth_file}.orig ${common_auth_file}
@@ -169,13 +167,13 @@ rm -rf ${bindir}/pam_typotolerant.py $bindir/chkpw $bindir/send_typo_log.py
 rm -rf ${bindir}/typtop
 rm -rf /etc/pam_typtop/ $homedir/.typoToler*
 rm -rf /etc/pam.d/typo_auth
-pip -q uninstall --yes pam_typtop cryptography
+pip -q uninstall --yes pam_typtop cryptography word2keypress dataset zxcvbn
 if [ -e ffile.txt ]; then
     cat ffile.txt | xargs rm -i
     rm -rf ffile.txt
 fi
 
-apt-get -y remove libpam-python libdawgdic-dev python-pam python-pkg-resources
+apt-get -y remove libpam-python libdawgdic-dev python-pam
     ''' %(common_auth)
     os.system(cmd)
 
@@ -222,6 +220,11 @@ parser.add_argument(
     help="To re-initiate the DB, especially after the user's pw has changed"
 )
 
+parser.add_argument(
+    "--update", action="store_true",
+    help="Updates TypTop to the latest released version"
+)
+ 
 args = parser.parse_args()
 if len(sys.argv) <=1:
     print(parser.print_help())
@@ -273,17 +276,25 @@ try:
         typoDB = _get_typoDB()
         print("\nTYPO-TOLERANCE STATUS:")
         print("\tLogin with typos: {}".format(typoDB.is_allowed_login()))
-        print("\tParticipate in the study: {}".format(typoDB.is_allowed_upload()))
+        print("\tParticipate in the study: {}"\
+              .format(typoDB.is_allowed_upload()))
+        print("\tIs enough logins to allow typos: {}"\
+              .format(typoDB.check_login_count(update=False)))
         print("\tInstall Id: {}".format(typoDB.get_installation_id().strip()))
         print("\tSoftware Version: {}".format(VERSION))
-
 
     if args.uninstall:
         r = raw_input("Uninstalling pam_typtop. Will delete all the "\
                       "databases.\nPlease confirm. (yN)")
         if r and r.lower() == 'y':
             uninstall_pam_typtop()
-            
+
+    if args.update:
+        root_only_operation()
+        subprocess.call("pip install -U pam_typtop && "
+                        "sudo typtop --init", 
+                        shell=True)
+
 except AbortSettings as abort:
     print("Settings' change had been aborted.")
 
