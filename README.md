@@ -7,6 +7,8 @@ to your laptop with small typos.
 
 If you install this software and want to participate in our research study, please fill in this [this short survey](https://docs.google.com/forms/d/e/1FAIpQLSfHWAPedMVT7ETaW3qUUaueOg87TaDAllQYIgoqJZ8nWjF88A/viewform). Thanks!!
 
+*For the purpose of the research study, TypTop will not allow login with typos until you login successfully 30 times.*
+
 ## Install  
 **Using pip (`pip` is a python package manger)**  
 ```bash  
