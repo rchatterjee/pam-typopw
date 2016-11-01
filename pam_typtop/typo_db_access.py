@@ -505,7 +505,7 @@ class UserTypoDB(object):
             try:
                 new_typo_dic[typo][-1].append(ts) # appending ts to ts_list
             except KeyError:
-                if not self.validate(typo, orig_pw):
+                if not self.validate(orig_pw, typo):
                     ignore.add(typo)
                 else:
                     new_typo_dic[typo] = (sa, k, h, [ts])
@@ -770,7 +770,7 @@ def on_wrong_password(typo_db, password):
         typo_db.set_status(2)
 
     except Exception as e:
-        logger.error("Unexpected error while on_wrong_password:\n{}\n"\
+        logger.exception("Unexpected error while on_wrong_password:\n{}\n"\
               .format(e))
         print("TypToP is not initialized.\n $ sudo typtop --init")
     return False # previously inside "finally"
