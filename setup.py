@@ -70,24 +70,27 @@ class CustomInstaller(install):
         if not os.path.exists(BINDIR):
             os.makedirs(path=BINDIR, mode=0755) # drwxr-xr-x
         call(PACMAN + LIB_DEPENDENCIES)
-        call(['gcc', 'chkpw.c', '-o', '{}/chkpw'.format(BINDIR), '-lcrypt'])
-        print(' '.join(PACMAN + LIB_DEPENDENCIES))
+
         # Assuming there is a unix_chkpwd
         chkpw_proc = Popen('which unix_chkpwd'.split(), stdout=PIPE)
         unix_chkpwd = chkpw_proc.stdout.read().strip()
         chkpw_proc.wait()
         unix_chkpwd_st = os.stat(unix_chkpwd)
-        os.chown(
-            '{}/chkpw'.format(BINDIR), 
-            unix_chkpwd_st.st_uid, 
-            unix_chkpwd_st.st_gid
-        )
-        os.chmod('{}/chkpw'.format(BINDIR), 0o2755)
+        for c_src, c_out in [('chkpw.c', 'chkpw'), 
+                             ('typtopstatus.c', 'typtopstatus')]:
+            exe = '{}/{}'.format(BINDIR, c_out)
+            call(['gcc', c_src, '-o', exe, '-lcrypt'])
+            os.chown(
+                exe,
+                unix_chkpwd_st.st_uid, 
+                unix_chkpwd_st.st_gid
+            )
+            os.chmod(exe, 0o2755)
 
         shadow_stat = os.stat('/etc/shadow')
         # -rw-r----- 1 root shadow 1.2K Nov  1 20:27 /etc/shadow
         if not os.path.exists(SEC_DB_PATH):
-            os.makedirs(SEC_DB_PATH, mode=0640)
+            os.makedirs(SEC_DB_PATH, mode=0650)
         os.chown(SEC_DB_PATH, shadow_stat.st_uid, shadow_stat.st_gid)
         
         Popen('cp -vf {} {}/'.format(' '.join(SCRIPTS), BINDIR).split()).wait()

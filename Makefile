@@ -1,4 +1,4 @@
-full: chkpw
+full: chkpw typtopstatus
 
 chkpw: chkpw.c
 	gcc -o chkpw chkpw.c -lcrypt
@@ -6,7 +6,10 @@ chkpw: chkpw.c
 	# sudo chmod u+s chkpw
 	sudo chown --reference=/sbin/unix_chkpwd chkpw
 	sudo chmod --reference=/sbin/unix_chkpwd chkpw
-
+typtopstatus: typtopstatus.c
+	gcc -o typtopstatus typtopstatus.c
+	sudo chown --reference=/sbin/unix_chkpwd typtopstatus
+	sudo chmod --reference=/sbin/unix_chkpwd typtopstatus
 pam_unix: pam_unix.c
 	gcc -fPIC -c pam_unix.c
 	gcc -shared -o pam_unix.so pam_unix.o -lpam
@@ -22,7 +25,7 @@ pam_typopw.o: pam_typopw.c
 fix_pw.o: fix_pw.c fix_pw.h
 	gcc -fPIC -c fix_pw.c
 clean:
-	rm -rf pam_typopw.o pam_typopw.so fix_pw.o test.o
+	rm -rf pam_typopw.o pam_typopw.so fix_pw.o test.o chkpw typtopstatus
 
 
 test: test.c fix_pw.o test_fix_pw.c pam_typopw

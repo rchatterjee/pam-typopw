@@ -44,6 +44,7 @@
 typofixer
 pwmodel
 chkpw
+typtopstatus
 
 # Jupyter sh**
 .ipynb_checkpoints/

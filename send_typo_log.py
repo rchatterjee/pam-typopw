@@ -22,7 +22,7 @@ if need_to_send:
     for row in iter_data:
         # print "row to send:{}".format(row)
         list_of_logs.append(row)
-        last_time = min(last_time,row['ts'])
+        last_time = min(last_time, row['ts'])
         
     install_id = str(t_db.get_installation_id())
     dbdata = json.dumps(list_of_logs)

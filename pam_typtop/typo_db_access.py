@@ -41,13 +41,13 @@ def is_in_top5_fixes(orig_pw, typo):
     )
 
 logger = logging.getLogger(DB_NAME)
-def setup_logger(logfile_path, log_level):
+def setup_logger(logfile_path, log_level, user):
     logger.setLevel(log_level)
     if not logger.handlers:  # if it doesn't have an handler yet:
         handler = logging.FileHandler(logfile_path)
         formatter = logging.Formatter(
-            '%(asctime)s:%(levelname)s:[%(filename)s:%(lineno)s'\
-            '(%(funcName)s)>> %(message)s'
+            '%(asctime)s:%(levelname)s:<{}>:[%(filename)s:%(lineno)s'\
+            '(%(funcName)s)>> %(message)s'.format(user)
         )
         handler.setFormatter(formatter)
         logger.addHandler(handler)
@@ -81,7 +81,7 @@ class UserTypoDB(object):
 
     def __init__(self, user, debug_mode=False): # TODO CHANGE to False
         self._user = user  # this is a real user.
-        homedir = pwd.getpwnam(self._user).pw_dir
+        # homedir = pwd.getpwnam(self._user).pw_dir
         typo_dir = os.path.join(SEC_DB_PATH, user)
         if not os.path.exists(typo_dir): # creating dir only if it doesn't exist
             # this directory needs root permission, and should be created as
@@ -93,26 +93,23 @@ class UserTypoDB(object):
                       "is not initialized.".format(typo_dir))
                 raise UserTypoDB.NoneInitiatedDB(error)
 
-        self._db_path = "{}/{}.db".format(typo_dir, DB_NAME)
-        # self._sec_db_path="{}/{}.db".format(typo_dir, SEC_DB_NAME)
-        self._log_path = "{}/{}.log".format(homedir, DB_NAME)
+        self._db_path = os.path.join(typo_dir, DB_NAME + '.db')
+        self._log_path = os.path.join(LOG_DIR, DB_NAME + '.log')
         self._db = dataset.connect('sqlite:///{}'.format(self._db_path))
         self._aux_tab = self._db.get_table(
             auxT,
             primary_id='desc',
             primary_type='String(100)'
         )
-
-        self._sk, self._pk = None, None # always contains the
-                                        # serialized versino of sk, pk
-        # the global salt for the hmac, id
-        # only will be available if correct pw is provided
+        # always contains the serialized versino of sk, pk
+        self._sk, self._pk = None, None 
+        # the global salt for the hmac-id only will be available if
+        # correct pw is provided.
         self._hmac_salt, self._pw, self._pwent = None, None, None
         self._aux_tab_cache = {}  # For caching results from auxtab
         # setting the logger object
         log_level = logging.DEBUG if debug_mode else logging.INFO
-        setup_logger(self._log_path, log_level)
-
+        setup_logger(self._log_path, log_level, user)
         dataLine_N = self.get_from_auxtdb(CacheSize, int)
         if dataLine_N:
             self.N = dataLine_N
@@ -377,8 +374,9 @@ class UserTypoDB(object):
             return False, iter([])
         upload_status = self.get_from_auxtdb(AllowUpload)
         if not upload_status:
-            raise UserTypoDB.CorruptedDB("Missing {} in {}".format(
-                AllowUpload, auxT))
+            raise UserTypoDB.CorruptedDB(
+                "Missing {} in {}".format(AllowUpload, auxT)
+            )
         if upload_status != 'True':
             logger.info("Not sending logs because send status set to {}".format(
                 upload_status))
@@ -742,7 +740,7 @@ def on_wrong_password(typo_db, password):
         return ret==2
     except (ValueError, KeyError) as e:
         # probably  failre in decryption
-        logger.error("ValueError: {}".format(e))
+        logger.exception("ValueError: {}".format(e))
     except UserTypoDB.CorruptedDB as e:
         # DB is corrupted, restart it
         logger.error("Corrupted DB!")

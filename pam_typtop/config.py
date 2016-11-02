@@ -1,7 +1,8 @@
 VERSION = "1.2.7"
-DB_NAME = ".typoToler"
+DB_NAME = "typtop"
 SEC_DB_PATH = '/etc/pam_typtop'
-SEC_DB_NAME = DB_NAME + ".ro" # READ_ONLY // ROOT_ONL
+LOG_DIR = '/var/log/'
+# SEC_DB_NAME = DB_NAME + ".ro" # READ_ONLY // ROOT_ONL
 BINDIR = '/usr/local/bin'
 
 ORIG_SK_SALT = 'OriginalPwSaltForEncSecretKey'

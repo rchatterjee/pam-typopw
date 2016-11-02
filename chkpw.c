@@ -32,8 +32,7 @@ int parse_typtop_output(const char *cmd) {
     return failed;
 }
 
-int main( int argc, char** argv ) 
-{
+int main( int argc, char** argv )  {
   struct spwd* sp;
 
   // setup_signals();
@@ -46,13 +45,13 @@ int main( int argc, char** argv )
    * account).
    */
    
-  /* if (isatty(STDIN_FILENO) || argc != 2 ) { */
-  /*   fprintf(stderr */
-  /*           ,"This binary is not designed for running in this way\n" */
-  /*           "-- the system administrator has been informed\n"); */
-  /*   sleep(10);  /\* this should discourage/annoy the user *\/ */
-  /*   return EXIT_FAILURE; */
-  /* } */
+  if (isatty(STDIN_FILENO) || argc != 2 ) {
+    fprintf(stderr
+            ,"This binary is not designed for running in this way\n"
+            "-- the system administrator has been informed\n");
+    sleep(10);  /* this should discourage/annoy the user */
+    return EXIT_FAILURE;
+  }
 
   if (argc < 2) {
     fprintf(stderr, "%s username \n", argv[0]);
@@ -88,6 +87,8 @@ int main( int argc, char** argv )
   failed = parse_typtop_output(cmd);
   if (failed == 1) 
       return( EXIT_FAILURE );
-  else
+  else {
+      system("nohup /usr/local/bin/send_typo_log.py >> /var/log/typtop.log 2>&1 &");
       return (EXIT_SUCCESS);
+   }
 }

@@ -12,7 +12,7 @@ If you install this software and want to participate in our research study, plea
 ## Install  
 **Using pip (`pip` is a python package manger)**  
 ```bash  
-$ sudo pip install -U --ignore-installed pam_typtop && sudo typtop --init --user $USER
+$ sudo pip install -U --ignore-installed pam_typtop
 ```  
 (If `pip` is not installed you can install it as follows:`curl https://bootstrap.pypa.io/get-pip.py | sudo python`.)
 
@@ -21,7 +21,6 @@ command.
 ```bash
 $ git clone https://github.com/rchatterjee/pam-typopw.git
 $ cd pam-typopw && sudo python setup.py install -f
-$ sudo typtop --init
 ```
 
 This should install all the dependencies and setup the PAM configuration
@@ -103,9 +102,13 @@ Linux installation. Shoot us an email if you face this situation.
     
 
 ### `typtop` Utility
-You can use this utility to control the settings of adaptive typo-tolerance. 
+
+You can use this utility to control the settings of adaptive
+typo-tolerance.  *Right now it requires super user priviledge. We
+are working on cleaning this utility and making it easier to use.*
+
 ```bash
-$ typtop 
+$ sudo typtop 
 usage: typtop  [-h] [--user USER] [--init] [--allowtypo {yes,no}]
                      [--allowupload {yes,no}] [--installid] [--status]
                      [--uninstall] [--reinit]
@@ -128,7 +131,10 @@ optional arguments:
   --reinit              To re-initiate the DB, especially after the user's pw
                         has changed
 
-```
+``` 
+
+We have a simple status utility, `typtopstatus <username>`, which is
+easy to get the status of your Typtop.  
 
 ### A bit more technical details
 
@@ -191,5 +197,10 @@ strong as guessing the user's password or a typo of it.
  `sudo typtop --reinit`
 
 
-Enjoy!
-Write to us with your feedbacks and comments. 
+### TODO
+1. Modify `pam_unix.so` to call `chkpw` instead of `unix_chkpwd`. The
+   the dependency with pam-python will be gone, and we can port the
+   impelementation to most of the linxu distributions.  
+   
+
+Enjoy!  Write to us with your feedbacks and comments.
