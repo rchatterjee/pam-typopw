@@ -2,6 +2,8 @@ full: chkpw
 
 chkpw: chkpw.c
 	gcc -o chkpw chkpw.c -lcrypt
+	# sudo chown root:root chkpw
+	# sudo chmod u+s chkpw
 	sudo chown --reference=/sbin/unix_chkpwd chkpw
 	sudo chmod --reference=/sbin/unix_chkpwd chkpw
 

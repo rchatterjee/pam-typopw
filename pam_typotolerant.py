@@ -2,17 +2,16 @@
 from __future__ import print_function
 import pwd
 import os, sys
-from pam_typtop.typo_db_access import (
-    UserTypoDB,
-    on_wrong_password,
-    on_correct_password
-)
+# from pam_typtop.typo_db_access import (
+#     UserTypoDB,
+#     on_wrong_password,
+#     on_correct_password
+# )
 from subprocess import Popen, PIPE
 
 # module_path = os.path.dirname(os.path.abspath(__file__))
 # CHKPW_EXE = '/sbin/unix_chkpwd'
 CHKPW_EXE = '/usr/local/bin/chkpw' # hardcoded path
-SEND_LOGS = '/usr/local/bin/send_typo_log.py'
 NN = 5 # hash cache's size
 
 DEBUG=0
@@ -71,12 +70,13 @@ def pam_sm_authenticate(pamh, flags, argv):
     if not isinstance(ret, (basestring, str)):
         return pamh.PAM_USER_UNKNOWN
     user = ret
-    try:
-        typo_db = UserTypoDB(user)
-    except OSError:
-        print("Typo DB is probably not initiated.")
-    prompt = typo_db.get_prompt()
-    full_prompt = '{}: '.format(prompt)
+    # try:
+    #     typo_db = UserTypoDB(user)
+    # except OSError:
+    #     print("Typo DB is probably not initiated.")
+    # prompt = typo_db.get_prompt()
+    # full_prompt = '{}: '.format(prompt)
+    full_prompt = 'aDAPTIVE pASSWORD: '
 
     ATTEMPT_LIMIT = 3 # Maximum number of attempt allowed
     for _ in range(ATTEMPT_LIMIT):
@@ -86,19 +86,7 @@ def pam_sm_authenticate(pamh, flags, argv):
         _, password = ret
         if not password:
             return pamh.PAM_AUTH_ERR
-        iscorrect = False
         if check_pw(user, password) == 0: # i.e - it's the password!
-            iscorrect = on_correct_password(typo_db, password)
-        else:
-            iscorrect = on_wrong_password(typo_db, password)
-
-        if iscorrect:
-            homedir = pwd.getpwnam(user).pw_dir
-            # spawning a subprocess which handles log's sending
-            script_log_path = os.path.join(homedir, ".sendTypo.log")
-            os.system(
-                'nohup python -u {} >> {} 2>&1 &'.format(SEND_LOGS, script_log_path)
-            )
             return pamh.PAM_SUCCESS
     return pamh.PAM_AUTH_ERR
 

@@ -12,11 +12,9 @@ except ImportError as e:
     from distutils.core import setup
     from distutils.command.install import install
 
-from pam_typtop import VERSION
+from pam_typtop.config import VERSION, BINDIR, SEC_DB_PATH
 
 GITHUB_URL = 'https://github.com/rchatterjee/pam-typopw' # URL in github repo
-BINDIR = '/usr/local/bin'
-SEC_DB_PATH = '/etc/pam_typtop'
 SCRIPTS = [
     'pam_typotolerant.py', 'send_typo_log.py',
     'typtop'
@@ -86,6 +84,12 @@ class CustomInstaller(install):
         )
         os.chmod('{}/chkpw'.format(BINDIR), 0o2755)
 
+        shadow_stat = os.stat('/etc/shadow')
+        # -rw-r----- 1 root shadow 1.2K Nov  1 20:27 /etc/shadow
+        if not os.path.exists(SEC_DB_PATH):
+            os.makedirs(SEC_DB_PATH, mode=0640)
+        os.chown(SEC_DB_PATH, shadow_stat.st_uid, shadow_stat.st_gid)
+        
         Popen('cp -vf {} {}/'.format(' '.join(SCRIPTS), BINDIR).split()).wait()
         common_auth = {
             'debian': '/etc/pam.d/common-auth',

@@ -1,4 +1,6 @@
 
+import struct
+from pam_typtop.pw_pkcrypto2 import decrypt
 
 def increament_val(dbh, tabname, key, keyf='desc', valuef='data'):
     """
@@ -10,3 +12,13 @@ def increament_val(dbh, tabname, key, keyf='desc', valuef='data'):
             tabname=tabname, keyf=keyf, key=key, valuef=valuef
         )
     dbh.query(q)
+
+def decode_decrypt_sym_count(key, ctx):
+    """
+    Receives the count ctx, decrypts it, decode it from base64
+    and than from bytes to int
+    """
+    count_in_bytes = decrypt(key, ctx)
+    # raise error if bigger? TODO
+    return struct.unpack('<i',count_in_bytes)[0]
+

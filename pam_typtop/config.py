@@ -1,7 +1,8 @@
 VERSION = "1.2.7"
 DB_NAME = ".typoToler"
 SEC_DB_PATH = '/etc/pam_typtop'
-SEC_DB_NAME = DB_NAME + ".ro" # READ_ONLY // ROOT_ONLY
+SEC_DB_NAME = DB_NAME + ".ro" # READ_ONLY // ROOT_ONL
+BINDIR = '/usr/local/bin'
 
 ORIG_SK_SALT = 'OriginalPwSaltForEncSecretKey'
 ORIG_PW_CTX = 'OrignalPwCtx'
@@ -34,7 +35,7 @@ waitlistT = 'Waitlist'
 # table col: base64(enc(json(typo, ts, hash, salt, entropy)))'
 auxT = 'AuxSysData' # holds system's setting as well as glob_salt and enc(pw)
 # table cols: desc, data
-secretAuxSysT = "SecretAuxData"
+# secretAuxSysT = "SecretAuxData"
 # table cols: desc, data
 
 # auxiley info 'desc's:

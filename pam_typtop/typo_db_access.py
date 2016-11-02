@@ -52,15 +52,6 @@ def setup_logger(logfile_path, log_level):
         handler.setFormatter(formatter)
         logger.addHandler(handler)
 
-def decode_decrypt_sym_count(key, ctx):
-    """
-    Receives the count ctx, decrypts it, decode it from base64
-    and than from bytes to int
-    """
-    count_in_bytes = decrypt(key, ctx)
-    # raise error if bigger? TODO
-    return struct.unpack('<i',count_in_bytes)[0]
-
 def get_time():
     """
     Returns the timestamp in a string, in a consistent format
@@ -102,34 +93,33 @@ class UserTypoDB(object):
                       "is not initialized.".format(typo_dir))
                 raise UserTypoDB.NoneInitiatedDB(error)
 
+        self._db_path = "{}/{}.db".format(typo_dir, DB_NAME)
+        # self._sec_db_path="{}/{}.db".format(typo_dir, SEC_DB_NAME)
+        self._log_path = "{}/{}.log".format(homedir, DB_NAME)
+        self._db = dataset.connect('sqlite:///{}'.format(self._db_path))
+        self._aux_tab = self._db.get_table(
+            auxT,
+            primary_id='desc',
+            primary_type='String(100)'
+        )
+
         self._sk, self._pk = None, None # always contains the
                                         # serialized versino of sk, pk
         # the global salt for the hmac, id
         # only will be available if correct pw is provided
         self._hmac_salt, self._pw, self._pwent = None, None, None
-
-        self._db_path = "{}/{}.db".format(homedir, DB_NAME)
-        self._sec_db_path="{}/{}.db".format(typo_dir, SEC_DB_NAME)
-        self._log_path = "{}/{}.log".format(homedir, DB_NAME)
-        self._db = dataset.connect('sqlite:///{}'.format(self._db_path))
-        self._sec_db = dataset.connect('sqlite:///{}'.format(self._sec_db_path))
-        self._sec_tab = self._sec_db.get_table(
-            secretAuxSysT,
-            primary_id='desc',
-            primary_type='String(100)'
-        )
-        self._sec_tab_cache = {}  # For caching results from auxtab
+        self._aux_tab_cache = {}  # For caching results from auxtab
         # setting the logger object
         log_level = logging.DEBUG if debug_mode else logging.INFO
         setup_logger(self._log_path, log_level)
 
-        dataLine_N = self._get_from_secdb(CacheSize, int)
+        dataLine_N = self.get_from_auxtdb(CacheSize, int)
         if dataLine_N:
             self.N = dataLine_N
             logger.info("{}: N={}".format(typocacheT, self.N))
         else:
             self.N = CACHE_SIZE
-        self.isON = self._get_from_secdb(AllowedTypoLogin, bool)
+        self.isON = self.get_from_auxtdb(AllowedTypoLogin, bool)
         logger.info("typoToler is ON? {}".format(self.isON))
 
     def getdb(self):
@@ -149,7 +139,7 @@ class UserTypoDB(object):
         but not active)
         """
         installid = self.get_from_auxtdb(InstallationID)
-        allowed_login = self._get_from_secdb(ORIG_PW_ENC_PK)
+        allowed_login = self.get_from_auxtdb(ORIG_PW_ENC_PK)
 
         if ((not allowed_login) != (not installid)):
             # if globSalt and pw aren't in the same initialization state
@@ -189,7 +179,7 @@ class UserTypoDB(object):
             raise UserTypoDB.NoneInitiatedDB(
                 "is_allowed_login: Typotoler DB wasn't initiated yet!"
             )
-        is_on = self._get_from_secdb(AllowedTypoLogin, bool)
+        is_on = self.get_from_auxtdb(AllowedTypoLogin, bool)
         assert is_on in (True, False), \
             'Corrupted data in {}: {}={} ({})'.format(
                 auxT, AllowedTypoLogin, is_on, type(is_on)
@@ -203,11 +193,11 @@ class UserTypoDB(object):
             )
         assert allow in (True, False, 0, 1), "Expects a boolean"
         allow = True if allow else False
-        self._sec_tab.update(
+        self._aux_tab.update(
             dict(desc=AllowedTypoLogin, data=str(allow)),
             ['desc']
         )
-        self._sec_tab_cache[AllowedTypoLogin] = allow
+        self._aux_tab_cache[AllowedTypoLogin] = allow
         self.isON = allow
         state = "ON" if allow else "OFF"
         logger.info("typoToler set to {}".format(state))
@@ -227,11 +217,8 @@ class UserTypoDB(object):
         u_data = pwd.getpwnam(self._user)
         u_id, g_id = u_data.pw_uid, u_data.pw_gid
         db_path = self._db_path
-        sec_db_path = self._sec_db_path
-        os.chown(db_path, u_id, g_id)  # change owner to user
-        os.chmod(db_path, 0600)  # RW only for owner
-        os.chown(sec_db_path, 0, 0)
-        os.chmod(sec_db_path, 0644) # RW for root, R for others
+        # os.chmod(db_path, 0640)  # RW only for owner
+
         logger.debug(
             "{} permissons set to RW only for user:{}"\
             .format(db_path, self._user)
@@ -244,30 +231,18 @@ class UserTypoDB(object):
         db[auxT].delete()         # make sure there's no old unrelevent data
         db[typocacheT].delete()
         db[waitlistT].delete()
-        self._sec_db[secretAuxSysT].delete()
+
         # doesn't delete log because it will also be used
         # whenever a password is changed
 
         # *************** Initializing Aux Data *************************
-        self._sec_tab = self._sec_db.get_table(
-            secretAuxSysT, primary_id='desc', primary_type='String(100)'
+        self._aux_tab = self._db.get_table(
+            auxT, primary_id='desc', primary_type='String(100)'
         )
-        self._sec_tab_cache = {}
+        self._aux_tab_cache = {}
         install_id = urlsafe_b64encode(os.urandom(8))
         install_time = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())
         last_sent_time = get_time()
-
-        logger.info("Initializing the auxiliary data base ({})".format(auxT))
-        db[auxT].insert_many([
-            dict(desc=InstallationID, data=install_id),
-            dict(desc=InstallDate, data=install_time),
-            dict(desc=LastSent, data=str(last_sent_time)),
-            dict(desc=SendEvery, data=str(UPDATE_GAPS)),
-            dict(desc=SysStatus, data=str(0)),
-            dict(desc=LoginCount, data=str(0)) ##
-        ])
-        self.N = N
-        self.isON = typoTolerOn
 
         # *************** add org password, its' pks && global salt: ********
         # 1. derive public_key from the original password
@@ -285,9 +260,14 @@ class UserTypoDB(object):
             'entropy': bytes(get_entropy_stat(pw))
         }))
 
-        # note - we can't move any ctx to the 'read-only' pk_salt_t
-        # because all ctx needs updating everytime a new typo enters Typocache
-        self._sec_db[secretAuxSysT].insert_many([
+        logger.info("Initializing the auxiliary data base ({})".format(auxT))
+        db[auxT].insert_many([
+            dict(desc=InstallationID, data=install_id),
+            dict(desc=InstallDate, data=install_time),
+            dict(desc=LastSent, data=str(last_sent_time)),
+            dict(desc=SendEvery, data=str(UPDATE_GAPS)),
+            dict(desc=SysStatus, data=str(0)),
+            dict(desc=LoginCount, data=str(0)),
             dict(desc=ORIG_PW_ID, data=str(pwid)),
             dict(desc=ORIG_PW_CTX, data=pw_ctx),
             dict(desc=ORIG_PW_ENC_PK, data=serialize_pk(pk)),
@@ -298,10 +278,11 @@ class UserTypoDB(object):
             dict(desc=AllowedTypoLogin, data=str(typoTolerOn)),
             dict(desc=AllowUpload, data='True')
         ])
-        self._sec_tab.create_index(['desc'])
-        self._sec_tab_cache = {}
+        self.N = N
+        self.isON = typoTolerOn
+        self._aux_tab.create_index(['desc'])
+        self._aux_tab_cache = {}
         self.set_status('0') #sets status to init
-
         # 3.
         self._fill_cache_w_garbage()
         # Filling the Typocache with garbage
@@ -313,7 +294,8 @@ class UserTypoDB(object):
         f_list[0] = 4294967295
         garbage_list = [self._cache_entry(self._pw, 0, 0)] + \
                        [self._cache_entry(
-                           urlsafe_b64encode(os.urandom(4)), -1, i+1
+                           urlsafe_b64encode(os.urandom(4)), 
+                           random.randint(0,1), i+1
                        ) for i in range(self.N)]
         self._db[typocacheT].insert_many(garbage_list)
         ctx = bytes(pkencrypt(self._pk, json.dumps(f_list)))
@@ -321,6 +303,7 @@ class UserTypoDB(object):
             'desc': FreqList, 
             'data': ctx
         }, ['desc'])
+        self._aux_tab_cache[FreqList] = ctx
         self._db.commit()
 
     def update_after_pw_change(self, newPw):
@@ -351,8 +334,8 @@ class UserTypoDB(object):
         for k, v in [(ORIG_PW_ID, str(pwid)),
                      (ORIG_PW_CTX, pw_ctx),
                      (ORIG_PW_ENC_PK, serialize_pk(pk))]:
-            self._sec_tab.update(dict(desc=k, data=v), ['desc'])
-            self._sec_tab_cache[k] = v
+            self._aux_tab.update(dict(desc=k, data=v), ['desc'])
+            self._aux_tab_cache[k] = v
         # 3 sending logs and deleting tables:
         logger.debug('Sending logs')
         self.update_last_log_sent_time(get_time(), True)
@@ -371,7 +354,7 @@ class UserTypoDB(object):
         # returns pw, hmac_salt, entropy
         # ORIG_PW_CTX contains: pw, hmac_salt, and entropy
         # TODO: Catch exceptions
-        pw_info = json.loads(pkdecrypt(sk, self._get_from_secdb(ORIG_PW_CTX)))
+        pw_info = json.loads(pkdecrypt(sk, self.get_from_auxtdb(ORIG_PW_CTX)))
         self._sk = sk
         self._pw = pw_info['pw']
         self._hmac_salt = urlsafe_b64decode(bytes(pw_info['hmac_salt']))
@@ -392,10 +375,10 @@ class UserTypoDB(object):
         if not self.is_typotoler_init():
             logger.debug("Could not send. Typotoler not initiated")
             return False, iter([])
-        upload_status = self._get_from_secdb(AllowUpload)
+        upload_status = self.get_from_auxtdb(AllowUpload)
         if not upload_status:
             raise UserTypoDB.CorruptedDB("Missing {} in {}".format(
-                AllowUpload, secretAuxSysT))
+                AllowUpload, auxT))
         if upload_status != 'True':
             logger.info("Not sending logs because send status set to {}".format(
                 upload_status))
@@ -434,15 +417,15 @@ class UserTypoDB(object):
         if allow in (0, 1):
             allow = bool(allow)
         assert isinstance(allow, bool)
-        self._sec_tab.upsert(
+        self._aux_tab.upsert(
             dict(desc=AllowUpload, data=str(allow)),
             ['desc']
         )
-        self._sec_tab_cache[AllowUpload] = allow
+        self._aux_tab_cache[AllowUpload] = allow
         self.isON = allow
 
     def is_allowed_upload(self):
-        send_stat_row = self._get_from_secdb(AllowUpload, bool)
+        send_stat_row = self.get_from_auxtdb(AllowUpload, bool)
         return send_stat_row
 
     def update_log(self, typo, incache, ts=None):
@@ -534,7 +517,7 @@ class UserTypoDB(object):
     def get_pk(self):
         """Returns the public key"""
         if not self._pk:
-            self._pk = self._get_from_secdb(ORIG_PW_ENC_PK)
+            self._pk = self.get_from_auxtdb(ORIG_PW_ENC_PK)
         return deserialize_pk(self._pk)
 
     def get_hmac_salt(self, sk):
@@ -615,12 +598,9 @@ class UserTypoDB(object):
         self._update_typo_cache_by_waitlist(sk, self._pw)
         return 2 if is_typo_login else 1 
 
-    def _get_from_secdb(self, key, apply_type=str):
-        if key not in self._sec_tab_cache:
-            self._sec_tab_cache[key] = find_one(self._sec_tab, key, apply_type)
-        return self._sec_tab_cache[key]
-
     def get_from_auxtdb(self, key, apply_type=str):
+        if key not in self._aux_tab_cache:
+            self._aux_tab_cache[key] = find_one(self._aux_tab, key, apply_type)
         return find_one(self._db[auxT], key, apply_type)
 
     def validate(self, orig_pw, typo):
@@ -628,9 +608,9 @@ class UserTypoDB(object):
         typo_ent = get_entropy_stat(typo)
         rel_entropy = typo_ent - self._pwent
         
-        rel_bound = self._get_from_secdb(REL_ENT_BIT_DEC_ALLOWED, int)
-        strict_bound = self._get_from_secdb(LOWEST_ENT_BIT_ALLOWED, int)
-        edist_bound = self._get_from_secdb(EditCutoff, int)
+        rel_bound = self.get_from_auxtdb(REL_ENT_BIT_DEC_ALLOWED, int)
+        strict_bound = self.get_from_auxtdb(LOWEST_ENT_BIT_ALLOWED, int)
+        edist_bound = self.get_from_auxtdb(EditCutoff, int)
         
         notMuchWeaker = (rel_entropy >= rel_bound)
         notTooWeak = (typo_ent >= strict_bound)
@@ -710,9 +690,8 @@ def on_correct_password(typo_db, password):
     # log the entry of the original pwd
     try:
         if not typo_db.is_typotoler_init():
-            raise UserTypoDB.NoneInitiatedDB(
-                "ERROR: (on_correct_pass) Typotoler DB wasn't initiated yet!"
-            )
+            print("ERROR: (on_correct_pass) Typotoler DB wasn't initiated yet!")
+            typo_db.init_typotoler(password)
             # the initialization is now part of the installation process
         sysStatVal = typo_db.get_from_auxtdb(SysStatus)
         if not sysStatVal: # if not found in table
