@@ -1,0 +1,3 @@
+[submodule "osx/yubico-pam"]
+	path = osx/yubico-pam
+	url = https://github.com/Yubico/yubico-pam.git
