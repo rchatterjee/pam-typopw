@@ -3,7 +3,7 @@ from __future__ import print_function
 import os, sys
 import pwd
 import argparse
-from pam_typtop.typo_db_access import UserTypoDB, VERSION
+from typtop.typo_db_access import UserTypoDB, VERSION
 import subprocess
 import getpass
 
@@ -12,17 +12,17 @@ USER = ""
 ALLOW_TYPO_LOGIN = True
 GITHUB_URL = 'https://github.com/rchatterjee/pam-typopw' # URL in github repo
 first_msg = """\n\n
-  /  |                          /  |                        
- _$$ |_    __    __   ______   _$$ |_     ______    ______  
-/ $$   |  /  |  /  | /      \ / $$   |   /      \  /      \ 
+  /  |                          /  |
+ _$$ |_    __    __   ______   _$$ |_     ______    ______
+/ $$   |  /  |  /  | /      \ / $$   |   /      \  /      \
 $$$$$$/   $$ |  $$ |/$$$$$$  |$$$$$$/   /$$$$$$  |/$$$$$$  |
   $$ | __ $$ |  $$ |$$ |  $$ |  $$ | __ $$ |  $$ |$$ |  $$ |
   $$ |/  |$$ \__$$ |$$ |__$$ |  $$ |/  |$$ \__$$ |$$ |__$$ |
-  $$  $$/ $$    $$ |$$    $$/   $$  $$/ $$    $$/ $$    $$/ 
-   $$$$/   $$$$$$$ |$$$$$$$/     $$$$/   $$$$$$/  $$$$$$$/  
-          /  \__$$ |$$ |                          $$ |      
-          $$    $$/ $$ |                          $$ |      
-           $$$$$$/  $$/                           $$/       
+  $$  $$/ $$    $$ |$$    $$/   $$  $$/ $$    $$/ $$    $$/
+   $$$$/   $$$$$$$ |$$$$$$$/     $$$$/   $$$$$$/  $$$$$$$/
+          /  \__$$ |$$ |                          $$ |
+          $$    $$/ $$ |                          $$ |
+           $$$$$$/  $$/                           $$/
 Hello!
 
 Thanks for installing TypToP (version: {version}).  This software
@@ -61,7 +61,7 @@ def _get_login_user():
     return user
 
 def _get_username():
-    # trying to go over the problem of 
+    # trying to go over the problem of
     if USER:
         print("Designated user: {}".format(USER))
         return USER
@@ -224,7 +224,7 @@ parser.add_argument(
     "--update", action="store_true",
     help="Updates TypTop to the latest released version"
 )
- 
+
 args = parser.parse_args()
 if len(sys.argv) <=1:
     print(parser.print_help())
@@ -234,7 +234,7 @@ if len(sys.argv) <=1:
 if args.user:
     USER = args.user
     # print("User settings have been set to {}".format(USER))
-    
+
 try:
     if args.allowtypo:
         root_only_operation()
@@ -270,8 +270,8 @@ try:
         root_only_operation()
         print("RE-initiating pam_typtop")
         initiate_typodb(RE_INIT=True)
-        
-            
+
+
     if args.status:
         typoDB = _get_typoDB()
         print("\nTYPO-TOLERANCE STATUS:")
@@ -292,9 +292,8 @@ try:
     if args.update:
         root_only_operation()
         subprocess.call("pip install -U pam_typtop && "
-                        "sudo typtop --init", 
+                        "sudo typtop --init",
                         shell=True)
 
 except AbortSettings as abort:
     print("Settings' change had been aborted.")
-

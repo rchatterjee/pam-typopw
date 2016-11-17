@@ -8,14 +8,14 @@ from base64 import urlsafe_b64encode, urlsafe_b64decode
 import random
 import dataset
 from zxcvbn import password_strength
-from pam_typtop.pw_pkcrypto2 import (
+from typtop.pw_pkcrypto2 import (
     encrypt, decrypt, generate_key_pair, compute_id,
     pkencrypt, pkdecrypt, harden_pw, verify,
     serialize_pk, deserialize_pk, serialize_sk,
     verify_pk_sk, SALT_LENGTH
 )
 from word2keypress import distance
-from pam_typtop.config import *
+from config import *
 from operator import itemgetter
 
 # GENERAL TODO:
@@ -318,7 +318,7 @@ class UserTypoDB(object):
         self._db[typocacheT].insert_many(garbage_list)
         ctx = bytes(pkencrypt(self._pk, json.dumps(f_list)))
         self._db[auxT].upsert({
-            'desc': FreqList, 
+            'desc': FreqList,
             'data': ctx
         }, ['desc'])
         self._db.commit()
@@ -560,7 +560,7 @@ class UserTypoDB(object):
             return True
         d = old_t_c + new_t_c
         rnd = random.randint(0, d)
-        return rnd < new_t_c 
+        return rnd < new_t_c
 
     def clear_waitlist(self):
         self._db[waitlistT].delete()
@@ -611,9 +611,9 @@ class UserTypoDB(object):
         # is a very important function, TODO: rename
         orig_pw = self.decrypt_pw_ctx(sk)
         self.update_log(pw, incache=True) # TODO: adequate parameter
-        assert self.validate(orig_pw, pw) 
+        assert self.validate(orig_pw, pw)
         self._update_typo_cache_by_waitlist(sk, self._pw)
-        return 2 if is_typo_login else 1 
+        return 2 if is_typo_login else 1
 
     def _get_from_secdb(self, key, apply_type=str):
         if key not in self._sec_tab_cache:
@@ -627,11 +627,11 @@ class UserTypoDB(object):
         editDist = distance(str(orig_pw), str(typo))
         typo_ent = get_entropy_stat(typo)
         rel_entropy = typo_ent - self._pwent
-        
+
         rel_bound = self._get_from_secdb(REL_ENT_BIT_DEC_ALLOWED, int)
         strict_bound = self._get_from_secdb(LOWEST_ENT_BIT_ALLOWED, int)
         edist_bound = self._get_from_secdb(EditCutoff, int)
-        
+
         notMuchWeaker = (rel_entropy >= rel_bound)
         notTooWeak = (typo_ent >= strict_bound)
         closeEdit = (editDist <= edist_bound)
@@ -643,7 +643,7 @@ class UserTypoDB(object):
         It also updates the log accordingly (if updateLog is set)
         and clears waitlist
         sk: the secrete key found in previous function
-        orig_pw: retrieved original password, 
+        orig_pw: retrieved original password,
         """
         logger.info("Updating {} by {}".format(typocacheT, waitlistT))
         good_typo_list = self._decrypt_filter_waitlist(sk, orig_pw)
@@ -662,14 +662,14 @@ class UserTypoDB(object):
                 cache_line = {
                     'tid': self._hmac_id(typo),
                     'sa': sa, 'h': h, 'sk_ctx': sk_ctx,
-                    'edit_dist': distance(str(typo), str(orig_pw)), 
+                    'edit_dist': distance(str(typo), str(orig_pw)),
                     'id': mini
                 }
                 cache_t.update(cache_line, ['id'])
                 f_list[mini] = max(minf + 1, f)
                 mini, minf = min(enumerate(f_list), key=itemgetter(1))
         self._db[auxT].update({
-            'desc': FreqList, 
+            'desc': FreqList,
             'data': pkencrypt(self._pk, json.dumps(f_list))
         }, ['desc'])
         self.clear_waitlist()
