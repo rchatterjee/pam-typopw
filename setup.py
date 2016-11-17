@@ -30,6 +30,8 @@ def set_distro():
         return 'debian'
     elif dist in ('fedora', 'red-hat', 'centos'):
         return 'fedora'
+    elif not dist and platform.system().lower() == 'darwin':
+        return 'darwin'
     else:
         raise ValueError("Not supported for your OS: {}".format(dist))
 
@@ -46,19 +48,21 @@ LIB_DEPENDENCIES = {
     # version.
     'fedora': [ 'libffi-devel', 'openssl-devel',
                 'python-devel', 'python-pip', 'python-setuptools',
-                'python-pam' ]
+                'python-pam' ],
+    'darwin': [],
 }[DISTRO]
 
 PACMAN = {
     'debian': 'apt-get install -y'.split(),
-    'fedora': 'yum install -y'.split()
+    'fedora': 'yum install -y'.split(),
+    'darwin': [],
 }[DISTRO]
 
-PYTHON_DEPS = [ 
+PYTHON_DEPS = [
 #    'cryptography',
-    'word2keypress', 
-    'dataset', 
-    'zxcvbn', 
+    'word2keypress',
+    'dataset',
+    'zxcvbn',
     'requests'
 ]
 
@@ -80,8 +84,8 @@ class CustomInstaller(install):
         chkpw_proc.wait()
         unix_chkpwd_st = os.stat(unix_chkpwd)
         os.chown(
-            '{}/chkpw'.format(BINDIR), 
-            unix_chkpwd_st.st_uid, 
+            '{}/chkpw'.format(BINDIR),
+            unix_chkpwd_st.st_uid,
             unix_chkpwd_st.st_gid
         )
         os.chmod('{}/chkpw'.format(BINDIR), 0o2755)

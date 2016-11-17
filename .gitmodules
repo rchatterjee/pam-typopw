@@ -1,3 +1,6 @@
 [submodule "osx/yubico-pam"]
 	path = osx/yubico-pam
 	url = https://github.com/Yubico/yubico-pam.git
+[submodule "osx/zxcvbn-c"]
+	path = osx/zxcvbn-c
+	url = https://github.com/tsyrogit/zxcvbn-c.git
