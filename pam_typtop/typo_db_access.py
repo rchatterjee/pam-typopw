@@ -3,7 +3,6 @@ import os
 import time
 import json
 import pwd
-import struct
 from base64 import urlsafe_b64encode, urlsafe_b64decode
 import random
 import dataset

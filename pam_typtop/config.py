@@ -5,6 +5,13 @@ LOG_DIR = '/var/log/'
 # SEC_DB_NAME = DB_NAME + ".ro" # READ_ONLY // ROOT_ONL
 BINDIR = '/usr/local/bin'
 
+# default values
+CACHE_SIZE = 5
+EDIT_DIST_CUTOFF = 1
+REL_ENT_CUTOFF = -3
+LOWER_ENT_CUTOFF = 10
+NUMBER_OF_ENTRIES_BEFORE_TYPOTOLER_CAN_BE_USED = 30
+
 ORIG_SK_SALT = 'OriginalPwSaltForEncSecretKey'
 ORIG_PW_CTX = 'OrignalPwCtx'
 ORIG_PW_ENTROPY_CTX = 'OrgignalPwEntropyCtx'
@@ -17,12 +24,6 @@ REL_ENT_BIT_DEC_ALLOWED = "RelativeEntropyDecAllowed"
 LOWEST_ENT_BIT_ALLOWED = "LowestEntBitAllowed"
 COUNT_KEY_CTX = "CountKeyCtx"
 
-# default values
-CACHE_SIZE = 5
-EDIT_DIST_CUTOFF = 1
-REL_ENT_CUTOFF = -3
-LOWER_ENT_CUTOFF = 10
-NUMBER_OF_ENTRIES_BEFORE_TYPOTOLER_CAN_BE_USED = 30
 
 # Tables' names:
 logT = 'Log'
