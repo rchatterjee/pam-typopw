@@ -13,8 +13,18 @@ import os
 from base64 import urlsafe_b64encode, urlsafe_b64decode
 import struct
 
+HASH_ALGOS = {
+    'sha1': hashes.SHA1(),
+    'sha224': hashes.SHA224(),
+    'sha384': hashes.SHA256(),
+    'sha384': hashes.SHA384(),
+    'sha512': hashes.SHA512()
+}
 HASH_CNT = 1000 # Number of hashes to compute one SHA256 takes 15 microsec,
-SALT_LENGTH = 16
+SALT_LENGTH = 16 # Length for the Password salt for PBKDF
+HASH_ALGO = 'sha256' # For PBKDF HMAC
+IV_LENGTH = 12 # Length of GCM IV
+TAG_LENGTH = 16 # Length of the GCM tag, truncate if larger than this
 
 def hash256(*args):
     """short function for Hashing the arguments with SHA-256"""
@@ -89,7 +99,7 @@ def serialize_pk(pk):
     elif isinstance(pk, ec.EllipticCurvePrivateKey):
         pk = pk.public_key()
     return pk.public_bytes(
-        serialization.Encoding.PEM, 
+        serialization.Encoding.PEM,
         format=serialization.PublicFormat.SubjectPublicKeyInfo
     )
 
@@ -98,7 +108,7 @@ def serialize_sk(sk):
         return sk
     else:
         return sk.private_bytes(
-            serialization.Encoding.PEM, 
+            serialization.Encoding.PEM,
             format=serialization.PrivateFormat.PKCS8,
             encryption_algorithm=serialization.NoEncryption()
         )
@@ -119,9 +129,59 @@ def deserialize_pk(pk_s):
     else:
         return pk_s
 
+def pwencrypt(pw, m):
+    """Encrypt the message m under pw using AES-GCM method (AEAD scheme).
+    iv = 0   # Promise me you will never reuse the key
+    c = <hash_style>.<iteration>.<urlsafe-base64 <salt><iv><tag><ctx>>
+    :hash_style: sha-256 or sha-512, scrypt
+    :iteration: Number of iteration. These two are the parameters
+    for PBKDF2HMAC.
+    Size of the ciphertext:
+    """
+    hash_func = HASH_ALGOS[HASH_ALGO]
+    itercnt = os.urandom(HASH_CNT, 2*HASH_CNT)
+    header_txt = '.'.join(hash_func, str(itercnt))
+    sa = os.urandom(SALT_LENGTH)
+    kdf = PBKDF2HMAC(
+        algorithm=hash_func,
+        length=16,
+        salt=sa,
+        iterations=itercnt,
+        backend=default_backend()
+    )
+    key = kdf.derive(pw)
+
+    iv, ctx, tag = _encrypt(key, m, associated_data=header_txt)
+    # Salt (SALT_LENGTH), IV (IV_LENGTH), TAG (16 byte)
+    ctx_b64 = urlsafe_b64encode(sa + iv + tag + ctx)
+    return header_txt + '.' + ctx_b64
+
+def pwdecryt(pw, full_ctx_b64):
+    """
+    Decrypt a ciphertext using pw,
+    Recover, hash algo, iteration count, and salt, iv, tag, ctx from ctx_b64
+    """
+    hash_func, itercnt, ctx_b64 = full_ctx_b64.split('.')
+    header_txt = '.'.join(hash_func, itercnt)
+    ctx_bin = urlsafe_b64decode(ctx_b64)
+    sa, ctx_bin = ctx_bin[:SALT_LENGTH], ctx_bin[SALT_LENGTH:]
+    iv, ctx_bin = ctx_bin[:IV_LENGTH], ctx_bin[IV_LENGTH:]
+    tag, ctx = ctx_bin[:TAG_LENGTH], ctx_bin[TAG_LENGTH:]
+    kdf = PBKDF2HMAC(
+        algorithm=HASH_ALGOS[hash_func],
+        length=16,
+        salt=sa,
+        iterations=int(itercnt),
+        backend=default_backend()
+    )
+    key = kdf.derive(pw)
+
+    m = _decrypt(key, iv, ctx, tag, associated_data=header_txt)
+    return m
+
 def _encrypt(key, plaintext, associated_data=''):
     # Generate a random 96-bit IV.
-    iv = os.urandom(12)
+    iv = os.urandom(IV_LENGTH)
     if len(key) not in algorithms.AES.key_sizes:
         key = hash256(key)  # makes it 256-bit
     # Construct an AES-GCM Cipher object with the given key and a
@@ -205,7 +265,7 @@ def pkdecrypt(sk, ctx):
 
 def compute_id(salt, pwtypo):
     """
-    Computes an ID for pwtypo. 
+    Computes an ID for pwtypo.
     @pwtypo (byte string): mistyped (or correct) password
     @salt (byte string): global salt
     """

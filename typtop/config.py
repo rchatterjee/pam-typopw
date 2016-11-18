@@ -1,7 +1,18 @@
+import sys
 VERSION = "1.2.7"
 DB_NAME = ".typoToler"
-SEC_DB_PATH = '/etc/pam_typtop'
-SEC_DB_NAME = DB_NAME + ".ro" # READ_ONLY // ROOT_ONLY
+SYSTEM = ''
+if sys.platform=='darwin':
+    SYSTEM = 'OSX'
+elif sys.platform.startswith('linux'):
+    SYSTEM = 'LINUX'
+else:
+    raise ValueError("Not yet suporrted. Report in @github/rchatterjee/pam_typopw")
+
+if SYSTEM == 'OSX':
+    SEC_DB_PATH = '/usr/local/typtop/' # ETC is not writable due to SIP in OSX
+elif SYSTEM == 'LINUX':
+    SEC_DB_PATH = '/usr/local/typtop/'  # Changing from /etc/pam_typtop
 
 ORIG_SK_SALT = 'OriginalPwSaltForEncSecretKey'
 ORIG_PW_CTX = 'OrignalPwCtx'
@@ -21,11 +32,14 @@ EDIT_DIST_CUTOFF = 1
 REL_ENT_CUTOFF = -3
 LOWER_ENT_CUTOFF = 10
 NUMBER_OF_ENTRIES_BEFORE_TYPOTOLER_CAN_BE_USED = 30
+UPDATE_GAPS= 24 * 60 * 60 # 24 hours, in seconds
 
 # Tables' names:
 logT = 'Log'
-logT_cols = {'tid', 'edit_dist', 'rel_entropy', 'ts',
-             'istop5fixable', 'in_cache', 'id'}
+logT_cols = {
+    'tid', 'edit_dist', 'rel_entropy', 'ts',
+    'istop5fixable', 'in_cache', 'id'
+}
 
 typocacheT = 'Typocache'
 typocacheT_cols = ['H_typo', 'salt', 'count', 'pk', 'top5fixable']
@@ -43,7 +57,6 @@ InstallDate = "InstallDate"
 InstallationID = "Install_id"
 LastSent="Last_sent"
 SendEvery="SendEvery(sec)"
-UPDATE_GAPS= 24 * 60 * 60 # 24 hours, in seconds
 AllowUpload = "AllowedLogUpload"
 LoginCount = 'NumOfLogins' # counts logins of real pw only
 FreqList = 'TypoFrequencies'
