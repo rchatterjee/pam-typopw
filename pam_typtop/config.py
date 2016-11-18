@@ -12,17 +12,16 @@ REL_ENT_CUTOFF = -3
 LOWER_ENT_CUTOFF = 10
 NUMBER_OF_ENTRIES_BEFORE_TYPOTOLER_CAN_BE_USED = 30
 
-ORIG_SK_SALT = 'OriginalPwSaltForEncSecretKey'
-ORIG_PW_CTX = 'OrignalPwCtx'
-ORIG_PW_ENTROPY_CTX = 'OrgignalPwEntropyCtx'
-HMAC_SALT_CTX = 'HMACSaltCtx'
-ORIG_PW_ID = 'OrgPwID'
-ORIG_PW_ENC_PK = 'EncPublicKey'
-ORIG_PW_SGN_PK = 'SgnPublicKey'
-ORIG_SGN_SALT = 'OriginalPwSaltForVerifySecretKey'
-REL_ENT_BIT_DEC_ALLOWED = "RelativeEntropyDecAllowed"
-LOWEST_ENT_BIT_ALLOWED = "LowestEntBitAllowed"
-COUNT_KEY_CTX = "CountKeyCtx"
+colname_ORIG_PW_CTX = 'OrignalPwCtx'
+# ORIG_PW_ENTROPY_CTX = 'OrgignalPwEntropyCtx'
+colname_ORIG_PW_ID = 'OrgPwID'
+colname_ORIG_PW_ENC_PK = 'EncPublicKey'
+# ORIG_PW_SGN_PK = 'SgnPublicKey'
+# ORIG_SGN_SALT = 'OriginalPwSaltForVerifySecretKey'
+colname_REL_ENT_CUTOFF = "RelativeEntropyDecAllowed"
+colname_LOWEST_ENT_BIT_ALLOWED = "LowestEntBitAllowed"
+colname_COUNT_KEY_CTX = "CountKeyCtx"
+colname_HMAC_SALT_CTX = 'HMACSaltCtx'
 
 
 # Tables' names:
@@ -30,8 +29,9 @@ logT = 'Log'
 logT_cols = {'tid', 'edit_dist', 'rel_entropy', 'ts',
              'istop5fixable', 'in_cache', 'id'}
 
+# TODO: Convert in a plain json file
 typocacheT = 'Typocache'
-typocacheT_cols = ['H_typo', 'salt', 'count', 'pk', 'top5fixable']
+typocacheT_cols = ['encryption_of_sk']
 
 waitlistT = 'Waitlist'
 # table col: base64(enc(json(typo, ts, hash, salt, entropy)))'

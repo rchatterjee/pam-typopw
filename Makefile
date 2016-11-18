@@ -2,10 +2,9 @@ full: chkpw typtopstatus
 
 chkpw: chkpw.c
 	gcc -o chkpw chkpw.c -lcrypt
-	# sudo chown root:root chkpw
-	# sudo chmod u+s chkpw
-	sudo chown --reference=/sbin/unix_chkpwd chkpw
-	sudo chmod --reference=/sbin/unix_chkpwd chkpw
+	sudo chown root:root chkpw
+	sudo chmod u+s chkpw
+
 typtopstatus: typtopstatus.c
 	gcc -o typtopstatus typtopstatus.c
 	sudo chown --reference=/sbin/unix_chkpwd typtopstatus
