@@ -12,12 +12,12 @@ except ImportError as e:
     from distutils.core import setup
     from distutils.command.install import install
 
-from pam_typtop.config import VERSION, BINDIR, SEC_DB_PATH
+from typtop.config import VERSION, BINDIR, SEC_DB_PATH
 
 GITHUB_URL = 'https://github.com/rchatterjee/pam-typopw' # URL in github repo
 SCRIPTS = [
-    'pam_typotolerant.py', 'send_typo_log.py',
-    'typtop'
+    'typtop/send_typo_log.py',
+    'typtop/typtopscript.py'
 ]
 
 
@@ -28,6 +28,8 @@ def set_distro():
         return 'debian'
     elif dist in ('fedora', 'red-hat', 'centos'):
         return 'fedora'
+    elif not dist and platform.system().lower() == 'darwin':
+        return 'darwin'
     else:
         raise ValueError("Not supported for your OS: {}".format(dist))
 
@@ -44,19 +46,21 @@ LIB_DEPENDENCIES = {
     # version.
     'fedora': [ 'libffi-devel', 'openssl-devel',
                 'python-devel', 'python-pip', 'python-setuptools',
-                'python-pam' ]
+                'python-pam' ],
+    'darwin': [],
 }[DISTRO]
 
 PACMAN = {
     'debian': 'apt-get install -y'.split(),
-    'fedora': 'yum install -y'.split()
+    'fedora': 'yum install -y'.split(),
+    'darwin': [],
 }[DISTRO]
 
-PYTHON_DEPS = [ 
+PYTHON_DEPS = [
 #    'cryptography',
-    'word2keypress', 
-    'dataset', 
-    'zxcvbn', 
+    'word2keypress',
+    'dataset',
+    'zxcvbn',
     'requests'
 ]
 
@@ -76,13 +80,13 @@ class CustomInstaller(install):
         unix_chkpwd = chkpw_proc.stdout.read().strip()
         chkpw_proc.wait()
         unix_chkpwd_st = os.stat(unix_chkpwd)
-        for c_src, c_out in [('chkpw.c', 'chkpw'), 
+        for c_src, c_out in [('chkpw.c', 'chkpw'),
                              ('typtopstatus.c', 'typtopstatus')]:
             exe = '{}/{}'.format(BINDIR, c_out)
             call(['gcc', c_src, '-o', exe, '-lcrypt'])
             os.chown(
                 exe,
-                unix_chkpwd_st.st_uid, 
+                unix_chkpwd_st.st_uid,
                 unix_chkpwd_st.st_gid
             )
             os.chmod(exe, 0o2755)
@@ -92,7 +96,7 @@ class CustomInstaller(install):
         if not os.path.exists(SEC_DB_PATH):
             os.makedirs(SEC_DB_PATH, mode=0650)
         os.chown(SEC_DB_PATH, shadow_stat.st_uid, shadow_stat.st_gid)
-        
+
         Popen('cp -vf {} {}/'.format(' '.join(SCRIPTS), BINDIR).split()).wait()
         common_auth = {
             'debian': '/etc/pam.d/common-auth',
@@ -124,10 +128,16 @@ class CustomInstaller(install):
         # initiate_typodb() # Because pip install is non-interactive
 
 
+OPTIONS = {
+    'argv_emulation': True,
+    # 'packages': ['requests', 'requests', 'selenium']
+}
+DATA_FILES = []
 # With the help from http://peterdowns.com/posts/first-time-with-pypi.html
 setup(
-    name='pam_typtop', # 'loginwitherror',
-    packages=['pam_typtop'], # this must be the same as the name above
+    name='typtop', # 'loginwitherror',
+    app=['typtop/typtopscript.py'],
+    packages=['typtop'], # this must be the same as the name above
     version=VERSION,
     description='Adaptive typo-tolerant password checking for Debian logins',
     author='Rahul Chatterjee, Yuval Pnueli',
@@ -138,10 +148,13 @@ setup(
         'Password', 'typo-tolerance',
         'login-with-errors', 'Login'
     ],
+    scripts=SCRIPTS,
     package_data={'': ['chkpw.c', 'LICENSE', 'README.md']},
+    data_files=DATA_FILES,
     include_package_data=True,
+    options={'py2app': OPTIONS},
     classifiers=['Development Status :: 4 - Beta'],
     install_requires=PYTHON_DEPS,
-    cmdclass={'install': CustomInstaller},
+    # cmdclass={'install': CustomInstaller},
     zip_safe=False
 )
