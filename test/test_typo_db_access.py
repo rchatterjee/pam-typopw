@@ -1,7 +1,7 @@
 import os
 import json
 import pwd
-from pam_typtop.typo_db_access import (
+from typtop.dbaccess import (
     UserTypoDB,
     DB_NAME,
     waitlistT,
@@ -44,7 +44,7 @@ def start_DB():
 def count_real_typos_in_cache(t_db, PW_CHANGE = False):
     flist_ctx = t_db.get_from_auxtdb(FreqList)
     f_list_all = json.loads(pkdecrypt(t_db._sk, flist_ctx))
-    f_list = [f for f in f_list_all if f>0] 
+    f_list = [f for f in f_list_all if f>0]
     return len(f_list), sum(f_list)
 
 def test_login_settings():
@@ -76,7 +76,7 @@ def test_add_to_cache(isStandAlone=True):
     # t1_h,_ = sk_dict1.popitem()
     # assert isIn_t1
     # assert hash_t.count(H_typo=t1_h) == 1
-    # assert 
+    # assert
     # assert hash_t.count(H_typo=t5_h) == 1
     if isStandAlone:
         remove_DB()
@@ -106,7 +106,7 @@ def test_many_entries(isStandAlone = True):
     wait_t = typoDB.getdb()['Waitlist']
 
     print "start log:{}".format(len(log_t))
-    
+
     for typ in listOfOneDist(BIG):
         typoDB.check(typ)
     print "waitlist len:{}".format(len(wait_t))
@@ -122,7 +122,7 @@ def test_many_entries(isStandAlone = True):
         remove_DB()
     else:
         return typoDB
-    
+
 def test_deleting_logs(isStandAlone = True):
     typoDB = start_DB()
     insert = 10
@@ -144,7 +144,7 @@ def test_deleting_logs(isStandAlone = True):
         remove_DB()
     else:
         return typoDB
-    
+
 def test_pw_change(isStandAlone = True):
     typoDB = test_alt_typo(isStandAlone = False)
     db = typoDB.getdb()
@@ -169,7 +169,7 @@ def test_logT(is_stand_alone=True):
     typoDB = start_DB()
     typoDB.allow_login()
     assert typoDB.is_allowed_login()
-    assert not on_wrong_password(typoDB, pws[0]) 
+    assert not on_wrong_password(typoDB, pws[0])
     assert on_correct_password(typoDB, get_pw()) # 1
     assert not on_wrong_password(typoDB, pws[0]) # not enough login count
     for _ in range(29):
@@ -207,8 +207,8 @@ def test_disabling_first_30_times(isStandAlone = True):
         remove_DB()
     else:
         return typoDB
-    
-    
+
+
 def get_pw():
     return 'GoldApp&3'
 
@@ -234,7 +234,7 @@ def listOfOneDist(length):
         newC = chr(ii%M + m)
         typo = get_pw()[:col]+newC+get_pw()[col:]
         yield typo
-    
-    
+
+
 
 # pytest.main([__file__])

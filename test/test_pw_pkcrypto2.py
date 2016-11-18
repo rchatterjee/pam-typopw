@@ -1,6 +1,6 @@
 
 from __future__ import print_function
-from pam_typtop.pw_pkcrypto2 import (
+from typtop.pw_pkcrypto2 import (
     generate_key_pair, pkencrypt, pkdecrypt,
     encrypt, decrypt, hmac256, compute_id,
     serialize_pk, serialize_sk, deserialize_sk,
