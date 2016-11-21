@@ -12,6 +12,7 @@ except ImportError as e:
     from distutils.core import setup
     from distutils.command.install import install
 
+import typtop
 from typtop.config import VERSION, BINDIR, SEC_DB_PATH
 
 GITHUB_URL = 'https://github.com/rchatterjee/pam-typopw' # URL in github repo

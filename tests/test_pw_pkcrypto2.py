@@ -4,7 +4,8 @@ from typtop.pw_pkcrypto2 import (
     generate_key_pair, pkencrypt, pkdecrypt,
     encrypt, decrypt, hmac256, compute_id,
     serialize_pk, serialize_sk, deserialize_sk,
-    deserialize_pk, verify_pk_sk, harden_pw, verify
+    deserialize_pk, verify_pk_sk, harden_pw, verify,
+    pwencrypt, pwdecrypt
 )
 import struct
 import os
@@ -21,6 +22,18 @@ def test_pkencrypt():
         c = pkencrypt(pk, unicode(m))
         assert pkdecrypt(sk, c) == m
     assert pkdecrypt(sk, unicode(c)) == m
+
+def test_pwencrypt():
+    msgs = [
+        'aflashdfhaasdfadsf',
+        'asdfkjashdflkashld'[:16],
+        'The best secret message ever written by any human!!'
+    ]
+    pwd = 'Mysecretpass'
+    for m in msgs:
+        c = pwencrypt(pwd, unicode(m))
+        assert pwdecrypt(pwd, c) == m
+    assert pwdecrypt(pwd, unicode(c)) == m
 
 def test_fail_pkencrypt():
     m = 'asdfasdfsadfasdfasdfasdfasdfasdfasd'

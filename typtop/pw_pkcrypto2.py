@@ -9,14 +9,14 @@ from cryptography.hazmat.primitives.ciphers import (
 )
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 
-import os
+import os, random
 from base64 import urlsafe_b64encode, urlsafe_b64decode
 import struct
 
 HASH_ALGOS = {
     'sha1': hashes.SHA1(),
     'sha224': hashes.SHA224(),
-    'sha384': hashes.SHA256(),
+    'sha256': hashes.SHA256(),
     'sha384': hashes.SHA384(),
     'sha512': hashes.SHA512()
 }
@@ -138,9 +138,10 @@ def pwencrypt(pw, m):
     for PBKDF2HMAC.
     Size of the ciphertext:
     """
+    m = m.encode('ascii', errors='ignore')
     hash_func = HASH_ALGOS[HASH_ALGO]
-    itercnt = os.urandom(HASH_CNT, 2*HASH_CNT)
-    header_txt = '.'.join(hash_func, str(itercnt))
+    itercnt = random.randint(HASH_CNT, 2*HASH_CNT)
+    header_txt = HASH_ALGO + '.' + str(itercnt)
     sa = os.urandom(SALT_LENGTH)
     kdf = PBKDF2HMAC(
         algorithm=hash_func,
@@ -156,19 +157,20 @@ def pwencrypt(pw, m):
     ctx_b64 = urlsafe_b64encode(sa + iv + tag + ctx)
     return header_txt + '.' + ctx_b64
 
-def pwdecryt(pw, full_ctx_b64):
+def pwdecrypt(pw, full_ctx_b64):
     """
     Decrypt a ciphertext using pw,
     Recover, hash algo, iteration count, and salt, iv, tag, ctx from ctx_b64
     """
-    hash_func, itercnt, ctx_b64 = full_ctx_b64.split('.')
-    header_txt = '.'.join(hash_func, itercnt)
+    full_ctx_b64 = full_ctx_b64.encode('ascii', errors='ignore')
+    hash_algo, itercnt, ctx_b64 = full_ctx_b64.split('.')
+    header_txt = hash_algo + '.' + itercnt
     ctx_bin = urlsafe_b64decode(ctx_b64)
     sa, ctx_bin = ctx_bin[:SALT_LENGTH], ctx_bin[SALT_LENGTH:]
     iv, ctx_bin = ctx_bin[:IV_LENGTH], ctx_bin[IV_LENGTH:]
     tag, ctx = ctx_bin[:TAG_LENGTH], ctx_bin[TAG_LENGTH:]
     kdf = PBKDF2HMAC(
-        algorithm=HASH_ALGOS[hash_func],
+        algorithm=HASH_ALGOS[hash_algo],
         length=16,
         salt=sa,
         iterations=int(itercnt),
