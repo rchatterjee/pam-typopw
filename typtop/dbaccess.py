@@ -1,37 +1,30 @@
-import logging
+
 import os
+import re
 import time
 import json
+import yaml
 import pwd
-from base64 import urlsafe_b64encode, urlsafe_b64decode
 import random
 import dataset
 from zxcvbn import password_strength
 from typtop.pw_pkcrypto2 import (
     encrypt, decrypt, generate_key_pair, compute_id,
-    pkencrypt, pkdecrypt, harden_pw, verify,
-    serialize_pk, deserialize_pk, serialize_sk,
+    pkencrypt, pkdecrypt, pwencrypt, pwdecrypt,
+    serialize_pk, deserialize_pk, serialize_sk, deserialize_sk,
     verify_pk_sk, SALT_LENGTH
 )
+from collections import defaultdict
+from base64 import urlsafe_b64encode, urlsafe_b64decode
 from word2keypress import distance
 from config import *
 from operator import itemgetter
+from dbutils import find_one, logger, setup_logger
 
 # GENERAL TODO:
 # - improve computation speed
 #   - joint hashes/salt computations
 #   - more efficent SQL actions
-
-def find_one(table, key, apply_type=str):
-    q = 'select data from {} where desc="{}" limit 1'.format(
-        table.table.name, key
-    )
-    try:
-        res = list(table.database.query(q))
-        return apply_type(res[0]['data'])
-    except Exception as e:
-        logger.debug('ERROR in db/table: ({}).'.format(table, e))
-        return apply_type()
 
 def is_in_top5_fixes(orig_pw, typo):
     return orig_pw in (
@@ -39,17 +32,9 @@ def is_in_top5_fixes(orig_pw, typo):
         typo.upper(), typo[1:], typo[:-1]
     )
 
-logger = logging.getLogger(DB_NAME)
-def setup_logger(logfile_path, log_level, user):
-    logger.setLevel(log_level)
-    if not logger.handlers:  # if it doesn't have an handler yet:
-        handler = logging.FileHandler(logfile_path)
-        formatter = logging.Formatter(
-            '%(asctime)s:%(levelname)s:<{}>:[%(filename)s:%(lineno)s'\
-            '(%(funcName)s)>> %(message)s'.format(user)
-        )
-        handler.setFormatter(formatter)
-        logger.addHandler(handler)
+def get_logging_path(username):
+    homedir = pwd.getpwnam(username).pw_dir
+    return "{}/{}.log".format(homedir, DB_NAME)
 
 def get_time():
     """
@@ -60,7 +45,7 @@ def get_time():
     return str(time.time())
 
 _entropy_cache = {}
-def get_entropy_stat(typo):
+def entropy(typo):
     global _entropy_cache
     if typo not in _entropy_cache:
         _entropy_cache[typo] = password_strength(typo)['entropy']
@@ -88,7 +73,7 @@ class UserTypoDB(object):
             try:
                 os.makedirs(typo_dir)
             except OSError as error:
-                print("Trying to create: {}, but seems like the database "
+                logger.error("Trying to create: {}, but seems like the database "
                       "is not initialized.".format(typo_dir))
                 raise UserTypoDB.NoneInitiatedDB(error)
 
@@ -100,6 +85,7 @@ class UserTypoDB(object):
             primary_id='desc',
             primary_type='String(100)'
         )
+
         # always contains the serialized versino of sk, pk
         self._sk, self._pk = None, None
         # the global salt for the hmac-id only will be available if
@@ -107,50 +93,102 @@ class UserTypoDB(object):
         self._hmac_salt, self._pw, self._pwent = None, None, None
         self._aux_tab_cache = {}  # For caching results from auxtab
         # setting the logger object
-        log_level = logging.DEBUG if debug_mode else logging.INFO
-        setup_logger(self._log_path, log_level, user)
-        dataLine_N = self.get_from_auxtdb(CacheSize, int)
-        if dataLine_N:
-            self.N = dataLine_N
-            logger.info("{}: N={}".format(typocacheT, self.N))
+        setup_logger(self._log_path, debug_mode, user)
+        isON = self.get_from_auxtdb(ALLOWED_TYPO_LOGIN, bool)
+        logger.info("typoToler is ON? {}".format(isON))
+
+    def init_typotoler(self, pw, allow_typo_login=False):
+        """Create the 'typotoler' database in user's home-directory.  Changes
+        the DB permission to ensure its only readable by the user.
+        Also, it intializes the required tables as well as the reuired
+        variables, such as, the typocache size, the global salt etc.
+
+        """
+        logger.info("Initiating typoToler db with {}".format(
+            dict(pw=pw, allow_typo_login=allow_typo_login)
+        ))
+        u_data = pwd.getpwnam(self._user)
+        u_id, g_id = u_data.pw_uid, u_data.pw_gid
+        db_path = self._db_path
+        log_path = self._log_path
+        os.chown(log_path, u_id, g_id)  # change owner to user
+        os.chmod(log_path, 0600)  # RW only for owner
+
+        db = self._db
+        db[auxT].delete()         # make sure there's no old unrelevent data
+        # doesn't delete log because it will also be used
+        # whenever a password is changed
+
+        # *************** Initializing Aux Data *************************
+        self._aux_tab = self._db.get_table(
+            auxT, primary_id='desc', primary_type='String(100)'
+        )
+        self._aux_tab_cache = {}
+
+        # *************** add org password, its' pks && global salt: ********
+        # 1. derive public_key from the original password
+        # 2. encrypt the global salt with the enc pk
+        install_id = urlsafe_b64encode(os.urandom(8))
+        install_time = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())
+        last_sent_time = get_time()
+        self._hmac_salt = os.urandom(SALT_LENGTH) # global salt
+        self._pk, self._sk = generate_key_pair()  # ECC key pair
+        self._sk = serialize_sk(self._sk)
+        self._pw = pw
+        pwid = compute_id(self._hmac_salt, pw) # Do we need it?
+        perm_index = self._fill_cache_w_garbage()
+        if WARM_UP_CACHE:
+            freq_counts = range(CACHE_SIZE, 0, -1)
+            for i, f in enumerate(range(CACHE_SIZE)):
+                freq_counts[perm_index[i]] = freq_counts[i]
         else:
-            self.N = CACHE_SIZE
-        self.isON = self.get_from_auxtdb(AllowedTypoLogin, bool)
-        logger.info("typoToler is ON? {}".format(self.isON))
+            freq_counts = [0 for _ in xrange(WAITLIST_SIZE)]
+        header_ctx = pkencrypt(self._pk, json.dumps({
+            REAL_PW: self._pw,
+            HMAC_SALT: urlsafe_b64encode(self._hmac_salt),
+            FREQ_COUNTS: freq_counts
+        }))
 
-    def getdb(self):
-        return self._db
+        logger.info("Initializing the auxiliary data base ({})".format(auxT))
+        db[auxT].insert_many([
+            dict(desc=INSTALLATION_ID, data=install_id),
+            dict(desc=INSTALLATION_DATE, data=install_time),
+            dict(desc=LOG_LAST_SENTTIME, data=str(last_sent_time)),
+            dict(desc=LOG_SENT_PERIOD, data=str(UPDATE_GAPS)),
+            dict(desc=SYSTEM_STATUS, data=SYSTEM_STATUS_NOT_INITIALIZED),
+            dict(desc=LOGIN_COUNT, data=str(0)),
+            dict(desc=ALLOWED_TYPO_LOGIN, data=str(allow_typo_login)),
+            dict(desc=ALLOWED_LOGGING, data='True'),
 
-    def get_db_path(self):
-        return self._db_path
+            dict(desc=ENC_PK, data=serialize_pk(self._pk)),
+            dict(desc=INDEX_J, data=str(random.randint(0, WAITLIST_SIZE-1))),
 
-    @staticmethod
-    def get_logging_path(username):
-        homedir = pwd.getpwnam(username).pw_dir
-        return "{}/{}.log".format(homedir, DB_NAME)
+            dict(desc=HEADER_CTX, data=str(header_ctx))
+        ])
+        self._aux_tab.create_index(['desc'])
+        self._aux_tab_cache = {}
+        self.set_status(SYSTEM_STATUS_ALL_GOOD)
+        # 3. Filling the Typocache with garbage
+        self._fill_waitlist_w_garbage()
+        logger.debug("Initialization Complete")
 
     def is_typotoler_init(self):
         """
         Returns whether the typotoler has been set (might be installed
         but not active)
         """
-        installid = self.get_from_auxtdb(InstallationID)
-        allowed_login = self.get_from_auxtdb(ORIG_PW_ENC_PK)
+        if not os.path.exists(self._db_path):
+            return False
+        if self.get_from_auxtdb(HEADER_CTX):
+            return True
+        else:
+            return False
 
-        if ((not allowed_login) != (not installid)):
-            # if globSalt and pw aren't in the same initialization state
-            if not allowed_login:
-                stub = 'global salt is missing'
-            else:
-                stub = 'pw is missing'
-            logger.critical('DB is corrupted: {}'.format(stub))
-            raise UserTypoDB.CorruptedDB(
-                "{} is corrupted!  secdb={}  auxdb={}"\
-                .format(auxT, allowed_login, installid)
-            )
-        # if typoToler is initiates, it has both the normal AuxT and
-        # the secure table
-        return (allowed_login and installid)
+    def getdb(self):
+        return self._db
+
+    def get_db_path(self):
+        return self._db_path
 
     def _hmac_id(self, typo):
         """
@@ -161,146 +199,59 @@ class UserTypoDB(object):
         assert self._hmac_salt
         return compute_id(self._hmac_salt, bytes(typo))
 
-    def _cache_entry(self, pw, edist, _id):
-        sa, k, h = harden_pw(pw)
-        sk_ctx = encrypt(k, self._sk)  # assumes self._sk is serialized
-        return {
-            'tid': self._hmac_id(pw),
-            'sa': sa, 'h': h, 'sk_ctx': sk_ctx,
-            'edit_dist': edist, 'id': _id
-        }
-
-    def is_allowed_login(self):
+    def assert_initialized(self):
         if not self.is_typotoler_init():
             raise UserTypoDB.NoneInitiatedDB(
                 "is_allowed_login: Typotoler DB wasn't initiated yet!"
             )
-        is_on = self.get_from_auxtdb(AllowedTypoLogin, bool)
+
+    def is_allowed_login(self):
+        self.assert_initialized()
+        is_on = self.get_from_auxtdb(ALLOWED_TYPO_LOGIN, bool)
         assert is_on in (True, False), \
             'Corrupted data in {}: {}={} ({})'.format(
-                auxT, AllowedTypoLogin, is_on, type(is_on)
+                auxT, ALLOWED_TYPO_LOGIN, is_on, type(is_on)
             )
         return is_on
 
     def allow_login(self, allow=True):
-        if not self.is_typotoler_init():
-            raise UserTypoDB.NoneInitiatedDB(
-                "allow_login: Typotoler DB wasn't initiated yet!"
-            )
+        self.assert_initialized()
         assert allow in (True, False, 0, 1), "Expects a boolean"
         allow = True if allow else False
-        self._aux_tab.update(
-            dict(desc=AllowedTypoLogin, data=str(allow)),
-            ['desc']
-        )
-        self._aux_tab_cache[AllowedTypoLogin] = allow
-        self.isON = allow
+        self.set_in_auxtdb(ALLOWED_TYPO_LOGIN, allow)
         state = "ON" if allow else "OFF"
         logger.info("typoToler set to {}".format(state))
 
-    def init_typotoler(self, pw, N=CACHE_SIZE,
-                       maxEditDist=EDIT_DIST_CUTOFF,
-                       typoTolerOn=False):
-        """Create the 'typotoler' database in user's home-directory.  Changes
-        the DB permission to ensure its only readable by the user.
-        Also, it intializes the required tables as well as the reuired
-        variables, such as, the typocache size, the global salt etc.
-
-        """
-        logger.info("Initiating typoToler db with {}".format(
-            dict(pw=pw, N=N, maxEditDist=maxEditDist, typoTolerOn=typoTolerOn)
-        ))
-        u_data = pwd.getpwnam(self._user)
-        u_id, g_id = u_data.pw_uid, u_data.pw_gid
-        db_path = self._db_path
-        # os.chmod(db_path, 0640)  # RW only for owner
-
-        logger.debug(
-            "{} permissons set to RW only for user:{}"\
-            .format(db_path, self._user)
-        )
-        log_path = self._log_path
-        os.chown(log_path, u_id, g_id)  # change owner to user
-        os.chmod(log_path, 0600)  # RW only for owner
-
-        db = self._db
-        db[auxT].delete()         # make sure there's no old unrelevent data
-        db[typocacheT].delete()
-        db[waitlistT].delete()
-
-        # doesn't delete log because it will also be used
-        # whenever a password is changed
-
-        # *************** Initializing Aux Data *************************
-        self._aux_tab = self._db.get_table(
-            auxT, primary_id='desc', primary_type='String(100)'
-        )
-        self._aux_tab_cache = {}
-        install_id = urlsafe_b64encode(os.urandom(8))
-        install_time = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())
-        last_sent_time = get_time()
-
-        # *************** add org password, its' pks && global salt: ********
-        # 1. derive public_key from the original password
-        # 2. encrypt the global salt with the enc pk
-        global_hmac_salt = os.urandom(SALT_LENGTH) # global salt
-        self._hmac_salt = global_hmac_salt
-        pk, sk = generate_key_pair()  # ECC key pair
-        self._sk = serialize_sk(sk)
-        self._pk = pk
-        self._pw = pw
-        pwid = compute_id(global_hmac_salt, pw)
-        pw_ctx = pkencrypt(pk, json.dumps({
-            'pw': self._pw,
-            'hmac_salt': urlsafe_b64encode(global_hmac_salt),
-            'entropy': bytes(get_entropy_stat(pw))
-        }))
-
-        logger.info("Initializing the auxiliary data base ({})".format(auxT))
-        db[auxT].insert_many([
-            dict(desc=InstallationID, data=install_id),
-            dict(desc=InstallDate, data=install_time),
-            dict(desc=LastSent, data=str(last_sent_time)),
-            dict(desc=SendEvery, data=str(UPDATE_GAPS)),
-            dict(desc=SysStatus, data=str(0)),
-            dict(desc=LoginCount, data=str(0)),
-            dict(desc=ORIG_PW_ID, data=str(pwid)),
-            dict(desc=ORIG_PW_CTX, data=pw_ctx),
-            dict(desc=ORIG_PW_ENC_PK, data=serialize_pk(pk)),
-            dict(desc=EditCutoff, data=str(maxEditDist)),
-            dict(desc=REL_ENT_BIT_DEC_ALLOWED, data=str(REL_ENT_CUTOFF)),
-            dict(desc=LOWEST_ENT_BIT_ALLOWED, data=str(LOWER_ENT_CUTOFF)),
-            dict(desc=CacheSize, data=str(N)),
-            dict(desc=AllowedTypoLogin, data=str(typoTolerOn)),
-            dict(desc=AllowUpload, data='True')
-        ])
-        self.N = N
-        self.isON = typoTolerOn
-        self._aux_tab.create_index(['desc'])
-        self._aux_tab_cache = {}
-        self.set_status('0') #sets status to init
-        # 3.
-        self._fill_cache_w_garbage()
-        # Filling the Typocache with garbage
-        logger.debug("Initialization Complete")
+    def _fill_waitlist_w_garbage(self):
+        waitlist = [
+            pkencrypt(self._pk, os.urandom(16)) for _ in xrange(WAITLIST_SIZE)
+        ]
+        self.set_in_auxtdb(WAIT_LIST, waitlist)
+        self._db.commit()
 
     def _fill_cache_w_garbage(self):
         logger.debug("Filling Typocache with garbage")
-        f_list = [-random.randint(0, 4294967294) for _ in xrange(self.N+1)]
-        f_list[0] = 4294967295
-        garbage_list = [self._cache_entry(self._pw, 0, 0)] + \
-                       [self._cache_entry(
-                           urlsafe_b64encode(os.urandom(4)),
-                           random.randint(0,1), i+1
-                       ) for i in range(self.N)]
-        self._db[typocacheT].insert_many(garbage_list)
-        ctx = bytes(pkencrypt(self._pk, json.dumps(f_list)))
-        self._db[auxT].upsert({
-            'desc': FreqList,
-            'data': ctx
-        }, ['desc'])
-        self._aux_tab_cache[FreqList] = ctx
-        self._db.commit()
+        perm_index = range(CACHE_SIZE)
+        random.shuffle(perm_index)
+        pw = self._pw
+        popular_typos = [os.urandom(16) for _ in xrange(CACHE_SIZE)]
+        if WARM_UP_CACHE:
+            i = 0
+            for tpw in [
+                pw.swapcase(), pw[0].swapcase()+pw[1:],
+                pw + '1', pw + '`', '1' + pw,
+                pw[:-1] + pw[-1] + pw[-1]
+            ]:
+                if i>=CACHE_SIZE: break
+                if (pw != tpw and tpw in popular_typos):
+                    popular_typos[perm_index[i]] = tpw
+                    i += 1
+        popular_typos = [pw] + popular_typos
+        garbage_list = [
+            pwencrypt(tpw, self._sk) for tpw in popular_typos
+        ]
+        self.set_in_auxtdb(TYPO_CACHE, garbage_list)
+        return perm_index
 
     def update_after_pw_change(self, newPw):
         """
@@ -309,57 +260,42 @@ class UserTypoDB(object):
         generates a new hmac salt,
         and encrypts the new pw, pw_ent, and the hmac salt
         """
-        # **************  ATTENTION ! *******************************
-        # MOSTALY a simple copy-paste of steps 1 to 2.5
-        # needs updating if we change them
+        # Mostly a simple copy-paste of steps 1 to 2.5
         logger.info("Re-intializing after a pw change")
         # 1. derive public_key from the original password
         # 2. encrypt the global salt with the enc pk
-        global_hmac_salt = os.urandom(16) # global salt
-        self._hmac_salt = global_hmac_salt
+        self._hmac_salt = os.urandom(16) # global salt
         pk, sk = generate_key_pair()  # ECC key pair
         self._pk, self._sk = pk, serialize_sk(sk)
         self._pw = newPw
-        pwid = compute_id(global_hmac_salt, newPw)
-        db = self._db
-        pw_ctx = pkencrypt(pk, json.dumps({
-            'pw': newPw,
-            'hmac_salt': urlsafe_b64encode(global_hmac_salt),
-            'entropy': bytes(get_entropy_stat(newPw))
+        perm_index = self._fill_cache_w_garbage()
+        if WARM_UP_CACHE:
+            freq_counts = range(CACHE_SIZE, 0, -1)
+            for i, f in enumerate(range(CACHE_SIZE)):
+                freq_counts[perm_index[i]] = freq_counts[i]
+        else:
+            freq_counts = [0 for _ in xrange(WAITLIST_SIZE)]
+        header_ctx = pkencrypt(self._pk, json.dumps({
+            REAL_PW: self._pw,
+            HMAC_SALT: urlsafe_b64encode(self._hmac_salt),
+            FREQ_COUNTS: freq_counts
         }))
-        for k, v in [(ORIG_PW_ID, str(pwid)),
-                     (ORIG_PW_CTX, pw_ctx),
-                     (ORIG_PW_ENC_PK, serialize_pk(pk))]:
-            self._aux_tab.update(dict(desc=k, data=v), ['desc'])
-            self._aux_tab_cache[k] = v
+        self.set_in_auxtdb(HEADER_CTX, header_ctx)
+
         # 3 sending logs and deleting tables:
         logger.debug('Sending logs')
         self.update_last_log_sent_time(get_time(), True)
 
         logger.debug("Deleting tables")
-        db[typocacheT].delete()
-        db[waitlistT].delete()
         db[logT].delete()
         db.commit()
         # Filling the Typocache with garbage
-        self._fill_cache_w_garbage()
-        self.set_status('0') #sets status to init
+        self._fill_waitlist_w_garbage()
+        self.set_status(SYSTEM_STATUS_ALL_GOOD)
         logger.info("RE-Initialization Complete")
 
-    def decrypt_pw_ctx(self, sk):
-        # returns pw, hmac_salt, entropy
-        # ORIG_PW_CTX contains: pw, hmac_salt, and entropy
-        # TODO: Catch exceptions
-        pw_info = json.loads(pkdecrypt(sk, self.get_from_auxtdb(ORIG_PW_CTX)))
-        self._sk = sk
-        self._pw = pw_info['pw']
-        self._hmac_salt = urlsafe_b64decode(bytes(pw_info['hmac_salt']))
-        self._pwent = float(pw_info['entropy'])
-        return self._pw
-
     def get_installation_id(self):
-        if not self.is_typotoler_init():
-            raise UserTypoDB.NoneInitiatedDB("Typotoler uninitialized")
+        self.assert_initialized()
         return self.get_from_auxtdb(InstallationID)
 
     def get_last_unsent_logs_iter(self):
@@ -414,15 +350,10 @@ class UserTypoDB(object):
         if allow in (0, 1):
             allow = bool(allow)
         assert isinstance(allow, bool)
-        self._aux_tab.upsert(
-            dict(desc=AllowUpload, data=str(allow)),
-            ['desc']
-        )
-        self._aux_tab_cache[AllowUpload] = allow
-        self.isON = allow
+        self.set_in_auxtdb(desc=ALLOWED_LOGGING, data=allow)
 
     def is_allowed_upload(self):
-        send_stat_row = self.get_from_auxtdb(AllowUpload, bool)
+        send_stat_row = self.get_from_auxtdb(ALLOWED_LOGGING, bool)
         return send_stat_row
 
     def update_log(self, typo, incache, ts=None):
@@ -438,7 +369,7 @@ class UserTypoDB(object):
         log_info = {
             'tid': compute_id(self._hmac_salt, typo),
             'edit_dist': distance(str(self._pw), str(typo)),
-            'rel_entropy': self._pwent - get_entropy_stat(typo),
+            'rel_entropy': self._pwent - entropy(typo),
             'ts': ts if ts else get_time(),
             'istop5fixable': is_in_top5_fixes(self._pw, typo),
             'in_cache': incache
@@ -450,72 +381,60 @@ class UserTypoDB(object):
         self._db[logT].insert(dict(t_id=msg, timestamp=ts))
 
     def _add_typo_to_waitlist(self, typo):
-        """
-        Adds the typo to the waitlist.
-        saves the timestamp as well (for logging reasons)
-        computes an hash for the typo (+sa)
-        encryptes everything in a json format
-        enc(json(dict(...)))
-        dictionary keys: typo_hs, typo_pk, typo_pk_salt, timestamp, typo
-
-        @typo (string) : the user's passwrod typo
+        """Adds the typo to the waitlist.
+        @typo (string) : typo of the user's passwrod
         """
         logger.debug("Adding a new typo to waitlist")
-        sa, k, h = harden_pw(typo)
+        waitlist = self.get_from_auxtdb(WAIT_LIST, yaml.load)
+        indexj = int(self.get_from_auxtdb(INDEX_J, int))
         ts = get_time()
-        row = json.dumps((typo, sa, urlsafe_b64encode(k), h, ts))
-        pk = self.get_pk()
-        self._db[waitlistT].insert(dict(ctx=pkencrypt(pk, bytes(row))))
-        logger.debug("Typo encrpted")
+        assert indexj < len(waitlist), "Indexj={}, waitlist={}".format(indexj, waitlist)
+        waitlist[indexj] = pkencrypt(self.get_pk(), json.dumps([typo, ts]))
+        indexj = (indexj + 1) % WAITLIST_SIZE
+        self.set_in_auxtdb(WAIT_LIST, waitlist)
+        self.set_in_auxtdb(INDEX_J, indexj)
+        logger.debug("Typo encrpted.")
 
-    def _decrypt_filter_waitlist(self, sk, orig_pw):
+    def _decrypt_filter_waitlist(self):
         '''
         Returns a list of the typos in waitlist, unsorted,
         Key = typo (string)
         Value = (typo, t_count, ts_list, typo_hs, t_pk, t_pk_salt)
         '''
-        new_typo_dic = {}
+        filtered_typos = defaultdict(int)
+        sk = deserialize_sk(self._sk)
+        assert self._pwent, "PW is not initialized: {}".format(self._pwent)
         ignore = set()
-        for line in self._db[waitlistT]:
-            row = json.loads(pkdecrypt(sk, line['ctx']))
-            typo, sa, k, h, ts = row
+        for typo_ctx in self.get_from_auxtdb(WAIT_LIST, yaml.load):
+            typo_txt = pkdecrypt(sk, typo_ctx)
+            if re.match(r'\[".*", ".*"\]', typo_txt):
+                typo, ts = yaml.safe_load(typo_txt)
+            else:
+                print("Did not match: {!r}".format(typo_txt))
+                continue
             self.update_log(typo, incache=False, ts=ts)
             if typo in ignore: continue
-            # TODO: Insert into the log, these are in waitlist, cache miss
-            try:
-                new_typo_dic[typo][-1].append(ts) # appending ts to ts_list
-            except KeyError:
-                if not self.validate(orig_pw, typo):
-                    ignore.add(typo)
-                else:
-                    new_typo_dic[typo] = (sa, k, h, [ts])
+            if self.validate(self._pw, typo):
+                filtered_typos[typo] += 1
+            else:
+                print("Ignoring: {}".format(typo))
+                ignore.add(typo)
         logger.info("Waitlist decrypted successfully")
         return sorted(
-            new_typo_dic.items(), key=lambda a: len(a[1][-1]), reverse=True
+            filtered_typos.items(), key=lambda a: a[1], reverse=True
         )
 
     def get_table_size(self, tableName):
         return self._db[tableName].count()
 
     def get_typo_cache_size(self):
-        return self.get_table_size(typocacheT)
-
-    def get_orig_pw(self, sk):
-        """
-        Returns pw, pw's entropy (in bits)
-        Mainly used after the user submitted an APPROVED typo,
-        and now we need to original pw to calc edit_dist
-        and the difference in entropy
-        """
-        if not self._pw or not self._pwent:
-            self.decrypt_pw_ctx(sk)
-        return self._pw, self._pwent
+        return CACHE_SIZE
 
     def get_pk(self):
         """Returns the public key"""
         if not self._pk:
-            self._pk = self.get_from_auxtdb(ORIG_PW_ENC_PK)
-        return deserialize_pk(self._pk)
+            self._pk = deserialize_pk(self.get_from_auxtdb(ENC_PK))
+        return self._pk
 
     def get_hmac_salt(self, sk):
         """
@@ -533,87 +452,92 @@ class UserTypoDB(object):
                 )
         return self._hmac_salt
 
-    # TODO FUTURE
+    # TODO: More policies
     @staticmethod
     def cache_insert_policy(old_t_c, new_t_c):
         if old_t_c < 0: # for garbage rows in cache
             return True
         d = old_t_c + new_t_c
-        rnd = random.randint(0, d)
-        return rnd < new_t_c
+        assert d>0
+        rnd = random.randint(0, d-1)
+        return rnd <= new_t_c
 
     def clear_waitlist(self):
-        self._db[waitlistT].delete()
-        logger.info("{} had been deleted".format(waitlistT))
+        self._fill_waitlist_w_garbage()
+        logger.info("Waitlist is deleted.")
 
     def check_login_count(self, update=False):
         """Keeps track of how many times the user has successfully logged in."""
-        count_entry = self.get_from_auxtdb(LoginCount, int) + 1
+        count_entry = self.get_from_auxtdb(LOGIN_COUNT, int) + 1
         if update:
-            self._db[auxT].update(
-                dict(desc=LoginCount, data=str(count_entry)),
-                ['desc']
-            )
+            self.set_in_auxtdb(LOGIN_COUNT, count_entry)
         return count_entry > NUMBER_OF_ENTRIES_BEFORE_TYPOTOLER_CAN_BE_USED
 
     def check(self, pw):
         logger.info("Original password had been entered by user")
         pk = self.get_pk()   # cannot be tampered
-        sk = None
-        is_typo_login = False
-        for i, row in enumerate(self._db[typocacheT]):
-            sa, h, sk_ctx = row['sa'], row['h'], row['sk_ctx']
-            k = verify(pw, sa, h)
-            if not k: continue  # not a match
-            sk = decrypt(k, sk_ctx)
-            if verify_pk_sk(pk, sk):  #  Somehow the hash matched !!
-                flist_ctx = self.get_from_auxtdb(FreqList)
-                if not self._sk:
-                    self._sk = sk
-                f_list = json.loads(pkdecrypt(sk, flist_ctx))
-                if i>0:  # Update the entry in the cache
-                    f_list[row['id']] += 1
-                    self._db[typocacheT].update(row, ['tid'])
-                    is_typo_login = (self.check_login_count(update=False) and
-                                     self.is_allowed_login())
-                else:  # Correct password, no more check, just accept.
-                    self.check_login_count(update=True)
-                break
-            else:
-                sk = None
-        if not sk:
+        typo_cache = self.get_from_auxtdb(TYPO_CACHE, yaml.load)
+        match_found = False
+        freq_counts = []
+        for i, sk_ctx in enumerate(typo_cache):
+            try:
+                sk = pwdecrypt(pw, sk_ctx)
+                if not verify_pk_sk(pk, sk):  #  Somehow the hash matched !!
+                    continue
+                self._sk = sk
+            except (TypeError, ValueError) as e: # Decryption Failed
+                # print("Failed for {}.{} ({})".format(pw, i, e))
+                # that means password did not match.
+                continue
+            header = yaml.safe_load(pkdecrypt(sk, self.get_from_auxtdb(HEADER_CTX)))
+            self._hmac_salt = header[HMAC_SALT]
+            freq_counts = header[FREQ_COUNTS]
+            if i>0: freq_counts[i-1] += 1
+            self._pw = header[REAL_PW]
+            self._pwent = entropy(self._pw)
+            self.update_log(pw, incache=True, ts=get_time())
+            match_found = True
+            break
+        if match_found:
+            assert self._pwent, "PW is not initialized: {}".format(self._pwent)
+            self._update_typo_cache_by_waitlist(typo_cache, freq_counts)
+            return (
+                self.check_login_count(update=False) and self.is_allowed_login()
+            )
+        else:
             self._add_typo_to_waitlist(pw)
-            return 0
-        logger.debug("Deriving secret key of the password")
-
-        # We have sk now, get original password, and validate, to make
-        # sure, that a valid typo is being processed. decrypt_pw_ctx
-        # is a very important function, TODO: rename
-        orig_pw = self.decrypt_pw_ctx(sk)
-        self.update_log(pw, incache=True) # TODO: adequate parameter
-        assert self.validate(orig_pw, pw)
-        self._update_typo_cache_by_waitlist(sk, self._pw)
-        return 2 if is_typo_login else 1
+            return False
 
     def get_from_auxtdb(self, key, apply_type=str):
         if key not in self._aux_tab_cache:
             self._aux_tab_cache[key] = find_one(self._aux_tab, key, apply_type)
-        return find_one(self._db[auxT], key, apply_type)
+        if key == INDEX_J:
+            assert isinstance(self._aux_tab_cache[key], int)
+        return self._aux_tab_cache[key]
+
+    def set_in_auxtdb(self, key, value):
+        if key == INDEX_J:
+            assert isinstance(value, int)
+        self._aux_tab_cache[key] = value
+        val_str = json.dumps(value) if isinstance(value, (list, dict)) else str(value)
+        self._db[auxT].upsert(
+            dict(desc=key, data=val_str),
+            ['desc']
+        )
 
     def validate(self, orig_pw, typo):
         editDist = distance(str(orig_pw), str(typo))
-        typo_ent = get_entropy_stat(typo)
-        rel_entropy = typo_ent - self._pwent
-        rel_bound = self.get_from_auxtdb(REL_ENT_BIT_DEC_ALLOWED, int)
-        strict_bound = self.get_from_auxtdb(LOWEST_ENT_BIT_ALLOWED, int)
-        edist_bound = self.get_from_auxtdb(EditCutoff, int)
+        typo_ent = entropy(typo)
+        # rel_bound = self.get_from_auxtdb(REL_ENT_CUTOFF, int)
+        # strict_bound = self.get_from_auxtdb(LOWER_ENT_CUTOFF, int)
+        # edist_bound = self.get_from_auxtdb(EDIT_DIST_CUTOFF, int)
 
-        notMuchWeaker = (rel_entropy >= rel_bound)
-        notTooWeak = (typo_ent >= strict_bound)
-        closeEdit = (editDist <= edist_bound)
+        notMuchWeaker = (typo_ent >= self._pwent - REL_ENT_CUTOFF)
+        notTooWeak = (typo_ent >= LOWER_ENT_CUTOFF)
+        closeEdit = (editDist <= EDIT_DIST_CUTOFF)
         return (notTooWeak and notMuchWeaker and closeEdit)
 
-    def _update_typo_cache_by_waitlist(self, sk, orig_pw):
+    def _update_typo_cache_by_waitlist(self, typo_cache, freq_counts):
         """
         Updates the hash cache according to waitlist.
         It also updates the log accordingly (if updateLog is set)
@@ -621,101 +545,73 @@ class UserTypoDB(object):
         sk: the secrete key found in previous function
         orig_pw: retrieved original password,
         """
-        logger.info("Updating {} by {}".format(typocacheT, waitlistT))
-        good_typo_list = self._decrypt_filter_waitlist(sk, orig_pw)
-        flist_ctx = self.get_from_auxtdb(FreqList)
-        if not self._sk:
-            self._sk = serialize_sk(sk)
-        f_list = json.loads(pkdecrypt(sk, flist_ctx))
-        mini, minf = min(enumerate(f_list), key=itemgetter(1))
-        cache_t = self._db[typocacheT]
-        for typo, typo_info in good_typo_list:
-            sa, k, h, ts = typo_info
-            k = urlsafe_b64decode(bytes(k))
-            f = len(ts)
+        logger.info("Updating TypoCache by Waitlist")
+        good_typo_list = self._decrypt_filter_waitlist()
+        mini, minf = min(enumerate(freq_counts), key=itemgetter(1))
+        print(good_typo_list)
+        for typo, f in good_typo_list:
             if UserTypoDB.cache_insert_policy(minf, f):
-                sk_ctx = encrypt(k, self._sk)
-                cache_line = {
-                    'tid': self._hmac_id(typo),
-                    'sa': sa, 'h': h, 'sk_ctx': sk_ctx,
-                    'edit_dist': distance(str(typo), str(orig_pw)),
-                    'id': mini
-                }
-                cache_t.update(cache_line, ['id'])
-                f_list[mini] = max(minf + 1, f)
-                mini, minf = min(enumerate(f_list), key=itemgetter(1))
-        self._db[auxT].update({
-            'desc': FreqList,
-            'data': pkencrypt(self._pk, json.dumps(f_list))
-        }, ['desc'])
+                print("Inserting: {} @ {}".format(typo, mini))
+                typo_cache[mini] = pwencrypt(typo, self._sk)
+                freq_counts[mini] = max(minf + 1, f) # TODO: Check
+                mini, minf = min(enumerate(freq_counts), key=itemgetter(1))
+            else:
+                print("I miss you: {} ({} <-> {})".format(typo, minf, f))
+        # write the new typo_cache and freq_list
+        # TODO: Apply permutation
+        header_ctx = pkencrypt(self._pk, json.dumps({
+            REAL_PW: self._pw,
+            HMAC_SALT: self._hmac_salt,
+            FREQ_COUNTS: freq_counts
+        }))
+        self.set_in_auxtdb(HEADER_CTX, header_ctx)
+        self.set_in_auxtdb(TYPO_CACHE, typo_cache)
         self.clear_waitlist()
 
     def get_prompt(self):
-        # pwd promts
-        NOT_INITIALIZED = "(Adaptive typo not initialized) Password"
-        ACTIVATED = 'aDAPTIVE pASSWORD'
-        RE_INIT = 'Please re-init'
-        CORRUPT_DB = "Corrupted DB !"
-        ERROR = "Error"
-        linePwCh = self.get_from_auxtdb(SysStatus)
-        if not linePwCh:
-            return NOT_INITIALIZED
-        val = int(linePwCh)
-        if val == 0:
-            return ACTIVATED
-        if val == 1:
-            return RE_INIT
-        if val == 2:
-            return CORRUPT_DB
-        return ERROR # shouldn't reach here
+        # Password promts
+        return {
+            SYSTEM_STATUS_ALL_GOOD: 'aDAPTIVE pASSWORD',
+            SYSTEM_STATUS_NOT_INITIALIZED: 'Please Initialized',
+            SYSTEM_STATUS_PW_CHANGED: 'Please Re-initialize',
+            SYSTEM_STATUS_CORRUPTED_DB: 'Corrupted DB!'
+        }.get(self.get_from_auxtdb(SYSTEM_STATUS), 'Error! Password')
 
     def set_status(self, status):
-        self._db[auxT].upsert(
-            dict(desc=SysStatus, data=str(status)),
-            ['desc']
-        )
+        self.set_in_auxtdb(key=SYSTEM_STATUS, value=status)
 
-STATUS_DICT = dict(
-    active=0,
-    password_changed=1,
-    corrupted_db=2
-)
+def check_system_status(typo_db):
+    sysStatVal = typo_db.get_from_auxtdb(SYSTEM_STATUS)
+    # if reached here - db should be initiated updating the entry count
+    if not sysStatVal: # if not found in table
+        raise UserTypoDB.CorruptedDB(
+            "ERROR: (on_correct_password) Typotoler DB is Corrupted."
+        )
+    if sysStatVal == SYSTEM_STATUS_PW_CHANGED:  # pasword_changed
+        raise ValueError(SYSTEM_STATUS_PW_CHANGED)
+    if sysStatVal == SYSTEM_STATUS_CORRUPTED_DB:  # corrupted_db
+        raise ValueError(SYSTEM_STATUS_CORRUPTED_DB)
+
 
 def on_correct_password(typo_db, password):
     logger.info("sm_auth: it's the right password")
     # log the entry of the original pwd
     try:
         if not typo_db.is_typotoler_init():
-            print("ERROR: (on_correct_pass) Typotoler DB wasn't initiated yet!")
+            logger.error("ERROR: (on_correct_pass) Typotoler DB wasn't initiated yet!")
             typo_db.init_typotoler(password)
             # the initialization is now part of the installation process
-        sysStatVal = typo_db.get_from_auxtdb(SysStatus)
-        if not sysStatVal: # if not found in table
-            raise UserTypoDB.CorruptedDB(
-                "ERROR: (on_correct_password) Typotoler DB is Corrupted."
-            )
-        if int(sysStatVal) == 1:  # pasword_changed
-            raise KeyError
-        if int(sysStatVal) == 2:  # corrupted_db
-            raise UserTypoDB.CorruptedDB("")
-
-        # if reached here - db should be initiated
-        # updating the entry count
-        ret = typo_db.check(password)    # also updates the log
-        if ret == 0:  # correct password but db fails to see it
-            typo_db.set_status(1)
+        check_system_status(typo_db)
+        if not typo_db.check(password):  # correct password but db fails to see it
+            typo_db.set_status(SYSTEM_STATUS_PW_CHANGED)
         return True
-    except UserTypoDB.CorruptedDB as e:
-        logger.error("Corrupted DB!")
-        typo_db.set_status(2)
-        # DB is corrupted, needs restart
     except (ValueError, KeyError) as e:
         # most probably - an error of decryption as a result of pw change
-        typo_db.set_status(1)
+        typo_db.set_status(SYSTEM_STATUS_PW_CHANGED)
         logger.error("Key error raised. Probably a failure in decryption.")
         logger.exception("Exception in on_correct_password:")
     except Exception as e:
-        logger.error(
+        logger.exception(
             "Unexpected error while on_correct_password:\n{}\n"\
             .format(e)
         )
@@ -724,28 +620,28 @@ def on_correct_password(typo_db, password):
 
 def on_wrong_password(typo_db, password):
     try:
-        sysStatVal = typo_db.get_from_auxtdb(SysStatus)
-        if not sysStatVal: # if not found in table
-            raise UserTypoDB.NoneInitiatedDB(
-                "on_wrong_password: Typotoler DB wasn't initiated yet!"
-            )
-        if int(sysStatVal) == 1:
-            raise KeyError
-        if int(sysStatVal) == 2:
-            raise UserTypoDB.CorruptedDB("")
-        # if reached here - db should be initiated, also updates the log
-        ret = typo_db.check(password)
-        return ret==2
+        check_system_status(typo_db)
+        return typo_db.check(password)
     except (ValueError, KeyError) as e:
-        # probably  failre in decryption
+        # probably  failure in decryption
         logger.exception("ValueError: {}".format(e))
-    except UserTypoDB.CorruptedDB as e:
-        # DB is corrupted, restart it
-        logger.error("Corrupted DB!")
-        typo_db.set_status(2)
-
     except Exception as e:
         logger.exception("Unexpected error while on_wrong_password:\n{}\n"\
               .format(e))
         print("TypToP is not initialized.\n $ sudo typtop --init")
     return False # previously inside "finally"
+
+
+if __name__ == "__main__":
+    import getpass
+    usage = '{} <1 or 0> <username> <password'.format(sys.argv[0])
+    if len(sys.argv)==3: # 0/1 username, password
+        typo_db = UserTypoDB(sys.argv[2])
+        if sys.argv[1] == '1':
+            on_correct_password(typo_db, sys.argv[2])
+        elif sys.argv[1] == '0':
+            on_wrong_password(typo_db, sys.argv[2])
+        else:
+            print(usage)
+    else:
+        print(usage)

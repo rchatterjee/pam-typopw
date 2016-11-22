@@ -2,22 +2,15 @@ import os
 import json
 import pwd
 from typtop.dbaccess import (
-    UserTypoDB,
-    DB_NAME,
-    waitlistT,
-    typocacheT,
-    get_time,
-    decode_decrypt_sym_count,
-    on_wrong_password,
-    on_correct_password,
-    logT, logT_cols, auxT, find_one,
-    FreqList,
-    # Crypo stuff
-    pkdecrypt, compute_id
+    UserTypoDB, DB_NAME, get_time,
+    on_wrong_password, on_correct_password, logT, logT_cols, auxT,
+    find_one, FREQ_COUNTS, INDEX_J, WAITLIST_SIZE, WAIT_LIST,
+    compute_id, WARM_UP_CACHE, pkdecrypt, pkencrypt
 )
-
+import yaml
 import pytest
-
+import re
+WARM_UP_CACHE = False
 NN = 5
 secretAuxSysT = "SecretAuxData"
 ORIG_PW_ID = 'OrgPwID'
@@ -38,11 +31,11 @@ def remove_DB():
 def start_DB():
     remove_DB()
     db = UserTypoDB(get_username(), debug_mode=True)
-    db.init_typotoler(get_pw(), NN, typoTolerOn=True)
+    db.init_typotoler(get_pw(), allow_typo_login=True)
     return db
 
-def count_real_typos_in_cache(t_db, PW_CHANGE = False):
-    flist_ctx = t_db.get_from_auxtdb(FreqList)
+def count_real_typos_in_cache(t_db, PW_CHANGE=False):
+    flist_ctx = t_db.get_from_auxtdb(FREQ_COUNTS, yaml.load)
     f_list_all = json.loads(pkdecrypt(t_db._sk, flist_ctx))
     f_list = [f for f in f_list_all if f>0]
     return len(f_list), sum(f_list)
@@ -56,20 +49,32 @@ def test_login_settings():
     typoDB.allow_login()
     assert typoDB.is_allowed_login()
 
+def test_waitlist(isStandAlone=True):
+    typoDB = start_DB()
+    pwset = set(pws[:4])
+    for i in range(4):
+        typoDB.check(pws[i])
+    typos_in_waitlist = set()
+    for typo_ctx in typoDB.get_from_auxtdb(WAIT_LIST):
+        typo_txt = pkdecrypt(typoDB._sk, typo_ctx)
+        if re.match(r'\[".*", ".*"\]', typo_txt):
+            typo, ts = yaml.safe_load(typo_txt)
+            typos_in_waitlist.add(typo)
+    assert not (typos_in_waitlist - pwset) and not (pwset - typos_in_waitlist)
+
 def test_add_to_cache(isStandAlone=True):
     typoDB = start_DB()
+    indexj = typoDB.get_from_auxtdb(INDEX_J, int)
     typoDB.check(pws[0])
     typoDB.check(pws[0])
     typoDB.check(pws[1])
     typoDB.check(pws[5])
     typoDB.check(pws[2])
-    assert len(typoDB.getdb()[waitlistT]) == 5
+    assert (typoDB.get_from_auxtdb(INDEX_J, int) - indexj) % WAITLIST_SIZE == 5
     typoDB.check(get_pw())
-    assert len(typoDB.getdb()[waitlistT]) == 0
-    hash_t = typoDB.getdb()[typocacheT]
-    ntypo, fcount = count_real_typos_in_cache(typoDB)
-    assert ntypo == 3
-    assert fcount > 5
+    # ntypo, fcount = count_real_typos_in_cache(typoDB)
+    # assert ntypo == 3
+    # assert fcount > 5
 
     # No idea what the followig is doing.
     # sk_dict1, isIn_t1 = typoDB.fetch_from_cache(pws[0], False, False)
@@ -84,9 +89,10 @@ def test_add_to_cache(isStandAlone=True):
         return typoDB
 
 def test_alt_typo(isStandAlone = True):
-    print "TEST ALT TYPO"
     typoDB = test_add_to_cache(False)
-    assert count_real_typos_in_cache(typoDB) > 0
+    # assert count_real_typos_in_cache(typoDB) > 0
+    for _ in xrange(30):
+        typoDB.check_login_count(update=True)
     for _ in range(5):
         typoDB.check(pws[4])
     ##    print "added 5 typos to waitlist"
@@ -102,21 +108,15 @@ def test_many_entries(isStandAlone = True):
     BIG = 60
     typoDB = start_DB()
     log_t = typoDB.getdb()['Log']
-    hash_t = typoDB.getdb()[typocacheT]
-    wait_t = typoDB.getdb()['Waitlist']
-
     print "start log:{}".format(len(log_t))
-
     for typ in listOfOneDist(BIG):
         typoDB.check(typ)
-    print "waitlist len:{}".format(len(wait_t))
-    assert (len(wait_t) == BIG)
     typoDB.check(get_pw())
     print "log len:{}".format(len(log_t))
-    print "hash len:{}".format(count_real_typos_in_cache(typoDB))
+    # print "hash len:{}".format(count_real_typos_in_cache(typoDB))
     assert(len(log_t) == BIG+1 ) # plus the original password
     realIn = min(BIG, NN)
-    tcnt, fcnt = count_real_typos_in_cache(typoDB)
+    # tcnt, fcnt = count_real_typos_in_cache(typoDB)
     assert tcnt == realIn + 1
     if isStandAlone:
         remove_DB()
@@ -149,14 +149,14 @@ def test_pw_change(isStandAlone = True):
     typoDB = test_alt_typo(isStandAlone = False)
     db = typoDB.getdb()
     typoDB.update_after_pw_change(new_pw())
-    assert count_real_typos_in_cache(typoDB,True)[0] == 1
+    # assert count_real_typos_in_cache(typoDB,True)[0] == 1
     assert len(db['Log']) == 0
     assert len(db['Waitlist']) == 0
     for newTypo in listOfOneDist(5):
         typoDB.check(newTypo)
     typoDB.check(new_pw())
-    ntypo, ftypo = count_real_typos_in_cache(typoDB, True)
-    assert ntypo == 1
+    # ntypo, ftypo = count_real_typos_in_cache(typoDB, True)
+    # assert ntypo == 1
     for newTypo in listOfOneDist(5):
         typoDB.check(newTypo)
     assert not typoDB.check(get_pw())
@@ -216,12 +216,12 @@ def new_pw():
     return "Beetle*Juice94"
 
 pws = [
-    'goldApp&3',  # lower initial
-    'gOLDaPP&3',  # caps
-    'GoldApp3',   # dropped 1 char, too low entropy
-    'GoldApp&2',  # 1 edit distance
-    'GoldApp&35', # 1 edit distance
-    'G0ldAppp&3'  # 2 edit dist
+    'goldApp&3',  # 0, lower initial
+    'gOLDaPP&3',  # 1, caps
+    'GoldApp3',   # 2, dropped 1 char, too low entropy
+    'GoldApp&2',  # 3, 1 edit distance
+    'GoldApp&35', # 4, 1 edit distance
+    'G0ldAppp&3'  # 5, 2 edit dist
 ]
 
 def listOfOneDist(length):

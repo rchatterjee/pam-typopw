@@ -5,11 +5,12 @@ from typtop.pw_pkcrypto2 import (
     encrypt, decrypt, hmac256, compute_id,
     serialize_pk, serialize_sk, deserialize_sk,
     deserialize_pk, verify_pk_sk, harden_pw, verify,
-    pwencrypt, pwdecrypt
+    pwencrypt, pwdecrypt, pad_pw, unpad_pw
 )
 import struct
 import os
 import pytest
+from base64 import urlsafe_b64encode, urlsafe_b64decode
 
 def test_pkencrypt():
     msgs = [
@@ -23,6 +24,18 @@ def test_pkencrypt():
         assert pkdecrypt(sk, c) == m
     assert pkdecrypt(sk, unicode(c)) == m
 
+def test_fail_pwencrypt():
+    msgs = [
+        'aflashdfhaasdfadsf',
+        'asdfkjashdflkashld'[:16],
+        'The best secret message ever written by any human!!'
+    ]
+    pwd = 'Mysecretpass'
+    for m in msgs:
+        c = pwencrypt(pwd, unicode(m))
+        with pytest.raises(ValueError) as excinfo:
+            pwdecrypt(pwd+'1', c)
+
 def test_pwencrypt():
     msgs = [
         'aflashdfhaasdfadsf',
@@ -34,6 +47,15 @@ def test_pwencrypt():
         c = pwencrypt(pwd, unicode(m))
         assert pwdecrypt(pwd, c) == m
     assert pwdecrypt(pwd, unicode(c)) == m
+
+def test_pw_padding():
+    pad_lengths = [64, 32, 50]
+    pw = 'MyPass12'
+    for pdlen in pad_lengths:
+        padded_pw = pad_pw(pw, pdlen)
+        print(repr(padded_pw))
+        assert len(padded_pw) == pdlen
+        assert unpad_pw(padded_pw, pdlen) == pw[:pdlen]
 
 def test_fail_pkencrypt():
     m = 'asdfasdfsadfasdfasdfasdfasdfasdfasd'

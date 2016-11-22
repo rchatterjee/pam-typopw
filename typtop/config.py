@@ -20,59 +20,63 @@ elif SYSTEM == 'LINUX':
     SEC_DB_PATH = '/usr/local/typtop/'  # Changing from /etc/pam_typtop
 
 # default values
-CACHE_SIZE = 5
-EDIT_DIST_CUTOFF = 1
-REL_ENT_CUTOFF = -3
+CACHE_SIZE = 5  # Size of the typo cache
+WAITLIST_SIZE = 10   # Size of the waitlist
+PADDED_PW_SIZE = 64  # length of the padded passwords
+EDIT_DIST_CUTOFF = 1  # distance between the real password and the typo
+REL_ENT_CUTOFF = 3 # Typo cannot be less than 3 bits in stregth
+                   # compared to the real password
 LOWER_ENT_CUTOFF = 10
 NUMBER_OF_ENTRIES_BEFORE_TYPOTOLER_CAN_BE_USED = 30
 UPDATE_GAPS= 24 * 60 * 60 # 24 hours, in seconds
+WARM_UP_CACHE = 0  # Should the cache be warmed up or not.
 
-colname_ORIG_PW_CTX = 'OrignalPwCtx'
+
+# column names in sqlite tables
+
+auxT = 'Header' # holds most of the system's setting
+# in ENCRYPTED format
+HEADER_CTX = 'HeaderCtx'
+HMAC_SALT = 'HMACSalt'
+FREQ_COUNTS = 'FreqCounts'
+REAL_PW = 'RealPassword'
+
+# in PLAINTEXT format
+ENC_PK = 'EncPublicKey'
+INDEX_J = 'IndexJ'
+# for book keeping
+ALLOWED_TYPO_LOGIN = 'AllowedTypoLogin'
+LOGIN_COUNT = 'LoginCount'
+INSTALLATION_ID = 'InstallationId'
+INSTALLATION_DATE = 'InstallationDate'
+ALLOWED_LOGGING = 'AllowLogging'
+LOG_LAST_SENTTIME = 'LastLogSetntTime'
+LOG_SENT_PERIOD = 'PeriodForSendingLog' # How frequently to send the logs
+SYSTEM_STATUS = 'SystemStatus'
+SYSTEM_STATUS_PW_CHANGED = 'PasswordChanged'
+SYSTEM_STATUS_ALL_GOOD = 'StatusAllGood'
+SYSTEM_STATUS_CORRUPTED_DB = 'StatusCorruptedDB'
+SYSTEM_STATUS_NOT_INITIALIZED = 'NotInitialized'
+
+# Typo Cache and Wait list are stored as just another data field in
+# Header. No need to have different tables for them.
+TYPO_CACHE = "TypoCache"  # PW Encryption of sk
+WAIT_LIST = 'WaitList'  # PK encryption of typo and timestamp
+
+# ORIG_PW = 'OrignalPw'
+# ORIG_PW_ID = 'OrgPwID'  # Remove
 # ORIG_PW_ENTROPY_CTX = 'OrgignalPwEntropyCtx'
-colname_ORIG_PW_ID = 'OrgPwID'
-colname_ORIG_PW_ENC_PK = 'EncPublicKey'
 # ORIG_PW_SGN_PK = 'SgnPublicKey'
 # ORIG_SGN_SALT = 'OriginalPwSaltForVerifySecretKey'
-colname_REL_ENT_CUTOFF = "RelativeEntropyDecAllowed"
-colname_LOWEST_ENT_BIT_ALLOWED = "LowestEntBitAllowed"
-colname_COUNT_KEY_CTX = "CountKeyCtx"
-colname_HMAC_SALT_CTX = 'HMACSaltCtx'
+# REL_ENT_CUTOFF = "RelativeEntropyDecreaseAllowed"
+# MIN_ENT_CUTOFF = "LowestEntropyAllowed"
+# COUNT_KEY_CTX = "CountKeyCtx"
+# HMAC_SALT_CTX = 'HMACSaltCtx'
 
 
-# Tables' names:
+
 logT = 'Log'
-logT_cols = {
+logT_cols = [
     'tid', 'edit_dist', 'rel_entropy', 'ts',
     'istop5fixable', 'in_cache', 'id'
-}
-
-# TODO: Convert in a plain json file
-typocacheT = 'Typocache'
-typocacheT_cols = ['encryption_of_sk']
-
-waitlistT = 'Waitlist'
-# table col: base64(enc(json(typo, ts, hash, salt, entropy)))'
-auxT = 'AuxSysData' # holds system's setting as well as glob_salt and enc(pw)
-# table cols: desc, data
-# secretAuxSysT = "SecretAuxData"
-# table cols: desc, data
-
-# auxiley info 'desc's:
-AllowedTypoLogin = "AllowedTypoLogin"
-InstallDate = "InstallDate"
-InstallationID = "Install_id"
-LastSent="Last_sent"
-SendEvery="SendEvery(sec)"
-AllowUpload = "AllowedLogUpload"
-LoginCount = 'NumOfLogins' # counts logins of real pw only
-FreqList = 'TypoFrequencies'
-# - in order to avoid early entry which will change the collected data
-# - initiated by typotoler_init. not re-initiated by re-init
-
-SysStatus = "PasswordHasBeenChanged"
-CacheSize = "CacheSize"
-EditCutoff = "EditCutoff"  # The edit from which (included) it's too far
-# PwAcceptPolicy = "PwAcceptPolicy"   # not yet implemented
-# LastPwChange = "LastPwChange"  # not yet implemented
-
-rel_bit_strength = 'rel_bit_str'
+]

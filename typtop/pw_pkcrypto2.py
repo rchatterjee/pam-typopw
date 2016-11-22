@@ -8,6 +8,7 @@ from cryptography.hazmat.primitives.ciphers import (
     Cipher, algorithms, modes
 )
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
+from cryptography.hazmat.primitives import padding
 
 import os, random
 from base64 import urlsafe_b64encode, urlsafe_b64decode
@@ -129,6 +130,32 @@ def deserialize_pk(pk_s):
     else:
         return pk_s
 
+def pad_pw(pw, pad_length):
+    """Pad pw to a pad_length, so that it hides the length of the password in bytes."""
+    assert 0 < pad_length < 256
+    pw = bytes(pw)
+    k = len(pw)/pad_length
+    topad = pw[k*pad_length:]
+    topad_len = pad_length - len(topad)
+    if topad_len == 0:
+        topad_len = pad_length
+    pad = chr(topad_len) * topad_len
+    return pw + pad
+    # padder = padding.PKCS7(pad_length*8).padder()
+    # return padder.update(bytes(pw)) + padder.finalize()
+
+def unpad_pw(padded_pw, pad_length):
+    """Unpad pw"""
+    padded_pw = bytes(padded_pw)
+    padlen = ord(padded_pw[-1])
+    assert padlen>0, "Malformed padding. Last byte cannot be zero."
+    pad = padded_pw[-padlen:]
+    assert all((padi==chr(padlen) for padi in pad))
+    return padded_pw[:-padlen]
+
+    # unpadder = padding.PKCS7(pad_length*8).unpadder()
+    # unpadder.update(bytes(pw)) + unpadder.finalize()
+
 def pwencrypt(pw, m):
     """Encrypt the message m under pw using AES-GCM method (AEAD scheme).
     iv = 0   # Promise me you will never reuse the key
@@ -153,7 +180,7 @@ def pwencrypt(pw, m):
     key = kdf.derive(pw)
 
     iv, ctx, tag = _encrypt(key, m, associated_data=header_txt)
-    # Salt (SALT_LENGTH), IV (IV_LENGTH), TAG (16 byte)
+    # Salt (SALT_LENGTH), IV (IV_LENGTH), TAG (TAG_LENGTH)
     ctx_b64 = urlsafe_b64encode(sa + iv + tag + ctx)
     return header_txt + '.' + ctx_b64
 
@@ -177,9 +204,11 @@ def pwdecrypt(pw, full_ctx_b64):
         backend=default_backend()
     )
     key = kdf.derive(pw)
-
-    m = _decrypt(key, iv, ctx, tag, associated_data=header_txt)
-    return m
+    try:
+        m = _decrypt(key, iv, ctx, tag, associated_data=header_txt)
+        return m
+    except Exception as e:
+        raise ValueError(e)
 
 def _encrypt(key, plaintext, associated_data=''):
     # Generate a random 96-bit IV.
