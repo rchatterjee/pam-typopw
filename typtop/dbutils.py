@@ -41,7 +41,9 @@ def find_one(table, key, apply_type=str):
         res = list(table.database.query(q))
         return apply_type(res[0]['data'])
     except Exception as e:
-        logger.debug('ERROR in db/table: ({}).'.format(table, e))
+        logger.exception(
+            'ERROR in db/table: ({})\nq={!r}, {!r}.'.format(e, q, res)
+        )
         return apply_type()
 
 

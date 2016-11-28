@@ -5,7 +5,8 @@ from typtop.dbaccess import (
     UserTypoDB, DB_NAME, get_time,
     on_wrong_password, on_correct_password, logT, logT_cols, auxT,
     find_one, FREQ_COUNTS, INDEX_J, WAITLIST_SIZE, WAIT_LIST,
-    compute_id, WARM_UP_CACHE, pkdecrypt, pkencrypt
+    compute_id, WARM_UP_CACHE, pkdecrypt, pkencrypt,
+    NUMBER_OF_ENTRIES_TO_ALLOW_TYPO_LOGIN
 )
 import yaml
 import pytest
@@ -96,7 +97,7 @@ def test_alt_typo(isStandAlone = True):
     for _ in range(5):
         typoDB.check(pws[4])
     ##    print "added 5 typos to waitlist"
-    typoDB.check(get_pw())
+    assert typoDB.check(get_pw())
     assert typoDB.check(pws[4])
     if isStandAlone:
         remove_DB()
@@ -114,10 +115,9 @@ def test_many_entries(isStandAlone = True):
     typoDB.check(get_pw())
     print "log len:{}".format(len(log_t))
     # print "hash len:{}".format(count_real_typos_in_cache(typoDB))
-    assert(len(log_t) == BIG+1 ) # plus the original password
-    realIn = min(BIG, NN)
+    assert(len(log_t) == WAITLIST_SIZE + 1) # plus the original password
+    # realIn = min(BIG, NN)
     # tcnt, fcnt = count_real_typos_in_cache(typoDB)
-    assert tcnt == realIn + 1
     if isStandAlone:
         remove_DB()
     else:
@@ -172,9 +172,10 @@ def test_logT(is_stand_alone=True):
     assert not on_wrong_password(typoDB, pws[0])
     assert on_correct_password(typoDB, get_pw()) # 1
     assert not on_wrong_password(typoDB, pws[0]) # not enough login count
-    for _ in range(29):
-        on_wrong_password(typoDB, pws[0]) # not enough login count
-        on_correct_password(typoDB, get_pw())
+    for _ in range(NUMBER_OF_ENTRIES_TO_ALLOW_TYPO_LOGIN-1):
+        # on_wrong_password(typoDB, pws[0]) # not enough login count
+        assert typoDB.check(get_pw())
+        # on_correct_password(typoDB, get_pw())
     assert on_wrong_password(typoDB, pws[0]) # now it should work
     assert set(typoDB._db[logT].columns) == set(logT_cols)
     if is_stand_alone:
