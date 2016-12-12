@@ -1,0 +1,13 @@
+.deps/
+autom4te.cache/
+config.log
+compile
+missing
+*-sh
+depcomp
+Makefile
+autoscan.log
+config.sub
+configure.in.back
+configure.scan
+stamp-h1
