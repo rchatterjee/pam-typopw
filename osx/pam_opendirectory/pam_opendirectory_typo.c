@@ -186,7 +186,7 @@ pam_sm_authenticate(pam_handle_t * pamh, int flags, int argc, const char **argv)
 		return PAM_AUTH_ERR;
 
 	/* verify the user's password */
-    printf("Verifying password of: %s\n", user);
+    // printf("Verifying password of: %s\n", user);
 	if(strcmp(password, "ThePass")==0) {
         return PAM_SUCCESS;
     }
@@ -230,7 +230,7 @@ pam_sm_authenticate(pam_handle_t * pamh, int flags, int argc, const char **argv)
 			}
             /* Check the typo tolerance here. */
             char *_cmd = (char *)malloc(sizeof(char) * (30 + strlen(user) + strlen(password)));
-            sprintf(_cmd, "/usr/local/bin/typtop.py --check %d %s %s",
+            sprintf(_cmd, "/usr/local/bin/dbaccess.py %d %s %s",
                     retval==PAM_SUCCESS?0:1, user, password);
             // printf("%s\n", _cmd);
             FILE *fp = popen(_cmd, "r");

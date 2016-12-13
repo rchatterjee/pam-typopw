@@ -8,6 +8,8 @@ from typtop.dbaccess import (
     compute_id, WARM_UP_CACHE, pkdecrypt, pkencrypt,
     NUMBER_OF_ENTRIES_TO_ALLOW_TYPO_LOGIN
 )
+import typtop.config as config
+import typtop.dbaccess as dbaccess
 import yaml
 import pytest
 import re
@@ -15,6 +17,8 @@ WARM_UP_CACHE = False
 NN = 5
 secretAuxSysT = "SecretAuxData"
 ORIG_PW_ID = 'OrgPwID'
+config.NUMBER_OF_ENTRIES_TO_ALLOW_TYPO_LOGIN = 30
+config.WARM_UP_CACHE = 0
 
 def get_username():
     return pwd.getpwuid(os.getuid()).pw_name
@@ -32,8 +36,17 @@ def remove_DB():
 def start_DB():
     remove_DB()
     db = UserTypoDB(get_username(), debug_mode=True)
-    db.init_typotoler(get_pw(), allow_typo_login=True)
+    db.init_typtop(get_pw(), allow_typo_login=True)
     return db
+
+def test_warmed_cache():
+    t1, dbaccess.WARM_UP_CACHE = dbaccess.WARM_UP_CACHE, 1
+    t2, dbaccess.NUMBER_OF_ENTRIES_TO_ALLOW_TYPO_LOGIN = dbaccess.NUMBER_OF_ENTRIES_TO_ALLOW_TYPO_LOGIN, 0
+    typoDB = start_DB()
+    assert typoDB.check(pws[1]), pws[1]
+    assert typoDB.check(pws[0]), pws[0]
+    dbaccess.WARM_UP_CACHE, dbaccess.NUMBER_OF_ENTRIES_TO_ALLOW_TYPO_LOGIN = t1, t2
+
 
 def count_real_typos_in_cache(t_db, PW_CHANGE=False):
     flist_ctx = t_db.get_from_auxtdb(FREQ_COUNTS, yaml.load)
@@ -148,7 +161,7 @@ def test_deleting_logs(isStandAlone = True):
 def test_pw_change(isStandAlone = True):
     typoDB = test_alt_typo(isStandAlone = False)
     db = typoDB.getdb()
-    typoDB.update_after_pw_change(new_pw())
+    typoDB.reinit_typtop(new_pw())
     # assert count_real_typos_in_cache(typoDB,True)[0] == 1
     assert len(db['Log']) == 0
     assert len(db['Waitlist']) == 0

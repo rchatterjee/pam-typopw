@@ -1,6 +1,2 @@
 include README.md
 include LICENSE
-include chkpw.c
-include typtop
-include *.py 
-include *.sh

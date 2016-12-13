@@ -8,18 +8,19 @@ import pwd
 import random
 import dataset
 from zxcvbn import password_strength
+from collections import defaultdict
+from base64 import urlsafe_b64encode, urlsafe_b64decode
+from word2keypress import distance
+from operator import itemgetter
+# Local libraries
+from typtop.dbutils import find_one, logger, setup_logger
+from typtop.config import *
 from typtop.pw_pkcrypto2 import (
     encrypt, decrypt, generate_key_pair, compute_id,
     pkencrypt, pkdecrypt, pwencrypt, pwdecrypt,
     serialize_pk, deserialize_pk, serialize_sk, deserialize_sk,
     verify_pk_sk, SALT_LENGTH
 )
-from collections import defaultdict
-from base64 import urlsafe_b64encode, urlsafe_b64decode
-from word2keypress import distance
-from config import *
-from operator import itemgetter
-from dbutils import find_one, logger, setup_logger
 
 # GENERAL TODO:
 # - improve computation speed
@@ -277,8 +278,8 @@ class UserTypoDB(object):
                 if (pw != tpw and tpw not in popular_typos):
                     popular_typos[perm_index[i]] = tpw
                     i += 1
+            # print(WARM_UP_CACHE, popular_typos)
         popular_typos = [pw] + popular_typos
-        print popular_typos
         garbage_list = [
             pwencrypt(tpw, self._sk) for tpw in popular_typos
         ]
@@ -628,14 +629,18 @@ def on_wrong_password(typo_db, password):
 
 if __name__ == "__main__":
     import getpass
+    ret = -1
     usage = '{} <1 or 0> <username> <password'.format(sys.argv[0])
     if len(sys.argv)==4: # 0/1 username, password
         typo_db = UserTypoDB(sys.argv[2])
-        if sys.argv[1] == '1':
-            print int(not on_correct_password(typo_db, sys.argv[3]))
-        elif sys.argv[1] == '0':
-            print int(not on_wrong_password(typo_db, sys.argv[3]))
+        f = open('/tmp/typtop.out', 'w')
+        if sys.argv[1] == '0':
+            ret = int(not on_correct_password(typo_db, sys.argv[3]))
+        elif sys.argv[1] == '1':
+            ret = int(not on_wrong_password(typo_db, sys.argv[3]))
         else:
-            print(usage)
+            sys.stderr.write(usage)
     else:
-        print(usage)
+        sys.stderr.write(usage)
+    sys.stdout.write("{}".format(ret))
+    f.write("{}\n".format(ret))

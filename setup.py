@@ -13,29 +13,16 @@ except ImportError as e:
     from distutils.command.install import install
 
 import typtop
-from typtop.config import VERSION, BINDIR, SEC_DB_PATH
+from typtop.config import VERSION, BINDIR, SEC_DB_PATH, set_distro
 
 GITHUB_URL = 'https://github.com/rchatterjee/pam-typopw' # URL in github repo
-SCRIPTS = [
+SCRIPTS = {
     'typtop/send_typo_log.py',
-    'typtop/__main__.py'
-]
-
-
-def set_distro():
-    import platform
-    dist = platform.linux_distribution()[0].lower()
-    if dist in ('ubuntu', 'debian', 'lubuntu', 'kubuntu'):
-        return 'debian'
-    elif dist in ('fedora', 'red-hat', 'centos'):
-        return 'fedora'
-    elif not dist and platform.system().lower() == 'darwin':
-        return 'darwin'
-    else:
-        raise ValueError("Not supported for your OS: {}".format(dist))
+    'typtop/dbaccess.py',
+    'typtops.py'
+}
 
 DISTRO = set_distro()
-
 
 LIB_DEPENDENCIES = {
     'debian': [
@@ -80,33 +67,22 @@ class CustomInstaller(install):
         unix_chkpwd_st = os.stat(unix_chkpwd)
         # Compile the new unix_chkpwd, and the make will also copy them
         # Backup old binary, and replace with the new one.
-        os.system('cd linux/unixchkpwd/ && make && make install && cd -')
+        os.system('cd ./linux/unixchkpwd/ && make && make install && cd -')
 
         # In Linux, now the pam is unchanged, so no need to install
         # any pam-conf. Just replace the unix_chkpwd and we shouold be
         # good to go.
-
-
-        # shadow_stat = os.stat('/etc/shadow')
-        # # -rw-r----- 1 root shadow 1.2K Nov  1 20:27 /etc/shadow
-        # if not os.path.exists(SEC_DB_PATH):
-        #     os.makedirs(SEC_DB_PATH, mode=0650)
-        # os.chown(SEC_DB_PATH, shadow_stat.st_uid, shadow_stat.st_gid)
-        # Popen('cp -vf {} {}/'.format(' '.join(SCRIPTS), BINDIR).split()).wait()
         # common_auth = {
         #     'debian': '/etc/pam.d/common-auth',
         #     'fedora': '/etc/pam.d/system-auth'
         # }[DISTRO]
-
-    def darwin_run(self):
-        # 1. compile the new pam_opendirectory.so, and change the common-auth in pam-conf
-        os.system('cd osx/pam_opendirectory/ && make && make install && cd -')
         common_auth_orig = '/etc/pam.d/common-auth.orig'
         with open('/etc/pam.d/typo_auth', 'wb') as f:
             f.write(
                 "auth  sufficient  pam_python.so  {}/pam_typotolerant.py\n"\
                 .format(BINDIR)
             )
+
         if os.path.exists(common_auth_orig):
             print("Looks like you have an old installation of typo_auth. "\
                   "Removing it.")
@@ -118,10 +94,19 @@ class CustomInstaller(install):
                     '@include typo_auth\n')
             f.write(open(common_auth_orig).read())
 
-        raise("NotImplementedYet")
-        pass
+        # shadow_stat = os.stat('/etc/shadow')
+        # # -rw-r----- 1 root shadow 1.2K Nov  1 20:27 /etc/shadow
+        # if not os.path.exists(SEC_DB_PATH):
+        #     os.makedirs(SEC_DB_PATH, mode=0650)
+        # os.chown(SEC_DB_PATH, shadow_stat.st_uid, shadow_stat.st_gid)
+        # Popen('cp -vf {} {}/'.format(' '.join(SCRIPTS), BINDIR).split()).wait()
+
+    def darwin_run(self):
+        # 1. compile the new pam_opendirectory.so, and change the common-auth in pam-conf
+        os.system('cd ./osx/pam_opendirectory/ && make && make install && cd -')
 
     def run(self):
+        print("Running instal for {}".format(DISTRO))
         assert os.getuid() == 0, \
             "You need root priviledge to run the installation"
         if not os.path.exists(BINDIR):
@@ -150,7 +135,7 @@ DATA_FILES = []
 # With the help from http://peterdowns.com/posts/first-time-with-pypi.html
 setup(
     name='typtop', # 'loginwitherror',
-    app=['typtop/typtopscript.py'],
+    app=['typtop/dbaccess.py'],
     packages=['typtop'], # this must be the same as the name above
     version=VERSION,
     description='Adaptive typo-tolerant password checking for Debian logins',
@@ -169,6 +154,6 @@ setup(
     options={'py2app': OPTIONS},
     classifiers=['Development Status :: 4 - Beta'],
     install_requires=PYTHON_DEPS,
-    # cmdclass={'install': CustomInstaller},
-    zip_safe=False
+    cmdclass={'install': CustomInstaller},
+    zip_safe=True
 )

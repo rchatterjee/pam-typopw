@@ -9,6 +9,7 @@ from typtop.dbaccess import (
     on_wrong_password,
     VERSION
 )
+from typtop.config import set_distro, SEC_DB_PATH
 import subprocess
 import getpass
 
@@ -149,40 +150,47 @@ def initiate_typodb(RE_INIT=False):
         # to stop the installation process
         raise ValueError("incorrect pw given 3 times")
 
-DISTRO = 'debian'
+DISTRO = set_distro()
 common_auth = {
     'debian': '/etc/pam.d/common-auth',
-    'fedora': '/etc/pam.d/system-auth'
+    'fedora': '/etc/pam.d/system-auth',
+    'darwin': ''
 }[DISTRO]
 
 def uninstall_pam_typtop():
-    cmd = '''
+    # Last try to send logs
+    os.system("nohup python -u /usr/local/bin/send_typo_log.py >/dev/null 2>&1 &")
+    print(DISTRO)
+    if DISTRO == 'darwin':
+        cmd = '''
 #!/bin/bash
 set -e
 set -u
+for f in /etc/pam.d/{{screensaver,su}} ; do
+    if [ ! -e $f.bak ]; then continue ; fi ;
+    if [ "$(grep pam_opendirectory_typo $f.bak)" != "" ] ; then
+        echo "Backup file is wrong. Removing all pam_opendirectory_typo with pam_opendirectory. Checkout the webpage" ;
+        sudo sed -i '' 's/^auth\(.*\)\/usr\/local\/lib\/security\/pam_opendirectory_typo.so/auth\1pam_opendirectory.so/g' $f ;
+    else
+        sudo mv $f.bak $f;
+    fi ;
+done
+rm -rf /var/log/typtop.log {}
+pip -q uninstall --yes typtop cryptography word2keypress dataset
+        '''.format(SEC_DB_PATH)
+        os.system(cmd)
+    elif DISTRO in ('debian', 'fedora'):
+        raise ValueError("Not implemented yet!!!")
+        cmd = '''
+#!/bin/bash
+set -e
+set -u
+user=$(who am i| awk '{{print $1}}')
 
-# Last try to send logs
-nohup python -u /usr/local/bin/send_typo_log.py >/dev/null 2>&1 &
-user=$(who am i| awk '{print $1}')
-homedir=$(echo ~$user)
-common_auth_file=%s
-if [ -e ${common_auth_file}.orig ]; then
-    mv ${common_auth_file}.orig ${common_auth_file}
-fi
-bindir=/usr/local/bin/
-rm -rf ${bindir}/pam_typotolerant.py $bindir/chkpw $bindir/send_typo_log.py
-rm -rf ${bindir}/typtop ${bindir}/typtopstatus
-rm -rf /etc/pam_typtop/ $homedir/.typoToler*
-rm -rf /var/log/typtop.log
 rm -rf /etc/pam.d/typo_auth
-pip -q uninstall --yes pam_typtop cryptography word2keypress dataset
-if [ -e ffile.txt ]; then
-    cat ffile.txt | xargs rm -i
-    rm -rf ffile.txt
-fi
-    ''' %(common_auth)
-    os.system(cmd)
 
+        '''.format()
+        os.system(cmd)
 
 parser = argparse.ArgumentParser("typtop ")
 
