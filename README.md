@@ -10,6 +10,10 @@ If you install this software and want to participate in our research study, plea
 *For the purpose of the research study, TypTop will not allow login with typos until you login successfully 30 times.*
 
 ## Install  
+Install Homebrew 
+```bash
+$ ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+```
 **Using pip (`pip` is a python package manger)**  
 ```bash  
 $ sudo pip install -U --ignore-installed pam_typtop

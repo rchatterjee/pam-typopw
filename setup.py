@@ -58,7 +58,7 @@ PACMAN = {
 }[DISTRO]
 
 PYTHON_DEPS = [
-#    'cryptography',
+    'cryptography',
     'word2keypress',
     'dataset',
     'zxcvbn',
