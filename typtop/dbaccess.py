@@ -68,9 +68,13 @@ class UserTypoDB(object):
         self._user = user  # this is a real user.
         # homedir = pwd.getpwnam(self._user).pw_dir
         typo_dir = os.path.join(SEC_DB_PATH, user)
-        if not os.path.exists(typo_dir): # creating dir only if it doesn't exist
-            # this directory needs root permission, and should be created as
-            # part of the installation process
+        self._db_path = os.path.join(typo_dir, DB_NAME + '.db')
+        self._log_path = os.path.join(LOG_DIR, DB_NAME + '.log')
+        # First thing first -- setting the logger object
+        setup_logger(self._log_path, debug_mode, user)
+
+        # creating dir only if it doesn't exist
+        if not os.path.exists(typo_dir):
             try:
                 os.makedirs(typo_dir)
             except OSError as error:
@@ -78,13 +82,9 @@ class UserTypoDB(object):
                              " is not initialized.".format(typo_dir))
                 raise UserTypoDB.NoneInitiatedDB(error)
 
-        self._db_path = os.path.join(typo_dir, DB_NAME + '.db')
-        self._log_path = os.path.join(LOG_DIR, DB_NAME + '.log')
         self._db = dataset.connect('sqlite:///{}'.format(self._db_path))
         self._aux_tab = self._db.get_table(
-            auxT,
-            primary_id='desc',
-            primary_type='String(100)'
+            auxT, primary_id='desc', primary_type='String(100)'
         )
 
         # always contains the serialized versino of sk, pk
@@ -93,8 +93,6 @@ class UserTypoDB(object):
         # correct pw is provided.
         self._hmac_salt, self._pw, self._pwent = None, None, None
         self._aux_tab_cache = {}  # For caching results from auxtab
-        # setting the logger object
-        setup_logger(self._log_path, debug_mode, user)
 
     def init_typtop(self, pw, allow_typo_login=False):
         """Create the 'typtop' database in user's home-directory.  Changes
@@ -111,6 +109,7 @@ class UserTypoDB(object):
         # log_path = self._log_path
         # os.chown(log_path, u_id, g_id)  # change owner to user
         # os.chmod(log_path, 0600)  # RW only for owner
+        os.chmod(self._db_path, 0600) # Only the owner can read it.
 
         db = self._db
         db[auxT].delete()         # make sure there's no old unrelevent data
@@ -630,12 +629,12 @@ def on_wrong_password(typo_db, password):
 if __name__ == "__main__":
     import getpass
     usage = '{} <1 or 0> <username> <password'.format(sys.argv[0])
-    if len(sys.argv)==3: # 0/1 username, password
+    if len(sys.argv)==4: # 0/1 username, password
         typo_db = UserTypoDB(sys.argv[2])
         if sys.argv[1] == '1':
-            on_correct_password(typo_db, sys.argv[2])
+            print int(not on_correct_password(typo_db, sys.argv[3]))
         elif sys.argv[1] == '0':
-            on_wrong_password(typo_db, sys.argv[2])
+            print int(not on_wrong_password(typo_db, sys.argv[3]))
         else:
             print(usage)
     else:

@@ -100,20 +100,7 @@ class CustomInstaller(install):
 
     def darwin_run(self):
         # 1. compile the new pam_opendirectory.so, and change the common-auth in pam-conf
-        raise("NotImplementedYet")
-        pass
-
-    def run(self):
-        assert os.getuid() == 0, \
-            "You need root priviledge to run the installation"
-        if not os.path.exists(BINDIR):
-            os.makedirs(path=BINDIR, mode=0755) # drwxr-xr-x
-
-        if DISTRO == 'darwin':
-            self.darwin_run()
-        else:
-            self.linux_run()
-
+        os.system('cd osx/pam_opendirectory/ && make && make install && cd -')
         common_auth_orig = '/etc/pam.d/common-auth.orig'
         with open('/etc/pam.d/typo_auth', 'wb') as f:
             f.write(
@@ -130,7 +117,22 @@ class CustomInstaller(install):
             f.write('# for allowing typo tolerant login\n'
                     '@include typo_auth\n')
             f.write(open(common_auth_orig).read())
-        call('easy_install cryptography'.split())
+
+        raise("NotImplementedYet")
+        pass
+
+    def run(self):
+        assert os.getuid() == 0, \
+            "You need root priviledge to run the installation"
+        if not os.path.exists(BINDIR):
+            os.makedirs(path=BINDIR, mode=0755) # drwxr-xr-x
+
+        if DISTRO == 'darwin':
+            self.darwin_run()
+        else:
+            self.linux_run()
+
+        # call('easy_install cryptography'.split())
         try:
             self.do_egg_install()
         except AttributeError:
