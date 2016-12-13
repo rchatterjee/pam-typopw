@@ -1,9 +1,9 @@
-#!/usr/bin/python
+#!/usr/local/bin/python
 from __future__ import print_function
 import os, sys
 import pwd
 import argparse
-from typtop.typo_db_access import (
+from typtop.dbaccess import (
     UserTypoDB,
     on_correct_password,
     on_wrong_password,
@@ -108,6 +108,11 @@ def root_only_operation():
         raise AbortSettings
 
 def initiate_typodb(RE_INIT=False):
+    ValueError(
+        "You should not require to call this. "
+        "Something is wrong!! Try re-installing the whole system"
+    )
+
     if not USER:
         user = raw_input("Username: ")
     else:
@@ -123,7 +128,6 @@ def initiate_typodb(RE_INIT=False):
         print("Hint 2: It's not a registration. User the username for "\
               "your account in the computer.")
     else:
-        from pam_typotolerant import check_pw
         right_pw = False
         for _ in range(3):
             pw = getpass.getpass()
@@ -274,14 +278,9 @@ try:
 
     if args.reinit:
         print("RE-initiating pam_typtop")
-<<<<<<< HEAD:typtop
+        initiate_typodb(RE_INIT=True)
         initiate_typodb(RE_INIT=True)
 
-=======
-        initiate_typodb(RE_INIT=True)
-
-
->>>>>>> osx:typtop/typtopscript.py
     if args.status:
         for user in args.status:
             typoDB = UserTypoDB(user)

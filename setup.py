@@ -18,7 +18,7 @@ from typtop.config import VERSION, BINDIR, SEC_DB_PATH
 GITHUB_URL = 'https://github.com/rchatterjee/pam-typopw' # URL in github repo
 SCRIPTS = [
     'typtop/send_typo_log.py',
-    'typtop/typtopscript.py'
+    'typtop/__main__.py'
 ]
 
 
@@ -39,15 +39,15 @@ DISTRO = set_distro()
 
 LIB_DEPENDENCIES = {
     'debian': [
-        'python-pam', 'libpam-python',
         'libffi-dev', 'python-pkg-resources', 'libssl-dev',
         'python-setuptools', 'python-dev',
     ],
     # Fedora does not have python-pam!! So, we cannot write the fedora
     # version.
-    'fedora': [ 'libffi-devel', 'openssl-devel',
-                'python-devel', 'python-pip', 'python-setuptools',
-                'python-pam' ],
+    'fedora': [
+        'libffi-devel', 'openssl-devel',
+        'python-devel', 'python-pip', 'python-setuptools',
+    ],
     'darwin': [],
 }[DISTRO]
 
@@ -65,15 +65,12 @@ PYTHON_DEPS = [
     'requests'
 ]
 
+
 class CustomInstaller(install):
     """
     It's a custom installer class, subclass of install.
     """
-    def run(self):
-        assert os.getuid() == 0, \
-            "You need root priviledge to run the installation"
-        if not os.path.exists(BINDIR):
-            os.makedirs(path=BINDIR, mode=0755) # drwxr-xr-x
+    def linux_run(self):
         call(PACMAN + LIB_DEPENDENCIES)
 
         # Assuming there is a unix_chkpwd
@@ -81,28 +78,42 @@ class CustomInstaller(install):
         unix_chkpwd = chkpw_proc.stdout.read().strip()
         chkpw_proc.wait()
         unix_chkpwd_st = os.stat(unix_chkpwd)
-        for c_src, c_out in [('chkpw.c', 'chkpw'),
-                             ('typtopstatus.c', 'typtopstatus')]:
-            exe = '{}/{}'.format(BINDIR, c_out)
-            call(['gcc', c_src, '-o', exe, '-lcrypt'])
-            os.chown(
-                exe,
-                unix_chkpwd_st.st_uid,
-                unix_chkpwd_st.st_gid
-            )
-            os.chmod(exe, 0o2755)
+        # Compile the new unix_chkpwd, and the make will also copy them
+        # Backup old binary, and replace with the new one.
+        os.system('cd linux/unixchkpwd/ && make && make install && cd -')
 
-        shadow_stat = os.stat('/etc/shadow')
-        # -rw-r----- 1 root shadow 1.2K Nov  1 20:27 /etc/shadow
-        if not os.path.exists(SEC_DB_PATH):
-            os.makedirs(SEC_DB_PATH, mode=0650)
-        os.chown(SEC_DB_PATH, shadow_stat.st_uid, shadow_stat.st_gid)
+        # In Linux, now the pam is unchanged, so no need to install
+        # any pam-conf. Just replace the unix_chkpwd and we shouold be
+        # good to go.
 
-        Popen('cp -vf {} {}/'.format(' '.join(SCRIPTS), BINDIR).split()).wait()
-        common_auth = {
-            'debian': '/etc/pam.d/common-auth',
-            'fedora': '/etc/pam.d/system-auth'
-        }[DISTRO]
+
+        # shadow_stat = os.stat('/etc/shadow')
+        # # -rw-r----- 1 root shadow 1.2K Nov  1 20:27 /etc/shadow
+        # if not os.path.exists(SEC_DB_PATH):
+        #     os.makedirs(SEC_DB_PATH, mode=0650)
+        # os.chown(SEC_DB_PATH, shadow_stat.st_uid, shadow_stat.st_gid)
+        # Popen('cp -vf {} {}/'.format(' '.join(SCRIPTS), BINDIR).split()).wait()
+        # common_auth = {
+        #     'debian': '/etc/pam.d/common-auth',
+        #     'fedora': '/etc/pam.d/system-auth'
+        # }[DISTRO]
+
+    def darwin_run(self):
+        # 1. compile the new pam_opendirectory.so, and change the common-auth in pam-conf
+        raise("NotImplementedYet")
+        pass
+
+    def run(self):
+        assert os.getuid() == 0, \
+            "You need root priviledge to run the installation"
+        if not os.path.exists(BINDIR):
+            os.makedirs(path=BINDIR, mode=0755) # drwxr-xr-x
+
+        if DISTRO == 'darwin':
+            self.darwin_run()
+        else:
+            self.linux_run()
+
         common_auth_orig = '/etc/pam.d/common-auth.orig'
         with open('/etc/pam.d/typo_auth', 'wb') as f:
             f.write(
@@ -150,7 +161,7 @@ setup(
         'login-with-errors', 'Login'
     ],
     scripts=SCRIPTS,
-    package_data={'': ['chkpw.c', 'LICENSE', 'README.md']},
+    package_data={'': ['LICENSE', 'README.md']},
     data_files=DATA_FILES,
     include_package_data=True,
     options={'py2app': OPTIONS},

@@ -15,10 +15,14 @@ else:
     raise ValueError("Not yet suporrted. Report in @github/rchatterjee/pam_typopw")
 
 if SYSTEM == 'OSX':
-    SEC_DB_PATH = '/usr/local/typtop/' # ETC is not writable due to SIP in OSX
+    SEC_DB_PATH = '/usr/local/etc/typtop/' # ETC is not writable due to SIP in OSX
 elif SYSTEM == 'LINUX':
     SEC_DB_PATH = '/usr/local/etc/typtop/'  # Changing from /etc/pam_typtop
 
+
+################################################################################
+                  ########## PARAMETERS ##########
+################################################################################
 # default values
 CACHE_SIZE = 5  # Size of the typo cache
 WAITLIST_SIZE = 10   # Size of the waitlist
@@ -27,14 +31,14 @@ EDIT_DIST_CUTOFF = 1  # distance between the real password and the typo
 REL_ENT_CUTOFF = 3 # Typo cannot be less than 3 bits in stregth
                    # compared to the real password
 LOWER_ENT_CUTOFF = 10
-NUMBER_OF_ENTRIES_TO_ALLOW_TYPO_LOGIN = 30  # Number of successful login
+NUMBER_OF_ENTRIES_TO_ALLOW_TYPO_LOGIN = 0  # Number of successful login   (# TODO: set to 30 when done testing)
 NUMBER_OF_DAYS_TO_ALLOW_TYPO_LOGIN = 15  # Number of days since installation
 UPDATE_GAPS= 24 * 60 * 60 # 24 hours, in seconds
-WARM_UP_CACHE = 0  # Should the cache be warmed up or not.
+WARM_UP_CACHE = 1  # Should the cache be warmed up or not.
+################################################################################
 
 
 # column names in sqlite tables
-
 auxT = 'Header' # holds most of the system's setting
 # in ENCRYPTED format
 HEADER_CTX = 'HeaderCtx'

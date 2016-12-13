@@ -37,6 +37,7 @@ def find_one(table, key, apply_type=str):
     q = 'select data from {} where desc="{}" limit 1'.format(
         table.table.name, key
     )
+    res = ''
     try:
         res = list(table.database.query(q))
         return apply_type(res[0]['data'])

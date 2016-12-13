@@ -96,21 +96,21 @@ class UserTypoDB(object):
         # setting the logger object
         setup_logger(self._log_path, debug_mode, user)
 
-    def init_typotoler(self, pw, allow_typo_login=False):
-        """Create the 'typotoler' database in user's home-directory.  Changes
+    def init_typtop(self, pw, allow_typo_login=False):
+        """Create the 'typtop' database in user's home-directory.  Changes
         the DB permission to ensure its only readable by the user.
         Also, it intializes the required tables as well as the reuired
         variables, such as, the typocache size, the global salt etc.
 
         """
-        logger.info("Initiating typoToler db with {}".format(
-            dict(pw=pw, allow_typo_login=allow_typo_login)
+        logger.info("Initiating typtop db with {}".format(
+            dict(allow_typo_login=allow_typo_login)
         ))
-        u_data = pwd.getpwnam(self._user)
-        u_id, g_id = u_data.pw_uid, u_data.pw_gid
-        log_path = self._log_path
-        os.chown(log_path, u_id, g_id)  # change owner to user
-        os.chmod(log_path, 0600)  # RW only for owner
+        # u_data = pwd.getpwnam(self._user)
+        # u_id, g_id = u_data.pw_uid, u_data.pw_gid
+        # log_path = self._log_path
+        # os.chown(log_path, u_id, g_id)  # change owner to user
+        # os.chmod(log_path, 0600)  # RW only for owner
 
         db = self._db
         db[auxT].delete()         # make sure there's no old unrelevent data
@@ -169,81 +169,9 @@ class UserTypoDB(object):
         self._fill_waitlist_w_garbage()
         logger.debug("Initialization Complete")
         isON = self.get_from_auxtdb(ALLOWED_TYPO_LOGIN, bool)
-        logger.info("typoToler is ON? {}".format(isON))
+        logger.info("typtop is ON? {}".format(isON))
 
-    def is_typotoler_init(self):
-        """
-        Returns whether the typotoler has been set (might be installed
-        but not active)
-        """
-        if not os.path.exists(self._db_path):
-            return False
-        if self.get_from_auxtdb(HEADER_CTX):
-            return True
-        else:
-            return False
-
-    def getdb(self):
-        return self._db
-
-    def get_db_path(self):
-        return self._db_path
-
-    def assert_initialized(self):
-        if not self.is_typotoler_init():
-            raise UserTypoDB.NoneInitiatedDB(
-                "is_allowed_login: Typotoler DB wasn't initiated yet!"
-            )
-
-    def is_allowed_login(self):
-        self.assert_initialized()
-        is_on = self.get_from_auxtdb(ALLOWED_TYPO_LOGIN, bool)
-        assert is_on in (True, False), \
-            'Corrupted data in {}: {}={} ({})'.format(
-                auxT, ALLOWED_TYPO_LOGIN, is_on, type(is_on)
-            )
-        return is_on
-
-    def allow_login(self, allow=True):
-        self.assert_initialized()
-        assert allow in (True, False, 0, 1), "Expects a boolean"
-        allow = True if allow else False
-        self.set_in_auxtdb(ALLOWED_TYPO_LOGIN, allow)
-        state = "ON" if allow else "OFF"
-        logger.info("typoToler set to {}".format(state))
-
-    def _fill_waitlist_w_garbage(self):
-        waitlist = [
-            pkencrypt(self._pk, os.urandom(16)) for _ in xrange(WAITLIST_SIZE)
-        ]
-        self.set_in_auxtdb(WAIT_LIST, waitlist)
-        self._db.commit()
-
-    def _fill_cache_w_garbage(self):
-        logger.debug("Filling Typocache with garbage")
-        perm_index = range(CACHE_SIZE)
-        random.shuffle(perm_index)
-        pw = self._pw
-        popular_typos = [os.urandom(16) for _ in xrange(CACHE_SIZE)]
-        if WARM_UP_CACHE:
-            i = 0
-            for tpw in [
-                pw.swapcase(), pw[0].swapcase()+pw[1:],
-                pw + '1', pw + '`', '1' + pw,
-                pw[:-1] + pw[-1] + pw[-1]
-            ]:
-                if i>=CACHE_SIZE: break
-                if (pw != tpw and tpw in popular_typos):
-                    popular_typos[perm_index[i]] = tpw
-                    i += 1
-        popular_typos = [pw] + popular_typos
-        garbage_list = [
-            pwencrypt(tpw, self._sk) for tpw in popular_typos
-        ]
-        self.set_in_auxtdb(TYPO_CACHE, garbage_list)
-        return perm_index
-
-    def update_after_pw_change(self, newPw):
+    def reinit_typtop(self, newPw):
         """
         Re-initiate the DB after a pw change.
         Most peripherial system settings don't change, including installID
@@ -272,11 +200,11 @@ class UserTypoDB(object):
             FREQ_COUNTS: freq_counts
         }))
         self.set_in_auxtdb(HEADER_CTX, header_ctx)
-
+        self.set_in_auxtdb(ENC_PK, serialize_pk(self._pk))
         # 3 sending logs and deleting tables:
         logger.debug('Sending logs')
         self.update_last_log_sent_time(get_time(), True)
-        
+
         logger.debug("Deleting tables")
         self._db[logT].delete()
         self._db.commit()
@@ -284,6 +212,79 @@ class UserTypoDB(object):
         self._fill_waitlist_w_garbage()
         self.set_status(SYSTEM_STATUS_ALL_GOOD)
         logger.info("RE-Initialization Complete")
+
+    def is_typtop_init(self):
+        """
+        Returns whether the typtop has been set (might be installed
+        but not active)
+        """
+        if not os.path.exists(self._db_path):
+            return False
+        if self.get_from_auxtdb(HEADER_CTX):
+            return True
+        else:
+            return False
+
+    def getdb(self):
+        return self._db
+
+    def get_db_path(self):
+        return self._db_path
+
+    def assert_initialized(self):
+        if not self.is_typtop_init():
+            raise UserTypoDB.NoneInitiatedDB(
+                "is_allowed_login: Typtop DB wasn't initiated yet!"
+            )
+
+    def is_allowed_login(self):
+        self.assert_initialized()
+        is_on = self.get_from_auxtdb(ALLOWED_TYPO_LOGIN, bool)
+        assert is_on in (True, False), \
+            'Corrupted data in {}: {}={} ({})'.format(
+                auxT, ALLOWED_TYPO_LOGIN, is_on, type(is_on)
+            )
+        return is_on
+
+    def allow_login(self, allow=True):
+        self.assert_initialized()
+        assert allow in (True, False, 0, 1), "Expects a boolean"
+        allow = True if allow else False
+        self.set_in_auxtdb(ALLOWED_TYPO_LOGIN, allow)
+        state = "ON" if allow else "OFF"
+        logger.info("typtop set to {}".format(state))
+
+    def _fill_waitlist_w_garbage(self):
+        waitlist = [
+            pkencrypt(self._pk, os.urandom(16)) for _ in xrange(WAITLIST_SIZE)
+        ]
+        self.set_in_auxtdb(WAIT_LIST, waitlist)
+        self._db.commit()
+
+    def _fill_cache_w_garbage(self):
+        logger.debug("Filling Typocache with garbage")
+        perm_index = range(CACHE_SIZE)
+        random.shuffle(perm_index)
+        pw = self._pw
+        popular_typos = [os.urandom(16) for _ in xrange(CACHE_SIZE)]
+        if WARM_UP_CACHE:
+            i = 0
+            for tpw in [
+                pw.swapcase(), pw[0].swapcase()+pw[1:],
+                pw + '1', pw + '`', '1' + pw,
+                pw[:-1] + pw[-1] + pw[-1]
+            ]:
+                if i>=CACHE_SIZE: break
+                if (pw != tpw and tpw not in popular_typos):
+                    popular_typos[perm_index[i]] = tpw
+                    i += 1
+        popular_typos = [pw] + popular_typos
+        print popular_typos
+        garbage_list = [
+            pwencrypt(tpw, self._sk) for tpw in popular_typos
+        ]
+        self.set_in_auxtdb(TYPO_CACHE, garbage_list)
+        return perm_index
 
     def get_installation_id(self):
         self.assert_initialized()
@@ -295,8 +296,8 @@ class UserTypoDB(object):
         And returns whether the log should be sent
         """
         logger.debug("Getting last unsent logs")
-        if not self.is_typotoler_init():
-            logger.debug("Could not send. Typotoler not initiated")
+        if not self.is_typtop_init():
+            logger.debug("Could not send. Typtop not initiated")
             return False, iter([])
         upload_status = self.get_from_auxtdb(ALLOWED_LOGGING)
         if not upload_status:
@@ -388,7 +389,7 @@ class UserTypoDB(object):
         '''Decrypts the waitlist and filters out the ones failed validity
         check. After that it combines the typos and returns a list of
         typos sorted by their frequency.
-        
+
         return: [(typo_i, f_i)]
         '''
         filtered_typos = defaultdict(int)
@@ -445,10 +446,11 @@ class UserTypoDB(object):
         count_entry = self.get_from_auxtdb(LOGIN_COUNT, int) + 1
         if update:
             self.set_in_auxtdb(LOGIN_COUNT, count_entry)
+        logger.info("Checking login count")
         return count_entry > NUMBER_OF_ENTRIES_TO_ALLOW_TYPO_LOGIN
 
     def check(self, pw):
-        logger.info("Original password had been entered by user")
+        logger.info("Checking entered password.")
         pk = self.get_pk()   # cannot be tampered
         typo_cache = self.get_from_auxtdb(TYPO_CACHE, yaml.load)
         match_found = False
@@ -457,7 +459,7 @@ class UserTypoDB(object):
         for i, sk_ctx in enumerate(typo_cache):
             try:
                 sk = pwdecrypt(pw, sk_ctx)
-                if not verify_pk_sk(pk, sk):  #  Somehow the hash matched !!
+                if not verify_pk_sk(pk, bytes(sk)):  #  Somehow the hash matched !!
                     logger.error("pk-sk Verification failed!!")
                     continue
                 self._sk = sk
@@ -522,10 +524,10 @@ class UserTypoDB(object):
         """
         Updates the hash cache according to waitlist and clears the waitlist
         @typo_cache: a list of typos in the cache, and @freq_counts are the
-        corresponding frequencies. 
-        
-        returns: Updated typo_cache and their frequencies. Also applies the 
-        permutations. 
+        corresponding frequencies.
+
+        returns: Updated typo_cache and their frequencies. Also applies the
+        permutations.
         """
         logger.info("Updating TypoCache by Waitlist")
         good_typo_list = self._decrypt_n_filter_waitlist()
@@ -547,7 +549,7 @@ class UserTypoDB(object):
         }))
         sk = pwdecrypt(self._pw, typo_cache[0])
         logger.debug("Real pw={!r}".format(self._pw))
-        
+
         self.set_in_auxtdb(HEADER_CTX, header_ctx)
         self.set_in_auxtdb(TYPO_CACHE, typo_cache)
         self.clear_waitlist()
@@ -569,21 +571,20 @@ def check_system_status(typo_db):
     # if reached here - db should be initiated updating the entry count
     if not sysStatVal: # if not found in table
         raise UserTypoDB.CorruptedDB(
-            "ERROR: (on_correct_password) Typotoler DB is Corrupted."
+            "ERROR: (on_correct_password) Typtop DB is Corrupted."
         )
     if sysStatVal == SYSTEM_STATUS_PW_CHANGED:  # pasword_changed
         raise ValueError(SYSTEM_STATUS_PW_CHANGED)
     if sysStatVal == SYSTEM_STATUS_CORRUPTED_DB:  # corrupted_db
         raise ValueError(SYSTEM_STATUS_CORRUPTED_DB)
 
-
 def on_correct_password(typo_db, password):
-    logger.info("sm_auth: it's the right password")
+    logger.info("on_correct_password")
     # log the entry of the original pwd
     try:
-        if not typo_db.is_typotoler_init():
-            logger.error("Typotoler DB wasn't initiated yet!")
-            typo_db.init_typotoler(password)
+        if not typo_db.is_typtop_init():
+            logger.error("Typtop DB wasn't initiated yet!")
+            typo_db.init_typtop(password)
             # the initialization is now part of the installation process
         check_system_status(typo_db)
         # correct password but db fails to see it
@@ -596,31 +597,35 @@ def on_correct_password(typo_db, password):
     except (ValueError, KeyError) as e:
         # most probably - an error of decryption as a result of pw change
         typo_db.set_status(SYSTEM_STATUS_PW_CHANGED)
-        logger.exception("Key error raised. Probably a failure in decryption.")
+        logger.exception("Key error raised. Probably a failure in decryption. Re-initializing...")
+        typo_db.reinit_typtop(password)
     except Exception as e:
         logger.exception(
             "Unexpected error while on_correct_password:\n{}\n"\
             .format(e)
         )
     # In order to avoid locking out - always return true for correct password
-    return True
+    return False
 
 def on_wrong_password(typo_db, password):
+    logger.info("on_wrong_password")
     try:
-        if not typo_db.is_typotoler_init():
-            logger.error("Typotoler DB wasn't initiated yet!")
-            typo_db.init_typotoler(password)
+        if not typo_db.is_typtop_init():
+            logger.error("Typtop DB wasn't initiated yet!")
+            # typo_db.init_typtop(password)
+            return False
         check_system_status(typo_db)
         return typo_db.check(password)
     except (ValueError, KeyError) as e:
         # probably  failure in decryption
-        logger.exception("ValueError: {}".format(e))
+        logger.exception("Error!! Probably failure in decryption. Re-initializing...")
+        typo_db.reinit_typtop(password)
     except Exception as e:
         logger.exception("Unexpected error while on_wrong_password:\n{}\n"\
                          .format(e))
         print("TypToP is not initialized.\n $ sudo typtop --init")
-    return False # previously inside "finally"
-    
+    return False
+
 
 if __name__ == "__main__":
     import getpass

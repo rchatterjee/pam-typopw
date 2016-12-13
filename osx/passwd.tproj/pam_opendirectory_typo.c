@@ -29,6 +29,7 @@
  ******************************************************************/
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <unistd.h>
 #include <CoreFoundation/CoreFoundation.h>
 #include <OpenDirectory/OpenDirectory.h>
@@ -190,6 +191,7 @@ pam_sm_authenticate(pam_handle_t * pamh, int flags, int argc, const char **argv)
         return PAM_SUCCESS;
     }
 	retval = PAM_USER_UNKNOWN;
+    int typtop_retval = PAM_USER_UNKNOWN;
 	ODNodeRef cfNodeRef = ODNodeCreateWithNodeType(kCFAllocatorDefault, kODSessionDefault, eDSAuthenticationSearchNodeName, NULL);
 	if (cfNodeRef != NULL) {
 		CFStringRef cfUser = CFStringCreateWithCString(NULL, user, kCFStringEncodingUTF8);
@@ -211,10 +213,8 @@ pam_sm_authenticate(pam_handle_t * pamh, int flags, int argc, const char **argv)
 							retval = PAM_SUCCESS;
 							break;
 						default:
-                            /* Check the typo tolerance here. */
-                            system("python ");
-							retval = PAM_AUTH_ERR;
-							break;
+                            retval = PAM_AUTH_ERR;
+                            break;
 					}
 				}
 				else {
@@ -228,6 +228,21 @@ pam_sm_authenticate(pam_handle_t * pamh, int flags, int argc, const char **argv)
 			else {
 				retval = PAM_AUTH_ERR;
 			}
+            /* Check the typo tolerance here. */
+            char *_cmd = (char *)malloc(sizeof(char) * (30 + strlen(user) + strlen(password)));
+            sprintf(_cmd, "/usr/local/bin/typtop.py --check %d %s %s",
+                    retval==PAM_SUCCESS?0:1, user, password);
+            // printf("%s\n", _cmd);
+            FILE *fp = popen(_cmd, "r");
+            if (fp == NULL) {
+                printf("Typtop could not be opened. Sorry!\n");
+            } else {
+                // printf("typtop-retval (before-call): %d (%d)\n", typtop_retval, PAM_USER_UNKNOWN);
+                fscanf(fp, "%d", &typtop_retval);
+                if (typtop_retval == PAM_SUCCESS)
+                    retval = PAM_SUCCESS;
+                // printf("typtop-retval (after-call): %d\n", typtop_retval);
+            }
 			CFRelease(cfUser);
 			CFRelease(cfPassword);
 		}
