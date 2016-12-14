@@ -132,10 +132,13 @@ def initiate_typodb(RE_INIT=False):
         print("Hint 2: It's not a registration. User the username for "\
               "your account in the computer.")
     else:
+        thisdir = os.path.dirname(os.path.abspath(__file__))
         if DISTRO == 'darwin':
-            os.system('cd /tmp/typtop_osx/pam_opendirectory/ && make && make install')
+            path_f = os.path.join(thisdir, 'osx/pam_opendirectory')
+            os.system('cd {} && make && make install'.format(path_f))
         elif DISTRO in ('debian', 'fedora'):
-            os.system('cd /tmp/typtop_linux/unixchkpwd/ && make && make install')
+            path_f = os.path.join(thisdir, 'linux/unixchkpwd')
+            os.system('cd {} && make && make install'.format(path_f))
 
         # right_pw = False
         # for _ in range(3):
