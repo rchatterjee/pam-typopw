@@ -45,8 +45,8 @@ PACMAN = {
 }[DISTRO]
 
 PYTHON_DEPS = [
-    #'cryptography',
-    'pycryptodome',
+    # 'cryptography',
+    # 'pycryptodome',
     'word2keypress',
     'dataset',
     'zxcvbn',
@@ -68,6 +68,10 @@ class CustomInstaller(install):
         unix_chkpwd_st = os.stat(unix_chkpwd)
         # Compile the new unix_chkpwd, and the make will also copy them
         # Backup old binary, and replace with the new one.
+        assert os.getuid() == 0, \
+            "You need root priviledge to run the installation"
+        if not os.path.exists(BINDIR):
+            os.makedirs(path=BINDIR, mode=0755) # drwxr-xr-x
         os.system('cd ./linux/unixchkpwd/ && make && make install && cd -')
 
         # In Linux, now the pam is unchanged, so no need to install
@@ -108,17 +112,14 @@ class CustomInstaller(install):
 
     def run(self):
         print("Running instal for {}".format(DISTRO))
-        assert os.getuid() == 0, \
-            "You need root priviledge to run the installation"
-        if not os.path.exists(BINDIR):
-            os.makedirs(path=BINDIR, mode=0755) # drwxr-xr-x
+        # try to see if cryptography can be installed. It's more efficient
+        Popen('easy_install cryptography pycryptodome'.split()).wait()
 
         if DISTRO == 'darwin':
             self.darwin_run()
         else:
             self.linux_run()
 
-        # call('easy_install cryptography'.split())
         try:
             self.do_egg_install()
         except AttributeError:
@@ -155,6 +156,6 @@ setup(
     options={'py2app': OPTIONS},
     classifiers=['Development Status :: 4 - Beta'],
     install_requires=PYTHON_DEPS,
-    # cmdclass={'install': CustomInstaller},
+    cmdclass={'install': CustomInstaller},
     zip_safe=True
 )

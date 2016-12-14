@@ -9,7 +9,10 @@ from typtop.dbaccess import (
     on_wrong_password,
     VERSION
 )
-from typtop.config import set_distro, SEC_DB_PATH
+from typtop.config import (
+    set_distro, SEC_DB_PATH, NUMBER_OF_ENTRIES_TO_ALLOW_TYPO_LOGIN,
+    WARM_UP_CACHE
+)
 import subprocess
 import getpass
 
@@ -301,6 +304,8 @@ try:
                   .format(typoDB.check_login_count(update=False)))
             print("\tInstall Id: {}".format(typoDB.get_installation_id().strip()))
             print("\tSoftware Version: {}".format(VERSION))
+            print("\t# of entries before typo-login allowed: {}".format(NUMBER_OF_ENTRIES_TO_ALLOW_TYPO_LOGIN))
+            print("\tWarmup cache: {}".format(WARM_UP_CACHE))
 
     if args.uninstall:
         r = raw_input("Uninstalling pam_typtop. Will delete all the "\

@@ -15,7 +15,7 @@ from operator import itemgetter
 # Local libraries
 from typtop.dbutils import find_one, logger, setup_logger
 from typtop.config import *
-from typtop.pw_pkcrypto2 import (
+from typtop.pw_pkcrypto import (
     encrypt, decrypt, generate_key_pair, compute_id,
     pkencrypt, pkdecrypt, pwencrypt, pwdecrypt,
     serialize_pk, deserialize_pk, serialize_sk, deserialize_sk,

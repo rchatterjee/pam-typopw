@@ -1,6 +1,6 @@
 
 import struct
-from typtop.pw_pkcrypto2 import decrypt
+from typtop.pw_pkcrypto import decrypt
 import logging
 from config import DB_NAME
 

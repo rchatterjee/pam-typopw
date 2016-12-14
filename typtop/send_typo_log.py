@@ -1,10 +1,10 @@
 #!/usr/bin/python
-from typtop.typo_db_access import UserTypoDB #,LastSent
 import json
 import pwd
 import os
 import requests
-
+from typtop.dbaccess import UserTypoDB #,LastSent
+from typtop.config import LOG_DIR, DB_NAME
 
 # note - there's no way this script will be called
 # without the DB being initialized, because we call it
@@ -47,3 +47,6 @@ if need_to_send:
             sent_time=last_time,
             delete_old_logs=True
         )
+
+with open('{}/{}.log'.format(LOG_DIR, DB_NAME), 'w') as f:
+    pass

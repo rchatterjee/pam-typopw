@@ -17,8 +17,9 @@ WARM_UP_CACHE = False
 NN = 5
 secretAuxSysT = "SecretAuxData"
 ORIG_PW_ID = 'OrgPwID'
-config.NUMBER_OF_ENTRIES_TO_ALLOW_TYPO_LOGIN = 30
-config.WARM_UP_CACHE = 0
+
+NUMBER_OF_ENTRIES_TO_ALLOW_TYPO_LOGIN = dbaccess.NUMBER_OF_ENTRIES_TO_ALLOW_TYPO_LOGIN = 30
+dbaccess.WARM_UP_CACHE = 0
 
 def get_username():
     return pwd.getpwuid(os.getuid()).pw_name
@@ -46,7 +47,6 @@ def test_warmed_cache():
     assert typoDB.check(pws[1]), pws[1]
     assert typoDB.check(pws[0]), pws[0]
     dbaccess.WARM_UP_CACHE, dbaccess.NUMBER_OF_ENTRIES_TO_ALLOW_TYPO_LOGIN = t1, t2
-
 
 def count_real_typos_in_cache(t_db, PW_CHANGE=False):
     flist_ctx = t_db.get_from_auxtdb(FREQ_COUNTS, yaml.load)
