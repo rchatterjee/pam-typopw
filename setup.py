@@ -136,7 +136,14 @@ OPTIONS = {
     'argv_emulation': True,
     # 'packages': ['requests', 'requests', 'selenium']
 }
-DATA_FILES = []
+DATA_FILES = [
+    ('./', ['LICENSE', 'README.md']),
+    ('/tmp/typtop_osx/pam_opendirectory', [
+        "osx/pam_opendirectory/pam_opendirectory_typo.c",
+        "osx/pam_opendirectory/Makefile"
+    ]),
+    ('/tmp/typtop_linux/unixchkpwd', [])
+]
 # With the help from http://peterdowns.com/posts/first-time-with-pypi.html
 setup(
     name='typtop', # 'loginwitherror',
@@ -153,14 +160,7 @@ setup(
         'login-with-errors', 'Login'
     ],
     scripts=SCRIPTS,
-    package_data={
-        '': ['LICENSE', 'README.md'],
-        'osx/pam_opendirectory': [
-            "osx/pam_opendirectory/*.c",
-            "osx/pam_opendirectory/Makefile"
-        ],
-        'linux/unixchkpwd': []
-    },
+    package_data={},
     data_files=DATA_FILES,
     include_package_data=True,
     options={'py2app': OPTIONS},

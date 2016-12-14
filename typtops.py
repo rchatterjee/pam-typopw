@@ -23,7 +23,7 @@ GITHUB_URL = 'https://github.com/rchatterjee/pam-typopw' # URL in github repo
 first_msg = """\n\n
   /  |                          /  |
  _$$ |_    __    __   ______   _$$ |_     ______    ______
-/ $$   |  /  |  /  | /      \ / $$   |   /      \  /      \
+/ $$   |  /  |  /  | /      \ / $$   |   /      \  /      \\
 $$$$$$/   $$ |  $$ |/$$$$$$  |$$$$$$/   /$$$$$$  |/$$$$$$  |
   $$ | __ $$ |  $$ |$$ |  $$ |  $$ | __ $$ |  $$ |$$ |  $$ |
   $$ |/  |$$ \__$$ |$$ |__$$ |  $$ |/  |$$ \__$$ |$$ |__$$ |
@@ -112,11 +112,11 @@ def root_only_operation():
         raise AbortSettings
 
 def initiate_typodb(RE_INIT=False):
-    ValueError(
-        "You should not require to call this. "
-        "Something is wrong!! Try re-installing the whole system"
-    )
-
+    # ValueError(
+    #     "You should not require to call this. "
+    #     "Something is wrong!! Try re-installing the whole system"
+    # )
+    root_only_operation()
     if not USER:
         user = raw_input("Username: ")
     else:
@@ -132,26 +132,30 @@ def initiate_typodb(RE_INIT=False):
         print("Hint 2: It's not a registration. User the username for "\
               "your account in the computer.")
     else:
-        right_pw = False
-        for _ in range(3):
-            pw = getpass.getpass()
-            right_pw = (check_pw(user, pw) == 0)
-            if right_pw:
-                stub = "RE-" if RE_INIT else ""
-                print("{}Initiating the database...".format(stub),)
-                tb = UserTypoDB(user)
-                if RE_INIT:
-                    tb.update_after_pw_change(pw)
-                else: # Normal Init
-                    tb.init_typotoler(pw, typoTolerOn=ALLOW_TYPO_LOGIN)
-                print("Done!")
-                return 0
-            else:
-                print("Doesn't look like a correct password. Please try again.")
+        if DISTRO == 'darwin':
+            os.system('cd /tmp/typtop_osx/pam_opendirectory/ && make && make install')
+        elif DISTRO in ('debian', 'fedora'):
+            os.system('cd /tmp/typtop_linux/unixchkpwd/ && make && make install')
 
-        print("Failed to enter a correct password 3 times.")
+        # right_pw = False
+        # for _ in range(3):
+        #     pw = getpass.getpass()
+        #     right_pw = (check_pw(user, pw) == 0)
+        #     if right_pw:
+        #         stub = "RE-" if RE_INIT else ""
+        #         print("{}Initiating the database...".format(stub),)
+        #         tb = UserTypoDB(user)
+        #         if RE_INIT:
+        #             tb.update_after_pw_change(pw)
+        #         else: # Normal Init
+        #             tb.init_typotoler(pw, typoTolerOn=ALLOW_TYPO_LOGIN)
+        #         print("Done!")
+        #         return 0
+        #     else:
+        #         print("Doesn't look like a correct password. Please try again.")
+        # print("Failed to enter a correct password 3 times.")
         # to stop the installation process
-        raise ValueError("incorrect pw given 3 times")
+        # raise ValueError("incorrect pw given 3 times")
 
 DISTRO = set_distro()
 common_auth = {
@@ -224,7 +228,7 @@ parser.add_argument(
 
 parser.add_argument(
     "--status", action="store", nargs='+',
-    help='Prints current states of the typotolerance.'
+    help='Prints current states of the typotolerance. Needs a username as argument.'
 )
 
 parser.add_argument(
@@ -289,7 +293,6 @@ try:
 
     if args.reinit:
         print("RE-initiating pam_typtop")
-        initiate_typodb(RE_INIT=True)
         initiate_typodb(RE_INIT=True)
 
     if args.status:
