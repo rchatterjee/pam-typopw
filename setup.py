@@ -153,12 +153,19 @@ setup(
         'login-with-errors', 'Login'
     ],
     scripts=SCRIPTS,
-    package_data={'': ['LICENSE', 'README.md']},
+    package_data={
+        '': ['LICENSE', 'README.md'],
+        'osx/pam_opendirectory': [
+            "osx/pam_opendirectory/*.c",
+            "osx/pam_opendirectory/Makefile"
+        ],
+        'linux/unixchkpwd': []
+    },
     data_files=DATA_FILES,
     include_package_data=True,
     options={'py2app': OPTIONS},
     classifiers=['Development Status :: 4 - Beta'],
     install_requires=PYTHON_DEPS,
-    cmdclass={'install': CustomInstaller},
+    # cmdclass={'install': CustomInstaller},
     zip_safe=True
 )
