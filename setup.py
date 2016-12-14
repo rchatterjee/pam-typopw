@@ -137,7 +137,6 @@ OPTIONS = {
     # 'packages': ['requests', 'requests', 'selenium']
 }
 DATA_FILES = [
-    ('./', ['LICENSE', 'README.md']),
     ('/tmp/typtop_osx/pam_opendirectory', [
         "osx/pam_opendirectory/pam_opendirectory_typo.c",
         "osx/pam_opendirectory/Makefile"
@@ -160,7 +159,7 @@ setup(
         'login-with-errors', 'Login'
     ],
     scripts=SCRIPTS,
-    package_data={},
+    package_data={ '': ['LICENSE', 'README.md']},
     data_files=DATA_FILES,
     include_package_data=True,
     options={'py2app': OPTIONS},
