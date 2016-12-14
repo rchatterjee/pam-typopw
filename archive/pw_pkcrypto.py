@@ -15,9 +15,9 @@ from pam_typtop.pwcryptolib import (
 
 def update_ctx(pk_dict, sk_dict, ctx):
     """
-    Update the ciphertext with the keys only in pk_dict. To make sure ctx is 
+    Update the ciphertext with the keys only in pk_dict. To make sure ctx is
     decyptable by all the secret keys corresponding to the pk's in pk_dict.
-    @pk_dict (dict): is a dictionary of id->pk, which will be used to encrypt 
+    @pk_dict (dict): is a dictionary of id->pk, which will be used to encrypt
                      a message.
     @msg (byte string): the underlying message of ctx
     @ctx (byte string): cipher text to be updated
@@ -30,7 +30,7 @@ def update_ctx(pk_dict, sk_dict, ctx):
 
 def encrypt(_pk_dict, msg):
     """
-    @pk_dict (dict): is a dictionary of id->pk, which will be used to encrypt 
+    @pk_dict (dict): is a dictionary of id->pk, which will be used to encrypt
                      a message. pk's in the dict can be EccKey or basestring
     @msg (byte string): a message to be encrypted
     """
@@ -68,8 +68,8 @@ def encrypt(_pk_dict, msg):
 
     # Hash the ids and take first four bytes, just in case ids are too big.
     # CAUTION: this is valid only if the size of pk_dict is <= 65536
-    pkctx = { 
-        hash256(unicode(_id))[:4]: _encrypt_w_one_pk(pk) 
+    pkctx = {
+        hash256(unicode(_id))[:4]: _encrypt_w_one_pk(pk)
         for _id, pk in pk_dict.items()
     }
     assert all(map(lambda v: len(v)==32, pkctx.values()))
@@ -79,7 +79,7 @@ def encrypt(_pk_dict, msg):
     assert len(serialized_pkctx) == 36 * len(pk_dict)
     assert len(serialized_rand_point) == 170
 
-    # CTX-format: 
+    # CTX-format:
     #   2     4    32     4    32           4     32        170         32    32   var
     # <npks><id1><pkctx1><id2><pkctx2>....<idn><pkctxn><rand_point_pk><nonce><tag><ctx>
     return struct.pack('<I', len(pk_dict)) + \
@@ -91,7 +91,7 @@ def encrypt(_pk_dict, msg):
 def decrypt(_sk_dict, ctx):
     """
     @sk_dict (dict): a dictionary of id->sk, it will try from the "first" element
-                     via (sk_dict.pop()) and try to decrypt and if fails will use 
+                     via (sk_dict.pop()) and try to decrypt and if fails will use
                      the next one. Will fail if none of the id belong to the ctx
     @ctx (byte string): decrypts the ciphertext string
     """
@@ -198,13 +198,13 @@ def derive_public_key(pw, sa, for_='encryption'):
     @sa (bytes): salt (must be >= 16 bytes long)
     @for_ (string or bytes): denotes what is the key good for.
            Allowed values: ['encryption', 'verify', 'both']
-           Though any key is good for both, but the caller shouold ensure, 
+           Though any key is good for both, but the caller shouold ensure,
            that signing key is not used for encryption and vice-versa.
            **There is no security guarantee provided if a key is used
-             for both encrpytion and signing** 
+             for both encrpytion and signing**
            'both' will return two keys: one for encryption and another for verifying
 
-    @Returns the slow hash of the password, and public key(s) in serialized format 
+    @Returns the slow hash of the password, and public key(s) in serialized format
     """
     keys_for_ = ('encryption', 'verify', 'both')
     assert for_ in keys_for_, \
@@ -225,23 +225,23 @@ def derive_secret_key(pw, sa, for_='decryption'):
     Allowed values: ['decryption', 'sign', 'both']
     CAUTION: This returns key as raw objects, cannot be put in any database
     @Returns the slow hash of the password, and ECC element(s).
-    If for_ = 'both', the first ECC element is for encryption, and the second 
+    If for_ = 'both', the first ECC element is for encryption, and the second
     one is for 'signing'
     """
     keys_for_ = ('decryption', 'sign', 'both')
     assert for_ in keys_for_, \
         "parameter for_ should be one of {}. Got {}".format(keys_for_, for_)
     return _derive_key(pw, sa, for_)
-    
+
 def _derive_key(pw, sa, for_):
     """derives the ECC public key from the password using the salt.
     @pw (byte string): password
     @sa (byte string): salt (must be >= 16 bytes long)
-    @for_ (string): allowed values, ('encryption', 'decryption', 
+    @for_ (string): allowed values, ('encryption', 'decryption',
                                      'verify', 'sign', 'both)
     @Returns: the pwhash and one or two ECC element (depending on the for_)
     """
-    curve = 'secp256r1' # 
+    curve = 'secp256r1' #
     intermediate_hash = PBKDF2(pw, sa, dkLen=16, count=HASH_CNT) # SLOW
     pwhash = hash256(intermediate_hash) # The last hash to be stored in the cache
     seed_enc = hash256(intermediate_hash, b'encryption|decryption')
@@ -270,7 +270,7 @@ def serialize_pub_key(pk):
 
 def compute_id(pwtypo, salt):
     """
-    Computes an ID for pwtypo. 
+    Computes an ID for pwtypo.
     @pwtypo (byte string): mistyped (or correct) password
     @salt (byte string): global salt
     """
@@ -279,11 +279,11 @@ def compute_id(pwtypo, salt):
 
 def compute_id_w_saltctx(pwtypo, sk_dict, saltctx):
     """
-    Computes an ID for pwtypo. 
+    Computes an ID for pwtypo.
     @pwtypo (byte string): mistyped (or correct) password
     @sk_dict (dict): {id->sk} dict
     @saltctx (byte string): Ciphertext of the salt
-    
+
     Returns an integer ID of the pwtypo
     """
     salt = decrypt(sk_dict, saltctx)
@@ -305,7 +305,7 @@ def match_hashes(pw, hashlist, saltlist):
     """
     p = Pool()
     ret = [
-        x 
+        x
         for x in p.map(_match_hash, [
                 (i, pw, h, sa)
                 for i, (h,sa) in enumerate(zip(hashlist, saltlist))
@@ -318,4 +318,3 @@ def match_hashes(pw, hashlist, saltlist):
         return ret[0]
     else:
         return -1
-        

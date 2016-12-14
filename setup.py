@@ -45,7 +45,8 @@ PACMAN = {
 }[DISTRO]
 
 PYTHON_DEPS = [
-    'cryptography',
+    #'cryptography',
+    'pycryptodome',
     'word2keypress',
     'dataset',
     'zxcvbn',
@@ -154,6 +155,6 @@ setup(
     options={'py2app': OPTIONS},
     classifiers=['Development Status :: 4 - Beta'],
     install_requires=PYTHON_DEPS,
-    cmdclass={'install': CustomInstaller},
+    # cmdclass={'install': CustomInstaller},
     zip_safe=True
 )
