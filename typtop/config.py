@@ -1,4 +1,4 @@
-import sys
+import sys, platform
 VERSION = "1.2.7"
 DB_NAME = "typtop"
 SEC_DB_PATH = '/etc/pam_typtop'
@@ -8,7 +8,6 @@ BINDIR = '/usr/local/bin'
 SYSTEM = ''
 
 def set_distro():
-    import platform
     dist = platform.linux_distribution()[0].lower()
     if dist in ('ubuntu', 'debian', 'lubuntu', 'kubuntu'):
         return 'debian'
@@ -17,7 +16,8 @@ def set_distro():
     elif not dist and platform.system().lower() == 'darwin':
         return 'darwin'
     else:
-        raise ValueError("Not supported for your OS: {}".format(dist))
+        raise ValueError("Not supported for your System: {}, and OS: {}"\
+                             .format(platform.system(), platform.linux_distribution()))
 
 if sys.platform=='darwin':
     SYSTEM = 'OSX'

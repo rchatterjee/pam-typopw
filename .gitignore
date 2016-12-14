@@ -58,3 +58,4 @@ ffile.txt
 
 # pytest cracp
 .cache
+*~
