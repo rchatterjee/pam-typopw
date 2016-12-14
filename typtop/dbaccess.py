@@ -633,7 +633,7 @@ if __name__ == "__main__":
     usage = '{} <1 or 0> <username> <password'.format(sys.argv[0])
     if len(sys.argv)==4: # 0/1 username, password
         typo_db = UserTypoDB(sys.argv[2])
-        f = open('/tmp/typtop.out', 'w')
+        # f = open('/tmp/typtop.out', 'w')
         if sys.argv[1] == '0':
             ret = int(not on_correct_password(typo_db, sys.argv[3]))
         elif sys.argv[1] == '1':
@@ -643,4 +643,4 @@ if __name__ == "__main__":
     else:
         sys.stderr.write(usage)
     sys.stdout.write("{}".format(ret))
-    f.write("{}\n".format(ret))
+    # f.write("{}\n".format(ret))

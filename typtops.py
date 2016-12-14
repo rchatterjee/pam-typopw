@@ -304,7 +304,7 @@ try:
                   .format(typoDB.check_login_count(update=False)))
             print("\tInstall Id: {}".format(typoDB.get_installation_id().strip()))
             print("\tSoftware Version: {}".format(VERSION))
-            print("\t# of entries before typo-login allowed: {}".format(NUMBER_OF_ENTRIES_TO_ALLOW_TYPO_LOGIN))
+            print("\tNum entries before typo-login allowed: {}".format(NUMBER_OF_ENTRIES_TO_ALLOW_TYPO_LOGIN))
             print("\tWarmup cache: {}".format(WARM_UP_CACHE))
 
     if args.uninstall:

@@ -45,7 +45,7 @@ PACMAN = {
 }[DISTRO]
 
 PYTHON_DEPS = [
-    # 'cryptography',
+    'cryptography',
     # 'pycryptodome',
     'word2keypress',
     'dataset',
@@ -113,7 +113,10 @@ class CustomInstaller(install):
     def run(self):
         print("Running instal for {}".format(DISTRO))
         # try to see if cryptography can be installed. It's more efficient
-        Popen('easy_install cryptography pycryptodome'.split()).wait()
+        #  Popen('easy_install pip'.split()).wait()
+        # p = Popen('pip install cryptography'.split())
+        # if p.wait() != 0:
+        #    Popen("pip install pycryptodome".split())
 
         if DISTRO == 'darwin':
             self.darwin_run()
