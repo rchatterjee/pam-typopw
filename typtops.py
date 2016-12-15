@@ -130,11 +130,15 @@ def initiate_typodb(RE_INIT=False):
         print("Hint 2: It's not a registration. User the username for "\
               "your account in the computer.")
     else:
+        branch = 'new'
         subdir = 'osx/pam_opendirectory' if DISTRO == 'darwin'\
                  else 'linux/unixchkpwd' if DISTRO in ('debian', 'fedora')\
                       else ''
-        path_f = '/tmp/typtop_' + subdir
-        os.system('cd {} && make && make install'.format(path_f))
+        cmd = """
+        cd /tmp/ && curl -LOk https://github.com/rchatterjee/pam-typopw/archive/{0}.zip && unzip {0}.zip \
+        && cd pam-typopw{2}/{1} && make && make install && cd /tmp && rm -rf {0}.zip pam-typopw*
+        """.format(branch, subdir, '-'+branch if branch != 'master' else '')
+        os.system(cmd)
 
         # right_pw = False
         # for _ in range(3):

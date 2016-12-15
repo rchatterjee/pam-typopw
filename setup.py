@@ -2,15 +2,16 @@
 from __future__ import print_function
 import os
 from subprocess import Popen, call, PIPE
-try:
-    from setuptools import setup
-    from setuptools.command.install import install
-except ImportError as e:
-    print(e)
-    print("Setuptools not found, if installation fails, "
-          "please install setuptools, and try again.")
-    from distutils.core import setup
-    from distutils.command.install import install
+from glob import glob
+# try:
+from setuptools import setup
+from setuptools.command.install import install
+# except ImportError as e:
+#     print(e)
+#     print("Setuptools not found, if installation fails, "
+#           "please install setuptools, and try again.")
+#     from distutils.core import setup
+#     from distutils.command.install import install
 
 import typtop
 from typtop.config import VERSION, BINDIR, SEC_DB_PATH, set_distro
@@ -49,7 +50,8 @@ PYTHON_DEPS = [
     'word2keypress',
     'dataset',
     'zxcvbn',
-    'requests'
+    'requests',
+    'psutil'
 ]
 
 
@@ -130,20 +132,21 @@ class CustomInstaller(install):
                   "Can you please re-run the install command?")
         # initiate_typodb() # Because pip install is non-interactive
 
-
 OPTIONS = {
     'argv_emulation': True,
     # 'packages': ['requests', 'requests', 'selenium']
 }
-DATA_FILES = [
-    ('/tmp/typtop_osx/pam_opendirectory', [
-        "osx/pam_opendirectory/pam_opendirectory_typo.c",
-        "osx/pam_opendirectory/typtops.c",
-        "osx/pam_opendirectory/run_as_root.c",
-        "osx/pam_opendirectory/Makefile"
-    ]),
-    ('/tmp/typtop_linux/unixchkpwd', [])
-]
+
+# Shitty python way of getting these files
+# DATA_FILES = [
+#     ('/tmp/typtop_osx/pam_opendirectory', [
+#         "osx/pam_opendirectory/pam_opendirectory_typo.c",
+#         "osx/pam_opendirectory/typtops.c",
+#         "osx/pam_opendirectory/run_as_root.c",
+#         "osx/pam_opendirectory/Makefile"
+#     ]),
+#     ('/tmp/typtop_linux/unixchkpwd', [])
+# ]
 # With the help from http://peterdowns.com/posts/first-time-with-pypi.html
 setup(
     name='typtop', # 'loginwitherror',
@@ -160,12 +163,16 @@ setup(
         'login-with-errors', 'Login'
     ],
     scripts=SCRIPTS,
-    package_data={ '': ['LICENSE', 'README.md']},
-    data_files=DATA_FILES,
+    license='MIT',
+    package_dir={'typtop': 'typtop/'},
+    package_data={
+        'typtop': ['LICENSE', 'README.md'],
+    },
+    data_files=[], # DATA_FILES,
     include_package_data=True,
     options={'py2app': OPTIONS},
     classifiers=['Development Status :: 4 - Beta'],
     install_requires=PYTHON_DEPS,
     # cmdclass={'install': CustomInstaller},
-    zip_safe=True
+    zip_safe=True,
 )
