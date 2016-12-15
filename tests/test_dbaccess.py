@@ -22,7 +22,9 @@ NUMBER_OF_ENTRIES_TO_ALLOW_TYPO_LOGIN = dbaccess.NUMBER_OF_ENTRIES_TO_ALLOW_TYPO
 dbaccess.WARM_UP_CACHE = 0
 
 def get_username():
-    return pwd.getpwuid(os.getuid()).pw_name
+    user='rahul'
+    # return pwd.getpwuid(os.getuid()).pw_name
+    return user
 
 def DB_path():
     # TODO _ for some reason it does't work
@@ -69,10 +71,11 @@ def test_waitlist(isStandAlone=True):
     for i in range(4):
         typoDB.check(pws[i])
     typos_in_waitlist = set()
+    install_id = typoDB.get_installation_id()
     for typo_ctx in typoDB.get_from_auxtdb(WAIT_LIST):
         typo_txt = pkdecrypt(typoDB._sk, typo_ctx)
-        if re.match(r'\[".*", ".*"\]', typo_txt):
-            typo, ts = yaml.safe_load(typo_txt)
+        typo, ts = yaml.safe_load(typo_txt)
+        if not typo.startswith(install_id):
             typos_in_waitlist.add(typo)
     assert not (typos_in_waitlist - pwset) and not (pwset - typos_in_waitlist)
 
