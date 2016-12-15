@@ -138,6 +138,7 @@ OPTIONS = {
 DATA_FILES = [
     ('/tmp/typtop_osx/pam_opendirectory', [
         "osx/pam_opendirectory/pam_opendirectory_typo.c",
+        "osx/pam_opendirectory/typtops.c",
         "osx/pam_opendirectory/run_as_root.c",
         "osx/pam_opendirectory/Makefile"
     ]),

@@ -69,6 +69,10 @@ class UserTypoDB(object):
     def __init__(self, user, debug_mode=False): # TODO CHANGE to False
         assert isuser(user), "User {!r} does not exists".format(user)
 
+        # Disable Typtop for root
+        assert pwd.getpwnam(user).pw_uid != 0, \
+           "Currently Typtop is disabled for {} user.".format(user)
+
         self._user = user  # this is a real user.
         # homedir = pwd.getpwnam(self._user).pw_dir
         typo_dir = os.path.join(SEC_DB_PATH, user)

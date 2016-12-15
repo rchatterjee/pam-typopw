@@ -711,6 +711,24 @@ static CYTHON_INLINE int __Pyx_PyUnicode_Equals(PyObject* s1, PyObject* s2, int 
 /* Import.proto */
 static PyObject *__Pyx_Import(PyObject *name, PyObject *from_list, int level);
 
+/* StringJoin.proto */
+#if PY_MAJOR_VERSION < 3
+#define __Pyx_PyString_Join __Pyx_PyBytes_Join
+#define __Pyx_PyBaseString_Join(s, v) (PyUnicode_CheckExact(s) ? PyUnicode_Join(s, v) : __Pyx_PyBytes_Join(s, v))
+#else
+#define __Pyx_PyString_Join PyUnicode_Join
+#define __Pyx_PyBaseString_Join PyUnicode_Join
+#endif
+#if CYTHON_COMPILING_IN_CPYTHON
+    #if PY_MAJOR_VERSION < 3
+    #define __Pyx_PyBytes_Join _PyString_Join
+    #else
+    #define __Pyx_PyBytes_Join _PyBytes_Join
+    #endif
+#else
+static CYTHON_INLINE PyObject* __Pyx_PyBytes_Join(PyObject* sep, PyObject* values);
+#endif
+
 /* ImportFrom.proto */
 static PyObject* __Pyx_ImportFrom(PyObject* module, PyObject* name);
 
@@ -853,8 +871,8 @@ static int __Pyx_InitStrings(__Pyx_StringTabEntry *t);
 int __pyx_module_is_main_typtops = 0;
 
 /* Implementation of 'typtops' */
-static PyObject *__pyx_builtin_RuntimeError;
 static PyObject *__pyx_builtin_print;
+static PyObject *__pyx_builtin_RuntimeError;
 static PyObject *__pyx_builtin_exit;
 static PyObject *__pyx_builtin_raw_input;
 static PyObject *__pyx_builtin_Exception;
@@ -865,13 +883,14 @@ static const char __pyx_k_n[] = "n";
 static const char __pyx_k_r[] = "r";
 static const char __pyx_k_y[] = "y";
 static const char __pyx_k__3[] = "";
-static const char __pyx_k__7[] = "\n\n\n  /  |                          /  |\n _$$ |_    __    __   ______   _$$ |_     ______    ______\n/ $$   |  /  |  /  | /      \\ / $$   |   /      \\  /      \\\n$$$$$$/   $$ |  $$ |/$$$$$$  |$$$$$$/   /$$$$$$  |/$$$$$$  |\n  $$ | __ $$ |  $$ |$$ |  $$ |  $$ | __ $$ |  $$ |$$ |  $$ |\n  $$ |/  |$$ \\__$$ |$$ |__$$ |  $$ |/  |$$ \\__$$ |$$ |__$$ |\n  $$  $$/ $$    $$ |$$    $$/   $$  $$/ $$    $$/ $$    $$/\n   $$$$/   $$$$$$$ |$$$$$$$/     $$$$/   $$$$$$/  $$$$$$$/\n          /  \\__$$ |$$ |                          $$ |\n          $$    $$/ $$ |                          $$ |\n           $$$$$$/  $$/                           $$/\nHello!\n\nThanks for installing TypToP (version: {version}).  This software\nattaches a new pluggable authentication module (PAM) to almost all of\nyour common authentication processes, and observes your password\ntyping mistakes. It records your frequent typing mistakes, and enable\nlogging in with frequent but slight vairations of your actual login\npassword that are safe to do so.\n\nThis is a research prototype, and we are collecting some anonymous\nnon-sensitive data about your password typing patterns to verify our\ndesign. The details of what we collect, how we collect and store, and\nthe security blueprint of this software can be found in the GitHub\npage: {url}.  The participation in the study is completely voluntary,\nand you can opt out at any time while still keep using the software.\n\nCheckout other options (such as opting out of the study) of the\nutility script typtop by running:\n\n$ typtop --help\n\nNote, You have to initiate this for each user who intend to use the\nbenefit of adaptive typo-tolerant password login.\n";
+static const char __pyx_k__7[] = "\n";
+static const char __pyx_k__8[] = "\n\n\n  /  |                          /  |\n _$$ |_    __    __   ______   _$$ |_     ______    ______\n/ $$   |  /  |  /  | /      \\ / $$   |   /      \\  /      \\\n$$$$$$/   $$ |  $$ |/$$$$$$  |$$$$$$/   /$$$$$$  |/$$$$$$  |\n  $$ | __ $$ |  $$ |$$ |  $$ |  $$ | __ $$ |  $$ |$$ |  $$ |\n  $$ |/  |$$ \\__$$ |$$ |__$$ |  $$ |/  |$$ \\__$$ |$$ |__$$ |\n  $$  $$/ $$    $$ |$$    $$/   $$  $$/ $$    $$/ $$    $$/\n   $$$$/   $$$$$$$ |$$$$$$$/     $$$$/   $$$$$$/  $$$$$$$/\n          /  \\__$$ |$$ |                          $$ |\n          $$    $$/ $$ |                          $$ |\n           $$$$$$/  $$/                           $$/\nHello!\n\nThanks for installing TypToP (version: {version}).  This software\nattaches a new pluggable authentication module (PAM) to almost all of\nyour common authentication processes, and observes your password\ntyping mistakes. It records your frequent typing mistakes, and enable\nlogging in with frequent but slight vairations of your actual login\npassword that are safe to do so.\n\nThis is a research prototype, and we are collecting some anonymous\nnon-sensitive data about your password typing patterns to verify our\ndesign. The details of what we collect, how we collect and store, and\nthe security blueprint of this software can be found in the GitHub\npage: {url}.  The participation in the study is completely voluntary,\nand you can opt out at any time while still keep using the software.\n\nCheckout other options (such as opting out of the study) of the\nutility script typtop by running:\n\n$ typtop --help\n\nNote, You have to initiate this for each user who intend to use the\nbenefit of adaptive typo-tolerant password login.\n";
 static const char __pyx_k_no[] = "no";
 static const char __pyx_k_os[] = "os";
 static const char __pyx_k_pp[] = "pp";
 static const char __pyx_k_pw[] = "pw";
-static const char __pyx_k__15[] = "_";
-static const char __pyx_k__28[] = "*";
+static const char __pyx_k__16[] = "_";
+static const char __pyx_k__29[] = "*";
 static const char __pyx_k_add[] = "add";
 static const char __pyx_k_cmd[] = "cmd";
 static const char __pyx_k_doc[] = "__doc__";
@@ -890,7 +909,7 @@ static const char __pyx_k_args[] = "args";
 static const char __pyx_k_argv[] = "argv";
 static const char __pyx_k_call[] = "call";
 static const char __pyx_k_exit[] = "exit";
-static const char __pyx_k_file[] = "__file__";
+static const char __pyx_k_file[] = "file";
 static const char __pyx_k_help[] = "help";
 static const char __pyx_k_info[] = "info";
 static const char __pyx_k_init[] = "--init";
@@ -919,10 +938,8 @@ static const char __pyx_k_DISTRO[] = "DISTRO";
 static const char __pyx_k_action[] = "action";
 static const char __pyx_k_darwin[] = "darwin";
 static const char __pyx_k_debian[] = "debian";
-static const char __pyx_k_exists[] = "exists";
 static const char __pyx_k_failed[] = "failed";
 static const char __pyx_k_fedora[] = "fedora";
-static const char __pyx_k_file_2[] = "file";
 static const char __pyx_k_format[] = "format";
 static const char __pyx_k_getuid[] = "getuid";
 static const char __pyx_k_import[] = "__import__";
@@ -945,15 +962,11 @@ static const char __pyx_k_update[] = "--update";
 static const char __pyx_k_user_2[] = "--user";
 static const char __pyx_k_RE_INIT[] = "RE_INIT";
 static const char __pyx_k_VERSION[] = "VERSION";
-static const char __pyx_k_abspath[] = "abspath";
 static const char __pyx_k_check_2[] = "check";
 static const char __pyx_k_choices[] = "choices";
-static const char __pyx_k_dirname[] = "dirname";
-static const char __pyx_k_getpass[] = "getpass";
 static const char __pyx_k_is_root[] = "is_root";
 static const char __pyx_k_message[] = "message";
 static const char __pyx_k_prepare[] = "__prepare__";
-static const char __pyx_k_thisdir[] = "thisdir";
 static const char __pyx_k_typtops[] = "typtops";
 static const char __pyx_k_version[] = "version";
 static const char __pyx_k_KeyError[] = "KeyError";
@@ -1008,13 +1021,13 @@ static const char __pyx_k_get_login_user[] = "_get_login_user";
 static const char __pyx_k_typtop_dbutils[] = "typtop.dbutils";
 static const char __pyx_k_Designated_user[] = "Designated user: {}";
 static const char __pyx_k_initiate_typodb[] = "initiate_typodb";
+static const char __pyx_k_is_valid_parent[] = "is_valid_parent";
 static const char __pyx_k_typtop_dbaccess[] = "typtop.dbaccess";
 static const char __pyx_k_ALLOW_TYPO_LOGIN[] = "ALLOW_TYPO_LOGIN";
 static const char __pyx_k_Login_with_typos[] = "\tLogin with typos: {}";
 static const char __pyx_k_Software_Version[] = "\tSoftware Version: {}";
 static const char __pyx_k_is_allowed_login[] = "is_allowed_login";
 static const char __pyx_k_linux_unixchkpwd[] = "linux/unixchkpwd";
-static const char __pyx_k_send_typo_log_py[] = "send_typo_log.py";
 static const char __pyx_k_check_login_count[] = "check_login_count";
 static const char __pyx_k_is_allowed_upload[] = "is_allowed_upload";
 static const char __pyx_k_is_typotoler_init[] = "is_typotoler_init";
@@ -1029,6 +1042,7 @@ static const char __pyx_k_TYPO_TOLERANCE_STATUS[] = "\n** TYPO-TOLERANCE STATUS 
 static const char __pyx_k_etc_pam_d_common_auth[] = "/etc/pam.d/common-auth";
 static const char __pyx_k_etc_pam_d_system_auth[] = "/etc/pam.d/system-auth";
 static const char __pyx_k_osx_pam_opendirectory[] = "osx/pam_opendirectory";
+static const char __pyx_k_typtop_validate_parent[] = "typtop.validate_parent";
 static const char __pyx_k_Participate_in_the_study[] = "\tParticipate in the study: {}";
 static const char __pyx_k_RE_initiating_pam_typtop[] = "RE-initiating pam_typtop";
 static const char __pyx_k_Uploading_data_is_disabled[] = "Uploading data is disabled.  :( :'( :-(!";
@@ -1041,7 +1055,7 @@ static const char __pyx_k_Allow_uploading_the_non_sensive[] = "Allow uploading t
 static const char __pyx_k_Is_enough_logins_to_allow_typos[] = "\tIs enough logins to allow typos: {}";
 static const char __pyx_k_NUMBER_OF_ENTRIES_TO_ALLOW_TYPO[] = "NUMBER_OF_ENTRIES_TO_ALLOW_TYPO_LOGIN";
 static const char __pyx_k_Num_entries_before_typo_login_a[] = "\tNum entries before typo-login allowed: {}";
-static const char __pyx_k_bin_bash_set_e_set_u_for_f_in_e[] = "\n#!/bin/bash\nset -e\nset -u\nfor f in /etc/pam.d/{{screensaver,su}} ; do\n    if [ ! -e $f.bak ]; then continue ; fi ;\n    if [ \"$(grep pam_opendirectory_typo $f.bak)\" != \"\" ] ; then\n        echo \"Backup file is wrong. Removing all pam_opendirectory_typo with pam_opendirectory. Checkout the webpage\" ;\n        sudo sed -i '' 's/^auth\\(.*\\)\\/usr\\/local\\/lib\\/security\\/pam_opendirectory_typo.so/auth\001pam_opendirectory.so/g' $f ;\n    else\n        sudo mv $f.bak $f;\n    fi ;\ndone\nrm -rf /var/log/typtop.log {} /tmp/typtop*\nrm -rf /usr/local/bin/typtop\npip -q uninstall --yes typtop cryptography word2keypress dataset\n        ";
+static const char __pyx_k_bin_bash_set_e_set_u_for_f_in_e[] = "\n#!/bin/bash\nset -e\nset -u\nfor f in /etc/pam.d/{{screensaver,su}} ; do\n    if [ ! -e $f.bak ]; then continue ; fi ;\n    if [ \"$(grep pam_opendirectory_typo $f.bak)\" != \"\" ] ; then\n        echo \"Backup file is wrong. Removing all pam_opendirectory_typo with pam_opendirectory. Checkout the webpage\" ;\n        sudo sed -i '' 's/^auth\\(.*\\)\\/usr\\/local\\/lib\\/security\\/pam_opendirectory_typo.so/auth\001pam_opendirectory.so/g' $f ;\n    else\n        sudo mv $f.bak $f;\n    fi ;\ndone\nrm -rf /var/log/typtop.log {} /tmp/typtop*\nrm -rf /usr/local/bin/typtop /usr/local/bin/send_typo_log.py\npip -q uninstall --yes typtop\n        ";
 static const char __pyx_k_Allow_login_with_typos_of_the_pa[] = "Allow login with typos of the password";
 static const char __pyx_k_ERROR_You_need_root_priviledge_t[] = "ERROR!! You need root priviledge to run this operation";
 static const char __pyx_k_Hint_2_It_s_not_a_registration_U[] = "Hint 2: It's not a registration. User the username for your account in the computer.";
@@ -1121,12 +1135,12 @@ static PyObject *__pyx_n_s_VERSION;
 static PyObject *__pyx_n_s_ValueError;
 static PyObject *__pyx_n_s_WARM_UP_CACHE;
 static PyObject *__pyx_kp_s_Warmup_cache;
-static PyObject *__pyx_n_s__15;
-static PyObject *__pyx_kp_s__28;
+static PyObject *__pyx_n_s__16;
+static PyObject *__pyx_kp_s__29;
 static PyObject *__pyx_kp_s__3;
 static PyObject *__pyx_kp_s__7;
+static PyObject *__pyx_kp_s__8;
 static PyObject *__pyx_n_s_abort;
-static PyObject *__pyx_n_s_abspath;
 static PyObject *__pyx_n_s_action;
 static PyObject *__pyx_n_s_add;
 static PyObject *__pyx_n_s_add_argument;
@@ -1151,17 +1165,14 @@ static PyObject *__pyx_n_s_cmd;
 static PyObject *__pyx_n_s_common_auth;
 static PyObject *__pyx_n_s_darwin;
 static PyObject *__pyx_n_s_debian;
-static PyObject *__pyx_n_s_dirname;
 static PyObject *__pyx_n_s_doc;
 static PyObject *__pyx_n_s_e;
 static PyObject *__pyx_kp_s_etc_pam_d_common_auth;
 static PyObject *__pyx_kp_s_etc_pam_d_system_auth;
-static PyObject *__pyx_n_s_exists;
 static PyObject *__pyx_n_s_exit;
 static PyObject *__pyx_n_s_failed;
 static PyObject *__pyx_n_s_fedora;
 static PyObject *__pyx_n_s_file;
-static PyObject *__pyx_n_s_file_2;
 static PyObject *__pyx_n_s_first_line;
 static PyObject *__pyx_n_s_first_msg;
 static PyObject *__pyx_n_s_format;
@@ -1170,7 +1181,6 @@ static PyObject *__pyx_n_s_get_installation_id;
 static PyObject *__pyx_n_s_get_login_user;
 static PyObject *__pyx_n_s_get_typoDB;
 static PyObject *__pyx_n_s_get_username;
-static PyObject *__pyx_n_s_getpass;
 static PyObject *__pyx_n_s_getpwnam;
 static PyObject *__pyx_n_s_getuid;
 static PyObject *__pyx_n_s_help;
@@ -1186,6 +1196,7 @@ static PyObject *__pyx_n_s_is_allowed_login;
 static PyObject *__pyx_n_s_is_allowed_upload;
 static PyObject *__pyx_n_s_is_root;
 static PyObject *__pyx_n_s_is_typotoler_init;
+static PyObject *__pyx_n_s_is_valid_parent;
 static PyObject *__pyx_n_s_join;
 static PyObject *__pyx_kp_s_linux_unixchkpwd;
 static PyObject *__pyx_n_s_logger;
@@ -1224,7 +1235,6 @@ static PyObject *__pyx_kp_s_reinit;
 static PyObject *__pyx_n_s_reinit_2;
 static PyObject *__pyx_n_s_ret;
 static PyObject *__pyx_n_s_root_only_operation;
-static PyObject *__pyx_kp_s_send_typo_log_py;
 static PyObject *__pyx_n_s_set_distro;
 static PyObject *__pyx_n_s_shell;
 static PyObject *__pyx_n_s_split;
@@ -1241,7 +1251,6 @@ static PyObject *__pyx_n_s_subprocess;
 static PyObject *__pyx_n_s_sys;
 static PyObject *__pyx_n_s_system;
 static PyObject *__pyx_n_s_test;
-static PyObject *__pyx_n_s_thisdir;
 static PyObject *__pyx_kp_s_tmp_typtop;
 static PyObject *__pyx_n_s_type;
 static PyObject *__pyx_n_s_typoDB;
@@ -1249,6 +1258,7 @@ static PyObject *__pyx_kp_s_typtop;
 static PyObject *__pyx_n_s_typtop_config;
 static PyObject *__pyx_n_s_typtop_dbaccess;
 static PyObject *__pyx_n_s_typtop_dbutils;
+static PyObject *__pyx_n_s_typtop_validate_parent;
 static PyObject *__pyx_n_s_typtops;
 static PyObject *__pyx_n_s_uid;
 static PyObject *__pyx_kp_s_uninstall;
@@ -1279,20 +1289,19 @@ static PyObject *__pyx_tuple__2;
 static PyObject *__pyx_tuple__4;
 static PyObject *__pyx_tuple__5;
 static PyObject *__pyx_tuple__6;
-static PyObject *__pyx_tuple__8;
-static PyObject *__pyx_tuple__10;
-static PyObject *__pyx_tuple__12;
-static PyObject *__pyx_tuple__16;
-static PyObject *__pyx_tuple__18;
+static PyObject *__pyx_tuple__9;
+static PyObject *__pyx_tuple__11;
+static PyObject *__pyx_tuple__13;
+static PyObject *__pyx_tuple__17;
 static PyObject *__pyx_tuple__19;
-static PyObject *__pyx_tuple__21;
+static PyObject *__pyx_tuple__20;
 static PyObject *__pyx_tuple__22;
 static PyObject *__pyx_tuple__23;
 static PyObject *__pyx_tuple__24;
 static PyObject *__pyx_tuple__25;
 static PyObject *__pyx_tuple__26;
 static PyObject *__pyx_tuple__27;
-static PyObject *__pyx_tuple__29;
+static PyObject *__pyx_tuple__28;
 static PyObject *__pyx_tuple__30;
 static PyObject *__pyx_tuple__31;
 static PyObject *__pyx_tuple__32;
@@ -1315,14 +1324,15 @@ static PyObject *__pyx_tuple__48;
 static PyObject *__pyx_tuple__49;
 static PyObject *__pyx_tuple__50;
 static PyObject *__pyx_tuple__51;
-static PyObject *__pyx_codeobj__9;
-static PyObject *__pyx_codeobj__11;
-static PyObject *__pyx_codeobj__13;
+static PyObject *__pyx_tuple__52;
+static PyObject *__pyx_codeobj__10;
+static PyObject *__pyx_codeobj__12;
 static PyObject *__pyx_codeobj__14;
-static PyObject *__pyx_codeobj__17;
-static PyObject *__pyx_codeobj__20;
+static PyObject *__pyx_codeobj__15;
+static PyObject *__pyx_codeobj__18;
+static PyObject *__pyx_codeobj__21;
 
-/* "typtops.py":66
+/* "typtops.py":69
  *     pass
  * 
  * def _get_login_user():             # <<<<<<<<<<<<<<
@@ -1357,44 +1367,44 @@ static PyObject *__pyx_pf_7typtops__get_login_user(CYTHON_UNUSED PyObject *__pyx
   PyObject *__pyx_t_4 = NULL;
   __Pyx_RefNannySetupContext("_get_login_user", 0);
 
-  /* "typtops.py":68
+  /* "typtops.py":71
  * def _get_login_user():
  *     # gets the username of the logging user
  *     pp = subprocess.Popen('who', stdout=subprocess.PIPE)             # <<<<<<<<<<<<<<
  *     output = pp.stdout.read()
  *     first_line = output.splitlines()[0]
  */
-  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_subprocess); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 68, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_subprocess); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 71, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_Popen); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 68, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_Popen); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 71, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_1 = PyDict_New(); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 68, __pyx_L1_error)
+  __pyx_t_1 = PyDict_New(); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 71, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_subprocess); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 68, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_subprocess); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 71, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_PIPE); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 68, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_PIPE); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 71, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_stdout, __pyx_t_4) < 0) __PYX_ERR(0, 68, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_stdout, __pyx_t_4) < 0) __PYX_ERR(0, 71, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_tuple_, __pyx_t_1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 68, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_tuple_, __pyx_t_1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 71, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_v_pp = __pyx_t_4;
   __pyx_t_4 = 0;
 
-  /* "typtops.py":69
+  /* "typtops.py":72
  *     # gets the username of the logging user
  *     pp = subprocess.Popen('who', stdout=subprocess.PIPE)
  *     output = pp.stdout.read()             # <<<<<<<<<<<<<<
  *     first_line = output.splitlines()[0]
  *     user = first_line.split()[0]
  */
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_pp, __pyx_n_s_stdout); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 69, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_pp, __pyx_n_s_stdout); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 72, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_read); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 69, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_read); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 72, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_t_1 = NULL;
@@ -1408,24 +1418,24 @@ static PyObject *__pyx_pf_7typtops__get_login_user(CYTHON_UNUSED PyObject *__pyx
     }
   }
   if (__pyx_t_1) {
-    __pyx_t_4 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 69, __pyx_L1_error)
+    __pyx_t_4 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 72, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   } else {
-    __pyx_t_4 = __Pyx_PyObject_CallNoArg(__pyx_t_2); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 69, __pyx_L1_error)
+    __pyx_t_4 = __Pyx_PyObject_CallNoArg(__pyx_t_2); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 72, __pyx_L1_error)
   }
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __pyx_v_output = __pyx_t_4;
   __pyx_t_4 = 0;
 
-  /* "typtops.py":70
+  /* "typtops.py":73
  *     pp = subprocess.Popen('who', stdout=subprocess.PIPE)
  *     output = pp.stdout.read()
  *     first_line = output.splitlines()[0]             # <<<<<<<<<<<<<<
  *     user = first_line.split()[0]
  *     return user
  */
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_output, __pyx_n_s_splitlines); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 70, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_output, __pyx_n_s_splitlines); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 73, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __pyx_t_1 = NULL;
   if (CYTHON_COMPILING_IN_CPYTHON && likely(PyMethod_Check(__pyx_t_2))) {
@@ -1438,27 +1448,27 @@ static PyObject *__pyx_pf_7typtops__get_login_user(CYTHON_UNUSED PyObject *__pyx
     }
   }
   if (__pyx_t_1) {
-    __pyx_t_4 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 70, __pyx_L1_error)
+    __pyx_t_4 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 73, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   } else {
-    __pyx_t_4 = __Pyx_PyObject_CallNoArg(__pyx_t_2); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 70, __pyx_L1_error)
+    __pyx_t_4 = __Pyx_PyObject_CallNoArg(__pyx_t_2); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 73, __pyx_L1_error)
   }
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = __Pyx_GetItemInt(__pyx_t_4, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 70, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_GetItemInt(__pyx_t_4, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 73, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   __pyx_v_first_line = __pyx_t_2;
   __pyx_t_2 = 0;
 
-  /* "typtops.py":71
+  /* "typtops.py":74
  *     output = pp.stdout.read()
  *     first_line = output.splitlines()[0]
  *     user = first_line.split()[0]             # <<<<<<<<<<<<<<
  *     return user
  * 
  */
-  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_first_line, __pyx_n_s_split); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 71, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_first_line, __pyx_n_s_split); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 74, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __pyx_t_1 = NULL;
   if (CYTHON_COMPILING_IN_CPYTHON && likely(PyMethod_Check(__pyx_t_4))) {
@@ -1471,20 +1481,20 @@ static PyObject *__pyx_pf_7typtops__get_login_user(CYTHON_UNUSED PyObject *__pyx
     }
   }
   if (__pyx_t_1) {
-    __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_t_4, __pyx_t_1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 71, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_t_4, __pyx_t_1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 74, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   } else {
-    __pyx_t_2 = __Pyx_PyObject_CallNoArg(__pyx_t_4); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 71, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_PyObject_CallNoArg(__pyx_t_4); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 74, __pyx_L1_error)
   }
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_4 = __Pyx_GetItemInt(__pyx_t_2, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 71, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_GetItemInt(__pyx_t_2, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 74, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __pyx_v_user = __pyx_t_4;
   __pyx_t_4 = 0;
 
-  /* "typtops.py":72
+  /* "typtops.py":75
  *     first_line = output.splitlines()[0]
  *     user = first_line.split()[0]
  *     return user             # <<<<<<<<<<<<<<
@@ -1496,7 +1506,7 @@ static PyObject *__pyx_pf_7typtops__get_login_user(CYTHON_UNUSED PyObject *__pyx
   __pyx_r = __pyx_v_user;
   goto __pyx_L0;
 
-  /* "typtops.py":66
+  /* "typtops.py":69
  *     pass
  * 
  * def _get_login_user():             # <<<<<<<<<<<<<<
@@ -1522,7 +1532,7 @@ static PyObject *__pyx_pf_7typtops__get_login_user(CYTHON_UNUSED PyObject *__pyx
   return __pyx_r;
 }
 
-/* "typtops.py":74
+/* "typtops.py":77
  *     return user
  * 
  * def _get_username():             # <<<<<<<<<<<<<<
@@ -1560,29 +1570,29 @@ static PyObject *__pyx_pf_7typtops_2_get_username(CYTHON_UNUSED PyObject *__pyx_
   PyObject *__pyx_t_6 = NULL;
   __Pyx_RefNannySetupContext("_get_username", 0);
 
-  /* "typtops.py":76
+  /* "typtops.py":79
  * def _get_username():
  *     # trying to go over the problem of
  *     if USER:             # <<<<<<<<<<<<<<
  *         print("Designated user: {}".format(USER))
  *         return USER
  */
-  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_USER); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 76, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_USER); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 79, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely(__pyx_t_2 < 0)) __PYX_ERR(0, 76, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely(__pyx_t_2 < 0)) __PYX_ERR(0, 79, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   if (__pyx_t_2) {
 
-    /* "typtops.py":77
+    /* "typtops.py":80
  *     # trying to go over the problem of
  *     if USER:
  *         print("Designated user: {}".format(USER))             # <<<<<<<<<<<<<<
  *         return USER
  *     uid = os.getuid()
  */
-    __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_kp_s_Designated_user, __pyx_n_s_format); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 77, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_kp_s_Designated_user, __pyx_n_s_format); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 80, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
-    __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_USER); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 77, __pyx_L1_error)
+    __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_USER); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 80, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
     __pyx_t_5 = NULL;
     if (CYTHON_COMPILING_IN_CPYTHON && likely(PyMethod_Check(__pyx_t_3))) {
@@ -1595,32 +1605,32 @@ static PyObject *__pyx_pf_7typtops_2_get_username(CYTHON_UNUSED PyObject *__pyx_
       }
     }
     if (!__pyx_t_5) {
-      __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_4); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 77, __pyx_L1_error)
+      __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_4); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 80, __pyx_L1_error)
       __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
       __Pyx_GOTREF(__pyx_t_1);
     } else {
-      __pyx_t_6 = PyTuple_New(1+1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 77, __pyx_L1_error)
+      __pyx_t_6 = PyTuple_New(1+1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 80, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_6);
       __Pyx_GIVEREF(__pyx_t_5); PyTuple_SET_ITEM(__pyx_t_6, 0, __pyx_t_5); __pyx_t_5 = NULL;
       __Pyx_GIVEREF(__pyx_t_4);
       PyTuple_SET_ITEM(__pyx_t_6, 0+1, __pyx_t_4);
       __pyx_t_4 = 0;
-      __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_6, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 77, __pyx_L1_error)
+      __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_6, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 80, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_1);
       __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
     }
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    __pyx_t_3 = PyTuple_New(1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 77, __pyx_L1_error)
+    __pyx_t_3 = PyTuple_New(1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 80, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
     __Pyx_GIVEREF(__pyx_t_1);
     PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_t_1);
     __pyx_t_1 = 0;
-    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_print, __pyx_t_3, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 77, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_print, __pyx_t_3, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 80, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-    /* "typtops.py":78
+    /* "typtops.py":81
  *     if USER:
  *         print("Designated user: {}".format(USER))
  *         return USER             # <<<<<<<<<<<<<<
@@ -1628,13 +1638,13 @@ static PyObject *__pyx_pf_7typtops_2_get_username(CYTHON_UNUSED PyObject *__pyx_
  *     is_root = uid == 0
  */
     __Pyx_XDECREF(__pyx_r);
-    __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_USER); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 78, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_USER); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 81, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __pyx_r = __pyx_t_1;
     __pyx_t_1 = 0;
     goto __pyx_L0;
 
-    /* "typtops.py":76
+    /* "typtops.py":79
  * def _get_username():
  *     # trying to go over the problem of
  *     if USER:             # <<<<<<<<<<<<<<
@@ -1643,16 +1653,16 @@ static PyObject *__pyx_pf_7typtops_2_get_username(CYTHON_UNUSED PyObject *__pyx_
  */
   }
 
-  /* "typtops.py":79
+  /* "typtops.py":82
  *         print("Designated user: {}".format(USER))
  *         return USER
  *     uid = os.getuid()             # <<<<<<<<<<<<<<
  *     is_root = uid == 0
  *     user = _get_login_user()
  */
-  __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_os); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 79, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_os); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 82, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_getuid); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 79, __pyx_L1_error)
+  __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_getuid); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 82, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __pyx_t_3 = NULL;
@@ -1666,36 +1676,36 @@ static PyObject *__pyx_pf_7typtops_2_get_username(CYTHON_UNUSED PyObject *__pyx_
     }
   }
   if (__pyx_t_3) {
-    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_6, __pyx_t_3); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 79, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_6, __pyx_t_3); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 82, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   } else {
-    __pyx_t_1 = __Pyx_PyObject_CallNoArg(__pyx_t_6); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 79, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_CallNoArg(__pyx_t_6); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 82, __pyx_L1_error)
   }
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
   __pyx_v_uid = __pyx_t_1;
   __pyx_t_1 = 0;
 
-  /* "typtops.py":80
+  /* "typtops.py":83
  *         return USER
  *     uid = os.getuid()
  *     is_root = uid == 0             # <<<<<<<<<<<<<<
  *     user = _get_login_user()
  *     if is_root:
  */
-  __pyx_t_1 = __Pyx_PyInt_EqObjC(__pyx_v_uid, __pyx_int_0, 0, 0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 80, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyInt_EqObjC(__pyx_v_uid, __pyx_int_0, 0, 0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 83, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_v_is_root = __pyx_t_1;
   __pyx_t_1 = 0;
 
-  /* "typtops.py":81
+  /* "typtops.py":84
  *     uid = os.getuid()
  *     is_root = uid == 0
  *     user = _get_login_user()             # <<<<<<<<<<<<<<
  *     if is_root:
  *         r = raw_input("Setting will be done for login user: {}.\n"
  */
-  __pyx_t_6 = __Pyx_GetModuleGlobalName(__pyx_n_s_get_login_user); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 81, __pyx_L1_error)
+  __pyx_t_6 = __Pyx_GetModuleGlobalName(__pyx_n_s_get_login_user); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 84, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
   __pyx_t_3 = NULL;
   if (CYTHON_COMPILING_IN_CPYTHON && unlikely(PyMethod_Check(__pyx_t_6))) {
@@ -1708,34 +1718,34 @@ static PyObject *__pyx_pf_7typtops_2_get_username(CYTHON_UNUSED PyObject *__pyx_
     }
   }
   if (__pyx_t_3) {
-    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_6, __pyx_t_3); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 81, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_6, __pyx_t_3); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 84, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   } else {
-    __pyx_t_1 = __Pyx_PyObject_CallNoArg(__pyx_t_6); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 81, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_CallNoArg(__pyx_t_6); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 84, __pyx_L1_error)
   }
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
   __pyx_v_user = __pyx_t_1;
   __pyx_t_1 = 0;
 
-  /* "typtops.py":82
+  /* "typtops.py":85
  *     is_root = uid == 0
  *     user = _get_login_user()
  *     if is_root:             # <<<<<<<<<<<<<<
  *         r = raw_input("Setting will be done for login user: {}.\n"
  *               "Please confirm. (Yn) ".format(user))
  */
-  __pyx_t_2 = __Pyx_PyObject_IsTrue(__pyx_v_is_root); if (unlikely(__pyx_t_2 < 0)) __PYX_ERR(0, 82, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_IsTrue(__pyx_v_is_root); if (unlikely(__pyx_t_2 < 0)) __PYX_ERR(0, 85, __pyx_L1_error)
   if (__pyx_t_2) {
 
-    /* "typtops.py":84
+    /* "typtops.py":87
  *     if is_root:
  *         r = raw_input("Setting will be done for login user: {}.\n"
  *               "Please confirm. (Yn) ".format(user))             # <<<<<<<<<<<<<<
  *         abort = r and r.lower() == 'n'
  *         if abort:
  */
-    __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_kp_s_Setting_will_be_done_for_login_u, __pyx_n_s_format); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 84, __pyx_L1_error)
+    __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_kp_s_Setting_will_be_done_for_login_u, __pyx_n_s_format); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 87, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_6);
     __pyx_t_3 = NULL;
     if (CYTHON_COMPILING_IN_CPYTHON && likely(PyMethod_Check(__pyx_t_6))) {
@@ -1748,54 +1758,54 @@ static PyObject *__pyx_pf_7typtops_2_get_username(CYTHON_UNUSED PyObject *__pyx_
       }
     }
     if (!__pyx_t_3) {
-      __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_6, __pyx_v_user); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 84, __pyx_L1_error)
+      __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_6, __pyx_v_user); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 87, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_1);
     } else {
-      __pyx_t_4 = PyTuple_New(1+1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 84, __pyx_L1_error)
+      __pyx_t_4 = PyTuple_New(1+1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 87, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_4);
       __Pyx_GIVEREF(__pyx_t_3); PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_3); __pyx_t_3 = NULL;
       __Pyx_INCREF(__pyx_v_user);
       __Pyx_GIVEREF(__pyx_v_user);
       PyTuple_SET_ITEM(__pyx_t_4, 0+1, __pyx_v_user);
-      __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_6, __pyx_t_4, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 84, __pyx_L1_error)
+      __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_6, __pyx_t_4, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 87, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_1);
       __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
     }
     __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
 
-    /* "typtops.py":83
+    /* "typtops.py":86
  *     user = _get_login_user()
  *     if is_root:
  *         r = raw_input("Setting will be done for login user: {}.\n"             # <<<<<<<<<<<<<<
  *               "Please confirm. (Yn) ".format(user))
  *         abort = r and r.lower() == 'n'
  */
-    __pyx_t_6 = PyTuple_New(1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 83, __pyx_L1_error)
+    __pyx_t_6 = PyTuple_New(1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 86, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_6);
     __Pyx_GIVEREF(__pyx_t_1);
     PyTuple_SET_ITEM(__pyx_t_6, 0, __pyx_t_1);
     __pyx_t_1 = 0;
-    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_raw_input, __pyx_t_6, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 83, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_raw_input, __pyx_t_6, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 86, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
     __pyx_v_r = __pyx_t_1;
     __pyx_t_1 = 0;
 
-    /* "typtops.py":85
+    /* "typtops.py":88
  *         r = raw_input("Setting will be done for login user: {}.\n"
  *               "Please confirm. (Yn) ".format(user))
  *         abort = r and r.lower() == 'n'             # <<<<<<<<<<<<<<
  *         if abort:
  *             raise AbortSettings()
  */
-    __pyx_t_2 = __Pyx_PyObject_IsTrue(__pyx_v_r); if (unlikely(__pyx_t_2 < 0)) __PYX_ERR(0, 85, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_PyObject_IsTrue(__pyx_v_r); if (unlikely(__pyx_t_2 < 0)) __PYX_ERR(0, 88, __pyx_L1_error)
     if (__pyx_t_2) {
     } else {
       __Pyx_INCREF(__pyx_v_r);
       __pyx_t_1 = __pyx_v_r;
       goto __pyx_L5_bool_binop_done;
     }
-    __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_r, __pyx_n_s_lower); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 85, __pyx_L1_error)
+    __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_r, __pyx_n_s_lower); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 88, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
     __pyx_t_3 = NULL;
     if (CYTHON_COMPILING_IN_CPYTHON && likely(PyMethod_Check(__pyx_t_4))) {
@@ -1808,14 +1818,14 @@ static PyObject *__pyx_pf_7typtops_2_get_username(CYTHON_UNUSED PyObject *__pyx_
       }
     }
     if (__pyx_t_3) {
-      __pyx_t_6 = __Pyx_PyObject_CallOneArg(__pyx_t_4, __pyx_t_3); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 85, __pyx_L1_error)
+      __pyx_t_6 = __Pyx_PyObject_CallOneArg(__pyx_t_4, __pyx_t_3); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 88, __pyx_L1_error)
       __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
     } else {
-      __pyx_t_6 = __Pyx_PyObject_CallNoArg(__pyx_t_4); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 85, __pyx_L1_error)
+      __pyx_t_6 = __Pyx_PyObject_CallNoArg(__pyx_t_4); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 88, __pyx_L1_error)
     }
     __Pyx_GOTREF(__pyx_t_6);
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    __pyx_t_4 = PyObject_RichCompare(__pyx_t_6, __pyx_n_s_n, Py_EQ); __Pyx_XGOTREF(__pyx_t_4); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 85, __pyx_L1_error)
+    __pyx_t_4 = PyObject_RichCompare(__pyx_t_6, __pyx_n_s_n, Py_EQ); __Pyx_XGOTREF(__pyx_t_4); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 88, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
     __Pyx_INCREF(__pyx_t_4);
     __pyx_t_1 = __pyx_t_4;
@@ -1824,24 +1834,24 @@ static PyObject *__pyx_pf_7typtops_2_get_username(CYTHON_UNUSED PyObject *__pyx_
     __pyx_v_abort = __pyx_t_1;
     __pyx_t_1 = 0;
 
-    /* "typtops.py":86
+    /* "typtops.py":89
  *               "Please confirm. (Yn) ".format(user))
  *         abort = r and r.lower() == 'n'
  *         if abort:             # <<<<<<<<<<<<<<
  *             raise AbortSettings()
  *     else:
  */
-    __pyx_t_2 = __Pyx_PyObject_IsTrue(__pyx_v_abort); if (unlikely(__pyx_t_2 < 0)) __PYX_ERR(0, 86, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_PyObject_IsTrue(__pyx_v_abort); if (unlikely(__pyx_t_2 < 0)) __PYX_ERR(0, 89, __pyx_L1_error)
     if (__pyx_t_2) {
 
-      /* "typtops.py":87
+      /* "typtops.py":90
  *         abort = r and r.lower() == 'n'
  *         if abort:
  *             raise AbortSettings()             # <<<<<<<<<<<<<<
  *     else:
  *         print("Designated user: {}".format(user))
  */
-      __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_AbortSettings); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 87, __pyx_L1_error)
+      __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_AbortSettings); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 90, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_4);
       __pyx_t_6 = NULL;
       if (CYTHON_COMPILING_IN_CPYTHON && unlikely(PyMethod_Check(__pyx_t_4))) {
@@ -1854,18 +1864,18 @@ static PyObject *__pyx_pf_7typtops_2_get_username(CYTHON_UNUSED PyObject *__pyx_
         }
       }
       if (__pyx_t_6) {
-        __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_4, __pyx_t_6); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 87, __pyx_L1_error)
+        __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_4, __pyx_t_6); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 90, __pyx_L1_error)
         __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
       } else {
-        __pyx_t_1 = __Pyx_PyObject_CallNoArg(__pyx_t_4); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 87, __pyx_L1_error)
+        __pyx_t_1 = __Pyx_PyObject_CallNoArg(__pyx_t_4); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 90, __pyx_L1_error)
       }
       __Pyx_GOTREF(__pyx_t_1);
       __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
       __Pyx_Raise(__pyx_t_1, 0, 0, 0);
       __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-      __PYX_ERR(0, 87, __pyx_L1_error)
+      __PYX_ERR(0, 90, __pyx_L1_error)
 
-      /* "typtops.py":86
+      /* "typtops.py":89
  *               "Please confirm. (Yn) ".format(user))
  *         abort = r and r.lower() == 'n'
  *         if abort:             # <<<<<<<<<<<<<<
@@ -1874,7 +1884,7 @@ static PyObject *__pyx_pf_7typtops_2_get_username(CYTHON_UNUSED PyObject *__pyx_
  */
     }
 
-    /* "typtops.py":82
+    /* "typtops.py":85
  *     is_root = uid == 0
  *     user = _get_login_user()
  *     if is_root:             # <<<<<<<<<<<<<<
@@ -1884,7 +1894,7 @@ static PyObject *__pyx_pf_7typtops_2_get_username(CYTHON_UNUSED PyObject *__pyx_
     goto __pyx_L4;
   }
 
-  /* "typtops.py":89
+  /* "typtops.py":92
  *             raise AbortSettings()
  *     else:
  *         print("Designated user: {}".format(user))             # <<<<<<<<<<<<<<
@@ -1892,7 +1902,7 @@ static PyObject *__pyx_pf_7typtops_2_get_username(CYTHON_UNUSED PyObject *__pyx_
  * 
  */
   /*else*/ {
-    __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_kp_s_Designated_user, __pyx_n_s_format); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 89, __pyx_L1_error)
+    __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_kp_s_Designated_user, __pyx_n_s_format); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 92, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
     __pyx_t_6 = NULL;
     if (CYTHON_COMPILING_IN_CPYTHON && likely(PyMethod_Check(__pyx_t_4))) {
@@ -1905,33 +1915,33 @@ static PyObject *__pyx_pf_7typtops_2_get_username(CYTHON_UNUSED PyObject *__pyx_
       }
     }
     if (!__pyx_t_6) {
-      __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_4, __pyx_v_user); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 89, __pyx_L1_error)
+      __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_4, __pyx_v_user); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 92, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_1);
     } else {
-      __pyx_t_3 = PyTuple_New(1+1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 89, __pyx_L1_error)
+      __pyx_t_3 = PyTuple_New(1+1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 92, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_3);
       __Pyx_GIVEREF(__pyx_t_6); PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_t_6); __pyx_t_6 = NULL;
       __Pyx_INCREF(__pyx_v_user);
       __Pyx_GIVEREF(__pyx_v_user);
       PyTuple_SET_ITEM(__pyx_t_3, 0+1, __pyx_v_user);
-      __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_3, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 89, __pyx_L1_error)
+      __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_3, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 92, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_1);
       __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
     }
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    __pyx_t_4 = PyTuple_New(1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 89, __pyx_L1_error)
+    __pyx_t_4 = PyTuple_New(1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 92, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
     __Pyx_GIVEREF(__pyx_t_1);
     PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_1);
     __pyx_t_1 = 0;
-    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_print, __pyx_t_4, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 89, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_print, __pyx_t_4, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 92, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   }
   __pyx_L4:;
 
-  /* "typtops.py":90
+  /* "typtops.py":93
  *     else:
  *         print("Designated user: {}".format(user))
  *     return user             # <<<<<<<<<<<<<<
@@ -1943,7 +1953,7 @@ static PyObject *__pyx_pf_7typtops_2_get_username(CYTHON_UNUSED PyObject *__pyx_
   __pyx_r = __pyx_v_user;
   goto __pyx_L0;
 
-  /* "typtops.py":74
+  /* "typtops.py":77
  *     return user
  * 
  * def _get_username():             # <<<<<<<<<<<<<<
@@ -1971,7 +1981,7 @@ static PyObject *__pyx_pf_7typtops_2_get_username(CYTHON_UNUSED PyObject *__pyx_
   return __pyx_r;
 }
 
-/* "typtops.py":92
+/* "typtops.py":95
  *     return user
  * 
  * def _get_typoDB():             # <<<<<<<<<<<<<<
@@ -2016,14 +2026,14 @@ static PyObject *__pyx_pf_7typtops_4_get_typoDB(CYTHON_UNUSED PyObject *__pyx_se
   int __pyx_t_15;
   __Pyx_RefNannySetupContext("_get_typoDB", 0);
 
-  /* "typtops.py":93
+  /* "typtops.py":96
  * 
  * def _get_typoDB():
  *     user = _get_username()             # <<<<<<<<<<<<<<
  *     try:
  *         typoDB = UserTypoDB(user)
  */
-  __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_get_username); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 93, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_get_username); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 96, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __pyx_t_3 = NULL;
   if (CYTHON_COMPILING_IN_CPYTHON && unlikely(PyMethod_Check(__pyx_t_2))) {
@@ -2036,17 +2046,17 @@ static PyObject *__pyx_pf_7typtops_4_get_typoDB(CYTHON_UNUSED PyObject *__pyx_se
     }
   }
   if (__pyx_t_3) {
-    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_3); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 93, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_3); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 96, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   } else {
-    __pyx_t_1 = __Pyx_PyObject_CallNoArg(__pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 93, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_CallNoArg(__pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 96, __pyx_L1_error)
   }
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __pyx_v_user = __pyx_t_1;
   __pyx_t_1 = 0;
 
-  /* "typtops.py":94
+  /* "typtops.py":97
  * def _get_typoDB():
  *     user = _get_username()
  *     try:             # <<<<<<<<<<<<<<
@@ -2062,14 +2072,14 @@ static PyObject *__pyx_pf_7typtops_4_get_typoDB(CYTHON_UNUSED PyObject *__pyx_se
     __Pyx_XGOTREF(__pyx_t_6);
     /*try:*/ {
 
-      /* "typtops.py":95
+      /* "typtops.py":98
  *     user = _get_username()
  *     try:
  *         typoDB = UserTypoDB(user)             # <<<<<<<<<<<<<<
  *     except Exception as e:
  *         print(
  */
-      __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_UserTypoDB); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 95, __pyx_L3_error)
+      __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_UserTypoDB); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 98, __pyx_L3_error)
       __Pyx_GOTREF(__pyx_t_2);
       __pyx_t_3 = NULL;
       if (CYTHON_COMPILING_IN_CPYTHON && unlikely(PyMethod_Check(__pyx_t_2))) {
@@ -2082,16 +2092,16 @@ static PyObject *__pyx_pf_7typtops_4_get_typoDB(CYTHON_UNUSED PyObject *__pyx_se
         }
       }
       if (!__pyx_t_3) {
-        __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_v_user); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 95, __pyx_L3_error)
+        __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_v_user); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 98, __pyx_L3_error)
         __Pyx_GOTREF(__pyx_t_1);
       } else {
-        __pyx_t_7 = PyTuple_New(1+1); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 95, __pyx_L3_error)
+        __pyx_t_7 = PyTuple_New(1+1); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 98, __pyx_L3_error)
         __Pyx_GOTREF(__pyx_t_7);
         __Pyx_GIVEREF(__pyx_t_3); PyTuple_SET_ITEM(__pyx_t_7, 0, __pyx_t_3); __pyx_t_3 = NULL;
         __Pyx_INCREF(__pyx_v_user);
         __Pyx_GIVEREF(__pyx_v_user);
         PyTuple_SET_ITEM(__pyx_t_7, 0+1, __pyx_v_user);
-        __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_7, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 95, __pyx_L3_error)
+        __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_7, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 98, __pyx_L3_error)
         __Pyx_GOTREF(__pyx_t_1);
         __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
       }
@@ -2099,7 +2109,7 @@ static PyObject *__pyx_pf_7typtops_4_get_typoDB(CYTHON_UNUSED PyObject *__pyx_se
       __pyx_v_typoDB = __pyx_t_1;
       __pyx_t_1 = 0;
 
-      /* "typtops.py":94
+      /* "typtops.py":97
  * def _get_typoDB():
  *     user = _get_username()
  *     try:             # <<<<<<<<<<<<<<
@@ -2118,7 +2128,7 @@ static PyObject *__pyx_pf_7typtops_4_get_typoDB(CYTHON_UNUSED PyObject *__pyx_se
     __Pyx_XDECREF(__pyx_t_2); __pyx_t_2 = 0;
     __Pyx_XDECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-    /* "typtops.py":96
+    /* "typtops.py":99
  *     try:
  *         typoDB = UserTypoDB(user)
  *     except Exception as e:             # <<<<<<<<<<<<<<
@@ -2128,28 +2138,28 @@ static PyObject *__pyx_pf_7typtops_4_get_typoDB(CYTHON_UNUSED PyObject *__pyx_se
     __pyx_t_8 = __Pyx_PyErr_ExceptionMatches(__pyx_builtin_Exception);
     if (__pyx_t_8) {
       __Pyx_AddTraceback("typtops._get_typoDB", __pyx_clineno, __pyx_lineno, __pyx_filename);
-      if (__Pyx_GetException(&__pyx_t_1, &__pyx_t_2, &__pyx_t_7) < 0) __PYX_ERR(0, 96, __pyx_L5_except_error)
+      if (__Pyx_GetException(&__pyx_t_1, &__pyx_t_2, &__pyx_t_7) < 0) __PYX_ERR(0, 99, __pyx_L5_except_error)
       __Pyx_GOTREF(__pyx_t_1);
       __Pyx_GOTREF(__pyx_t_2);
       __Pyx_GOTREF(__pyx_t_7);
       __Pyx_INCREF(__pyx_t_2);
       __pyx_v_e = __pyx_t_2;
 
-      /* "typtops.py":101
+      /* "typtops.py":104
  *             " \"sudo {} --init\" to initialize the db.\nThe error "\
  *             "I ran into is the following:\n{}"\
  *             .format(sys.argv[0], e)             # <<<<<<<<<<<<<<
  *         )
  *         return None
  */
-      __pyx_t_9 = __Pyx_PyObject_GetAttrStr(__pyx_kp_s_It_seems_you_have_not_initialize, __pyx_n_s_format); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 101, __pyx_L5_except_error)
+      __pyx_t_9 = __Pyx_PyObject_GetAttrStr(__pyx_kp_s_It_seems_you_have_not_initialize, __pyx_n_s_format); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 104, __pyx_L5_except_error)
       __Pyx_GOTREF(__pyx_t_9);
-      __pyx_t_10 = __Pyx_GetModuleGlobalName(__pyx_n_s_sys); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 101, __pyx_L5_except_error)
+      __pyx_t_10 = __Pyx_GetModuleGlobalName(__pyx_n_s_sys); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 104, __pyx_L5_except_error)
       __Pyx_GOTREF(__pyx_t_10);
-      __pyx_t_11 = __Pyx_PyObject_GetAttrStr(__pyx_t_10, __pyx_n_s_argv); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 101, __pyx_L5_except_error)
+      __pyx_t_11 = __Pyx_PyObject_GetAttrStr(__pyx_t_10, __pyx_n_s_argv); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 104, __pyx_L5_except_error)
       __Pyx_GOTREF(__pyx_t_11);
       __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
-      __pyx_t_10 = __Pyx_GetItemInt(__pyx_t_11, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 101, __pyx_L5_except_error)
+      __pyx_t_10 = __Pyx_GetItemInt(__pyx_t_11, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 104, __pyx_L5_except_error)
       __Pyx_GOTREF(__pyx_t_10);
       __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
       __pyx_t_11 = NULL;
@@ -2164,7 +2174,7 @@ static PyObject *__pyx_pf_7typtops_4_get_typoDB(CYTHON_UNUSED PyObject *__pyx_se
           __pyx_t_12 = 1;
         }
       }
-      __pyx_t_13 = PyTuple_New(2+__pyx_t_12); if (unlikely(!__pyx_t_13)) __PYX_ERR(0, 101, __pyx_L5_except_error)
+      __pyx_t_13 = PyTuple_New(2+__pyx_t_12); if (unlikely(!__pyx_t_13)) __PYX_ERR(0, 104, __pyx_L5_except_error)
       __Pyx_GOTREF(__pyx_t_13);
       if (__pyx_t_11) {
         __Pyx_GIVEREF(__pyx_t_11); PyTuple_SET_ITEM(__pyx_t_13, 0, __pyx_t_11); __pyx_t_11 = NULL;
@@ -2175,29 +2185,29 @@ static PyObject *__pyx_pf_7typtops_4_get_typoDB(CYTHON_UNUSED PyObject *__pyx_se
       __Pyx_GIVEREF(__pyx_v_e);
       PyTuple_SET_ITEM(__pyx_t_13, 1+__pyx_t_12, __pyx_v_e);
       __pyx_t_10 = 0;
-      __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_9, __pyx_t_13, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 101, __pyx_L5_except_error)
+      __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_9, __pyx_t_13, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 104, __pyx_L5_except_error)
       __Pyx_GOTREF(__pyx_t_3);
       __Pyx_DECREF(__pyx_t_13); __pyx_t_13 = 0;
       __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
 
-      /* "typtops.py":97
+      /* "typtops.py":100
  *         typoDB = UserTypoDB(user)
  *     except Exception as e:
  *         print(             # <<<<<<<<<<<<<<
  *             "It seems you have not initialized the db. Try running"\
  *             " \"sudo {} --init\" to initialize the db.\nThe error "\
  */
-      __pyx_t_9 = PyTuple_New(1); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 97, __pyx_L5_except_error)
+      __pyx_t_9 = PyTuple_New(1); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 100, __pyx_L5_except_error)
       __Pyx_GOTREF(__pyx_t_9);
       __Pyx_GIVEREF(__pyx_t_3);
       PyTuple_SET_ITEM(__pyx_t_9, 0, __pyx_t_3);
       __pyx_t_3 = 0;
-      __pyx_t_3 = __Pyx_PyObject_Call(__pyx_builtin_print, __pyx_t_9, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 97, __pyx_L5_except_error)
+      __pyx_t_3 = __Pyx_PyObject_Call(__pyx_builtin_print, __pyx_t_9, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 100, __pyx_L5_except_error)
       __Pyx_GOTREF(__pyx_t_3);
       __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
       __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-      /* "typtops.py":103
+      /* "typtops.py":106
  *             .format(sys.argv[0], e)
  *         )
  *         return None             # <<<<<<<<<<<<<<
@@ -2215,7 +2225,7 @@ static PyObject *__pyx_pf_7typtops_4_get_typoDB(CYTHON_UNUSED PyObject *__pyx_se
     goto __pyx_L5_except_error;
     __pyx_L5_except_error:;
 
-    /* "typtops.py":94
+    /* "typtops.py":97
  * def _get_typoDB():
  *     user = _get_username()
  *     try:             # <<<<<<<<<<<<<<
@@ -2238,14 +2248,14 @@ static PyObject *__pyx_pf_7typtops_4_get_typoDB(CYTHON_UNUSED PyObject *__pyx_se
     __pyx_L10_try_end:;
   }
 
-  /* "typtops.py":104
+  /* "typtops.py":107
  *         )
  *         return None
  *     if not typoDB.is_typotoler_init():             # <<<<<<<<<<<<<<
  *         raise Exception("{}:{} not initiated".format(
  *             str(typoDB),
  */
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_typoDB, __pyx_n_s_is_typotoler_init); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 104, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_typoDB, __pyx_n_s_is_typotoler_init); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 107, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __pyx_t_1 = NULL;
   if (CYTHON_COMPILING_IN_CPYTHON && likely(PyMethod_Check(__pyx_t_2))) {
@@ -2258,52 +2268,52 @@ static PyObject *__pyx_pf_7typtops_4_get_typoDB(CYTHON_UNUSED PyObject *__pyx_se
     }
   }
   if (__pyx_t_1) {
-    __pyx_t_7 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_1); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 104, __pyx_L1_error)
+    __pyx_t_7 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_1); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 107, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   } else {
-    __pyx_t_7 = __Pyx_PyObject_CallNoArg(__pyx_t_2); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 104, __pyx_L1_error)
+    __pyx_t_7 = __Pyx_PyObject_CallNoArg(__pyx_t_2); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 107, __pyx_L1_error)
   }
   __Pyx_GOTREF(__pyx_t_7);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_14 = __Pyx_PyObject_IsTrue(__pyx_t_7); if (unlikely(__pyx_t_14 < 0)) __PYX_ERR(0, 104, __pyx_L1_error)
+  __pyx_t_14 = __Pyx_PyObject_IsTrue(__pyx_t_7); if (unlikely(__pyx_t_14 < 0)) __PYX_ERR(0, 107, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
   __pyx_t_15 = ((!__pyx_t_14) != 0);
   if (__pyx_t_15) {
 
-    /* "typtops.py":105
+    /* "typtops.py":108
  *         return None
  *     if not typoDB.is_typotoler_init():
  *         raise Exception("{}:{} not initiated".format(             # <<<<<<<<<<<<<<
  *             str(typoDB),
  *             typoDB.get_db_path())
  */
-    __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_kp_s_not_initiated, __pyx_n_s_format); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 105, __pyx_L1_error)
+    __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_kp_s_not_initiated, __pyx_n_s_format); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 108, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
 
-    /* "typtops.py":106
+    /* "typtops.py":109
  *     if not typoDB.is_typotoler_init():
  *         raise Exception("{}:{} not initiated".format(
  *             str(typoDB),             # <<<<<<<<<<<<<<
  *             typoDB.get_db_path())
  *         )
  */
-    __pyx_t_1 = PyTuple_New(1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 106, __pyx_L1_error)
+    __pyx_t_1 = PyTuple_New(1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 109, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_INCREF(__pyx_v_typoDB);
     __Pyx_GIVEREF(__pyx_v_typoDB);
     PyTuple_SET_ITEM(__pyx_t_1, 0, __pyx_v_typoDB);
-    __pyx_t_3 = __Pyx_PyObject_Call(((PyObject *)(&PyString_Type)), __pyx_t_1, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 106, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_PyObject_Call(((PyObject *)(&PyString_Type)), __pyx_t_1, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 109, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-    /* "typtops.py":107
+    /* "typtops.py":110
  *         raise Exception("{}:{} not initiated".format(
  *             str(typoDB),
  *             typoDB.get_db_path())             # <<<<<<<<<<<<<<
  *         )
  *     return typoDB
  */
-    __pyx_t_9 = __Pyx_PyObject_GetAttrStr(__pyx_v_typoDB, __pyx_n_s_get_db_path); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 107, __pyx_L1_error)
+    __pyx_t_9 = __Pyx_PyObject_GetAttrStr(__pyx_v_typoDB, __pyx_n_s_get_db_path); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 110, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_9);
     __pyx_t_13 = NULL;
     if (CYTHON_COMPILING_IN_CPYTHON && likely(PyMethod_Check(__pyx_t_9))) {
@@ -2316,10 +2326,10 @@ static PyObject *__pyx_pf_7typtops_4_get_typoDB(CYTHON_UNUSED PyObject *__pyx_se
       }
     }
     if (__pyx_t_13) {
-      __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_9, __pyx_t_13); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 107, __pyx_L1_error)
+      __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_9, __pyx_t_13); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 110, __pyx_L1_error)
       __Pyx_DECREF(__pyx_t_13); __pyx_t_13 = 0;
     } else {
-      __pyx_t_1 = __Pyx_PyObject_CallNoArg(__pyx_t_9); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 107, __pyx_L1_error)
+      __pyx_t_1 = __Pyx_PyObject_CallNoArg(__pyx_t_9); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 110, __pyx_L1_error)
     }
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
@@ -2335,7 +2345,7 @@ static PyObject *__pyx_pf_7typtops_4_get_typoDB(CYTHON_UNUSED PyObject *__pyx_se
         __pyx_t_12 = 1;
       }
     }
-    __pyx_t_13 = PyTuple_New(2+__pyx_t_12); if (unlikely(!__pyx_t_13)) __PYX_ERR(0, 105, __pyx_L1_error)
+    __pyx_t_13 = PyTuple_New(2+__pyx_t_12); if (unlikely(!__pyx_t_13)) __PYX_ERR(0, 108, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_13);
     if (__pyx_t_9) {
       __Pyx_GIVEREF(__pyx_t_9); PyTuple_SET_ITEM(__pyx_t_13, 0, __pyx_t_9); __pyx_t_9 = NULL;
@@ -2346,31 +2356,31 @@ static PyObject *__pyx_pf_7typtops_4_get_typoDB(CYTHON_UNUSED PyObject *__pyx_se
     PyTuple_SET_ITEM(__pyx_t_13, 1+__pyx_t_12, __pyx_t_1);
     __pyx_t_3 = 0;
     __pyx_t_1 = 0;
-    __pyx_t_7 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_13, NULL); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 105, __pyx_L1_error)
+    __pyx_t_7 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_13, NULL); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 108, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_7);
     __Pyx_DECREF(__pyx_t_13); __pyx_t_13 = 0;
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-    /* "typtops.py":105
+    /* "typtops.py":108
  *         return None
  *     if not typoDB.is_typotoler_init():
  *         raise Exception("{}:{} not initiated".format(             # <<<<<<<<<<<<<<
  *             str(typoDB),
  *             typoDB.get_db_path())
  */
-    __pyx_t_2 = PyTuple_New(1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 105, __pyx_L1_error)
+    __pyx_t_2 = PyTuple_New(1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 108, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
     __Pyx_GIVEREF(__pyx_t_7);
     PyTuple_SET_ITEM(__pyx_t_2, 0, __pyx_t_7);
     __pyx_t_7 = 0;
-    __pyx_t_7 = __Pyx_PyObject_Call(__pyx_builtin_Exception, __pyx_t_2, NULL); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 105, __pyx_L1_error)
+    __pyx_t_7 = __Pyx_PyObject_Call(__pyx_builtin_Exception, __pyx_t_2, NULL); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 108, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_7);
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
     __Pyx_Raise(__pyx_t_7, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
-    __PYX_ERR(0, 105, __pyx_L1_error)
+    __PYX_ERR(0, 108, __pyx_L1_error)
 
-    /* "typtops.py":104
+    /* "typtops.py":107
  *         )
  *         return None
  *     if not typoDB.is_typotoler_init():             # <<<<<<<<<<<<<<
@@ -2379,7 +2389,7 @@ static PyObject *__pyx_pf_7typtops_4_get_typoDB(CYTHON_UNUSED PyObject *__pyx_se
  */
   }
 
-  /* "typtops.py":109
+  /* "typtops.py":112
  *             typoDB.get_db_path())
  *         )
  *     return typoDB             # <<<<<<<<<<<<<<
@@ -2391,7 +2401,7 @@ static PyObject *__pyx_pf_7typtops_4_get_typoDB(CYTHON_UNUSED PyObject *__pyx_se
   __pyx_r = __pyx_v_typoDB;
   goto __pyx_L0;
 
-  /* "typtops.py":92
+  /* "typtops.py":95
  *     return user
  * 
  * def _get_typoDB():             # <<<<<<<<<<<<<<
@@ -2420,7 +2430,7 @@ static PyObject *__pyx_pf_7typtops_4_get_typoDB(CYTHON_UNUSED PyObject *__pyx_se
   return __pyx_r;
 }
 
-/* "typtops.py":111
+/* "typtops.py":114
  *     return typoDB
  * 
  * def root_only_operation():             # <<<<<<<<<<<<<<
@@ -2451,16 +2461,16 @@ static PyObject *__pyx_pf_7typtops_6root_only_operation(CYTHON_UNUSED PyObject *
   int __pyx_t_4;
   __Pyx_RefNannySetupContext("root_only_operation", 0);
 
-  /* "typtops.py":112
+  /* "typtops.py":115
  * 
  * def root_only_operation():
  *     if os.getuid() != 0:             # <<<<<<<<<<<<<<
  *         print("ERROR!! You need root priviledge to run this operation")
  *         raise AbortSettings
  */
-  __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_os); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 112, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_os); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 115, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_getuid); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 112, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_getuid); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 115, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __pyx_t_2 = NULL;
@@ -2474,44 +2484,44 @@ static PyObject *__pyx_pf_7typtops_6root_only_operation(CYTHON_UNUSED PyObject *
     }
   }
   if (__pyx_t_2) {
-    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 112, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 115, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   } else {
-    __pyx_t_1 = __Pyx_PyObject_CallNoArg(__pyx_t_3); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 112, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_CallNoArg(__pyx_t_3); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 115, __pyx_L1_error)
   }
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_3 = PyObject_RichCompare(__pyx_t_1, __pyx_int_0, Py_NE); __Pyx_XGOTREF(__pyx_t_3); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 112, __pyx_L1_error)
+  __pyx_t_3 = PyObject_RichCompare(__pyx_t_1, __pyx_int_0, Py_NE); __Pyx_XGOTREF(__pyx_t_3); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 115, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_4 = __Pyx_PyObject_IsTrue(__pyx_t_3); if (unlikely(__pyx_t_4 < 0)) __PYX_ERR(0, 112, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_IsTrue(__pyx_t_3); if (unlikely(__pyx_t_4 < 0)) __PYX_ERR(0, 115, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   if (__pyx_t_4) {
 
-    /* "typtops.py":113
+    /* "typtops.py":116
  * def root_only_operation():
  *     if os.getuid() != 0:
  *         print("ERROR!! You need root priviledge to run this operation")             # <<<<<<<<<<<<<<
  *         raise AbortSettings
  * 
  */
-    __pyx_t_3 = __Pyx_PyObject_Call(__pyx_builtin_print, __pyx_tuple__2, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 113, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_PyObject_Call(__pyx_builtin_print, __pyx_tuple__2, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 116, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-    /* "typtops.py":114
+    /* "typtops.py":117
  *     if os.getuid() != 0:
  *         print("ERROR!! You need root priviledge to run this operation")
  *         raise AbortSettings             # <<<<<<<<<<<<<<
  * 
  * def initiate_typodb(RE_INIT=False):
  */
-    __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_AbortSettings); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 114, __pyx_L1_error)
+    __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_AbortSettings); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 117, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
     __Pyx_Raise(__pyx_t_3, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    __PYX_ERR(0, 114, __pyx_L1_error)
+    __PYX_ERR(0, 117, __pyx_L1_error)
 
-    /* "typtops.py":112
+    /* "typtops.py":115
  * 
  * def root_only_operation():
  *     if os.getuid() != 0:             # <<<<<<<<<<<<<<
@@ -2520,7 +2530,7 @@ static PyObject *__pyx_pf_7typtops_6root_only_operation(CYTHON_UNUSED PyObject *
  */
   }
 
-  /* "typtops.py":111
+  /* "typtops.py":114
  *     return typoDB
  * 
  * def root_only_operation():             # <<<<<<<<<<<<<<
@@ -2543,7 +2553,7 @@ static PyObject *__pyx_pf_7typtops_6root_only_operation(CYTHON_UNUSED PyObject *
   return __pyx_r;
 }
 
-/* "typtops.py":116
+/* "typtops.py":119
  *         raise AbortSettings
  * 
  * def initiate_typodb(RE_INIT=False):             # <<<<<<<<<<<<<<
@@ -2580,7 +2590,7 @@ static PyObject *__pyx_pw_7typtops_9initiate_typodb(PyObject *__pyx_self, PyObje
         }
       }
       if (unlikely(kw_args > 0)) {
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "initiate_typodb") < 0)) __PYX_ERR(0, 116, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_pyargnames, 0, values, pos_args, "initiate_typodb") < 0)) __PYX_ERR(0, 119, __pyx_L3_error)
       }
     } else {
       switch (PyTuple_GET_SIZE(__pyx_args)) {
@@ -2593,7 +2603,7 @@ static PyObject *__pyx_pw_7typtops_9initiate_typodb(PyObject *__pyx_self, PyObje
   }
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("initiate_typodb", 0, 0, 1, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 116, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("initiate_typodb", 0, 0, 1, PyTuple_GET_SIZE(__pyx_args)); __PYX_ERR(0, 119, __pyx_L3_error)
   __pyx_L3_error:;
   __Pyx_AddTraceback("typtops.initiate_typodb", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __Pyx_RefNannyFinishContext();
@@ -2610,7 +2620,6 @@ static PyObject *__pyx_pf_7typtops_8initiate_typodb(CYTHON_UNUSED PyObject *__py
   PyObject *__pyx_v_user = NULL;
   CYTHON_UNUSED PyObject *__pyx_v__ = NULL;
   PyObject *__pyx_v_e = NULL;
-  PyObject *__pyx_v_thisdir = NULL;
   PyObject *__pyx_v_subdir = NULL;
   PyObject *__pyx_v_path_f = NULL;
   PyObject *__pyx_r = NULL;
@@ -2622,25 +2631,24 @@ static PyObject *__pyx_pf_7typtops_8initiate_typodb(CYTHON_UNUSED PyObject *__py
   PyObject *__pyx_t_5 = NULL;
   PyObject *__pyx_t_6 = NULL;
   PyObject *__pyx_t_7 = NULL;
-  PyObject *__pyx_t_8 = NULL;
-  PyObject *__pyx_t_9 = NULL;
-  PyObject *__pyx_t_10 = NULL;
-  int __pyx_t_11;
-  int __pyx_t_12;
+  int __pyx_t_8;
+  int __pyx_t_9;
+  int __pyx_t_10;
+  PyObject *__pyx_t_11 = NULL;
+  PyObject *__pyx_t_12 = NULL;
   int __pyx_t_13;
-  Py_ssize_t __pyx_t_14;
-  int __pyx_t_15;
-  PyObject *__pyx_t_16 = NULL;
+  PyObject *__pyx_t_14 = NULL;
+  PyObject *__pyx_t_15 = NULL;
   __Pyx_RefNannySetupContext("initiate_typodb", 0);
 
-  /* "typtops.py":121
+  /* "typtops.py":124
  *     #     "Something is wrong!! Try re-installing the whole system"
  *     # )
  *     root_only_operation()             # <<<<<<<<<<<<<<
  *     user = _get_username()
  *     try:
  */
-  __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_root_only_operation); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 121, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_root_only_operation); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 124, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __pyx_t_3 = NULL;
   if (CYTHON_COMPILING_IN_CPYTHON && unlikely(PyMethod_Check(__pyx_t_2))) {
@@ -2653,23 +2661,23 @@ static PyObject *__pyx_pf_7typtops_8initiate_typodb(CYTHON_UNUSED PyObject *__py
     }
   }
   if (__pyx_t_3) {
-    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_3); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 121, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_3); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 124, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   } else {
-    __pyx_t_1 = __Pyx_PyObject_CallNoArg(__pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 121, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_CallNoArg(__pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 124, __pyx_L1_error)
   }
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "typtops.py":122
+  /* "typtops.py":125
  *     # )
  *     root_only_operation()
  *     user = _get_username()             # <<<<<<<<<<<<<<
  *     try:
  *         # checks that such a user exists:
  */
-  __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_get_username); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 122, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_get_username); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 125, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __pyx_t_3 = NULL;
   if (CYTHON_COMPILING_IN_CPYTHON && unlikely(PyMethod_Check(__pyx_t_2))) {
@@ -2682,17 +2690,17 @@ static PyObject *__pyx_pf_7typtops_8initiate_typodb(CYTHON_UNUSED PyObject *__py
     }
   }
   if (__pyx_t_3) {
-    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_3); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 122, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_3); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 125, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   } else {
-    __pyx_t_1 = __Pyx_PyObject_CallNoArg(__pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 122, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_CallNoArg(__pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 125, __pyx_L1_error)
   }
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __pyx_v_user = __pyx_t_1;
   __pyx_t_1 = 0;
 
-  /* "typtops.py":123
+  /* "typtops.py":126
  *     root_only_operation()
  *     user = _get_username()
  *     try:             # <<<<<<<<<<<<<<
@@ -2708,16 +2716,16 @@ static PyObject *__pyx_pf_7typtops_8initiate_typodb(CYTHON_UNUSED PyObject *__py
     __Pyx_XGOTREF(__pyx_t_6);
     /*try:*/ {
 
-      /* "typtops.py":125
+      /* "typtops.py":128
  *     try:
  *         # checks that such a user exists:
  *         _ = pwd.getpwnam(user).pw_dir             # <<<<<<<<<<<<<<
  *     except KeyError as e:
  *         print("Error: {}".format(e.message))
  */
-      __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_pwd); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 125, __pyx_L3_error)
+      __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_pwd); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 128, __pyx_L3_error)
       __Pyx_GOTREF(__pyx_t_2);
-      __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_getpwnam); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 125, __pyx_L3_error)
+      __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_getpwnam); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 128, __pyx_L3_error)
       __Pyx_GOTREF(__pyx_t_3);
       __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
       __pyx_t_2 = NULL;
@@ -2731,27 +2739,27 @@ static PyObject *__pyx_pf_7typtops_8initiate_typodb(CYTHON_UNUSED PyObject *__py
         }
       }
       if (!__pyx_t_2) {
-        __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_v_user); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 125, __pyx_L3_error)
+        __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_v_user); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 128, __pyx_L3_error)
         __Pyx_GOTREF(__pyx_t_1);
       } else {
-        __pyx_t_7 = PyTuple_New(1+1); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 125, __pyx_L3_error)
+        __pyx_t_7 = PyTuple_New(1+1); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 128, __pyx_L3_error)
         __Pyx_GOTREF(__pyx_t_7);
         __Pyx_GIVEREF(__pyx_t_2); PyTuple_SET_ITEM(__pyx_t_7, 0, __pyx_t_2); __pyx_t_2 = NULL;
         __Pyx_INCREF(__pyx_v_user);
         __Pyx_GIVEREF(__pyx_v_user);
         PyTuple_SET_ITEM(__pyx_t_7, 0+1, __pyx_v_user);
-        __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_7, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 125, __pyx_L3_error)
+        __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_7, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 128, __pyx_L3_error)
         __Pyx_GOTREF(__pyx_t_1);
         __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
       }
       __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-      __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_pw_dir); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 125, __pyx_L3_error)
+      __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_pw_dir); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 128, __pyx_L3_error)
       __Pyx_GOTREF(__pyx_t_3);
       __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
       __pyx_v__ = __pyx_t_3;
       __pyx_t_3 = 0;
 
-      /* "typtops.py":123
+      /* "typtops.py":126
  *     root_only_operation()
  *     user = _get_username()
  *     try:             # <<<<<<<<<<<<<<
@@ -2760,123 +2768,43 @@ static PyObject *__pyx_pf_7typtops_8initiate_typodb(CYTHON_UNUSED PyObject *__py
  */
     }
 
-    /* "typtops.py":133
+    /* "typtops.py":136
  *               "your account in the computer.")
  *     else:
- *         thisdir = os.path.dirname(os.path.abspath(__file__))             # <<<<<<<<<<<<<<
- *         subdir = 'osx/pam_opendirectory' if DISTRO == 'darwin'\
- *                  else 'linux/unixchkpwd' if DISTRO in ('debian', 'fedora')\
- */
-    /*else:*/ {
-      __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_os); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 133, __pyx_L5_except_error)
-      __Pyx_GOTREF(__pyx_t_1);
-      __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_path); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 133, __pyx_L5_except_error)
-      __Pyx_GOTREF(__pyx_t_7);
-      __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-      __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_7, __pyx_n_s_dirname); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 133, __pyx_L5_except_error)
-      __Pyx_GOTREF(__pyx_t_1);
-      __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
-      __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_os); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 133, __pyx_L5_except_error)
-      __Pyx_GOTREF(__pyx_t_2);
-      __pyx_t_8 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_path); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 133, __pyx_L5_except_error)
-      __Pyx_GOTREF(__pyx_t_8);
-      __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-      __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_8, __pyx_n_s_abspath); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 133, __pyx_L5_except_error)
-      __Pyx_GOTREF(__pyx_t_2);
-      __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
-      __pyx_t_8 = __Pyx_GetModuleGlobalName(__pyx_n_s_file); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 133, __pyx_L5_except_error)
-      __Pyx_GOTREF(__pyx_t_8);
-      __pyx_t_9 = NULL;
-      if (CYTHON_COMPILING_IN_CPYTHON && likely(PyMethod_Check(__pyx_t_2))) {
-        __pyx_t_9 = PyMethod_GET_SELF(__pyx_t_2);
-        if (likely(__pyx_t_9)) {
-          PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_2);
-          __Pyx_INCREF(__pyx_t_9);
-          __Pyx_INCREF(function);
-          __Pyx_DECREF_SET(__pyx_t_2, function);
-        }
-      }
-      if (!__pyx_t_9) {
-        __pyx_t_7 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_8); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 133, __pyx_L5_except_error)
-        __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
-        __Pyx_GOTREF(__pyx_t_7);
-      } else {
-        __pyx_t_10 = PyTuple_New(1+1); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 133, __pyx_L5_except_error)
-        __Pyx_GOTREF(__pyx_t_10);
-        __Pyx_GIVEREF(__pyx_t_9); PyTuple_SET_ITEM(__pyx_t_10, 0, __pyx_t_9); __pyx_t_9 = NULL;
-        __Pyx_GIVEREF(__pyx_t_8);
-        PyTuple_SET_ITEM(__pyx_t_10, 0+1, __pyx_t_8);
-        __pyx_t_8 = 0;
-        __pyx_t_7 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_10, NULL); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 133, __pyx_L5_except_error)
-        __Pyx_GOTREF(__pyx_t_7);
-        __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
-      }
-      __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-      __pyx_t_2 = NULL;
-      if (CYTHON_COMPILING_IN_CPYTHON && likely(PyMethod_Check(__pyx_t_1))) {
-        __pyx_t_2 = PyMethod_GET_SELF(__pyx_t_1);
-        if (likely(__pyx_t_2)) {
-          PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_1);
-          __Pyx_INCREF(__pyx_t_2);
-          __Pyx_INCREF(function);
-          __Pyx_DECREF_SET(__pyx_t_1, function);
-        }
-      }
-      if (!__pyx_t_2) {
-        __pyx_t_3 = __Pyx_PyObject_CallOneArg(__pyx_t_1, __pyx_t_7); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 133, __pyx_L5_except_error)
-        __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
-        __Pyx_GOTREF(__pyx_t_3);
-      } else {
-        __pyx_t_10 = PyTuple_New(1+1); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 133, __pyx_L5_except_error)
-        __Pyx_GOTREF(__pyx_t_10);
-        __Pyx_GIVEREF(__pyx_t_2); PyTuple_SET_ITEM(__pyx_t_10, 0, __pyx_t_2); __pyx_t_2 = NULL;
-        __Pyx_GIVEREF(__pyx_t_7);
-        PyTuple_SET_ITEM(__pyx_t_10, 0+1, __pyx_t_7);
-        __pyx_t_7 = 0;
-        __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_t_10, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 133, __pyx_L5_except_error)
-        __Pyx_GOTREF(__pyx_t_3);
-        __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
-      }
-      __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-      __pyx_v_thisdir = __pyx_t_3;
-      __pyx_t_3 = 0;
-
-      /* "typtops.py":134
- *     else:
- *         thisdir = os.path.dirname(os.path.abspath(__file__))
  *         subdir = 'osx/pam_opendirectory' if DISTRO == 'darwin'\             # <<<<<<<<<<<<<<
  *                  else 'linux/unixchkpwd' if DISTRO in ('debian', 'fedora')\
  *                       else ''
  */
-      __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_DISTRO); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 134, __pyx_L5_except_error)
+    /*else:*/ {
+      __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_DISTRO); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 136, __pyx_L5_except_error)
       __Pyx_GOTREF(__pyx_t_1);
-      __pyx_t_11 = (__Pyx_PyString_Equals(__pyx_t_1, __pyx_n_s_darwin, Py_EQ)); if (unlikely(__pyx_t_11 < 0)) __PYX_ERR(0, 134, __pyx_L5_except_error)
+      __pyx_t_8 = (__Pyx_PyString_Equals(__pyx_t_1, __pyx_n_s_darwin, Py_EQ)); if (unlikely(__pyx_t_8 < 0)) __PYX_ERR(0, 136, __pyx_L5_except_error)
       __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-      if (__pyx_t_11) {
+      if (__pyx_t_8) {
         __Pyx_INCREF(__pyx_kp_s_osx_pam_opendirectory);
         __pyx_t_3 = __pyx_kp_s_osx_pam_opendirectory;
       } else {
 
-        /* "typtops.py":135
- *         thisdir = os.path.dirname(os.path.abspath(__file__))
+        /* "typtops.py":137
+ *     else:
  *         subdir = 'osx/pam_opendirectory' if DISTRO == 'darwin'\
  *                  else 'linux/unixchkpwd' if DISTRO in ('debian', 'fedora')\             # <<<<<<<<<<<<<<
  *                       else ''
- *         path_f = os.path.join(thisdir, subdir)
+ *         path_f = '/tmp/typtop_' + subdir
  */
-        __pyx_t_10 = __Pyx_GetModuleGlobalName(__pyx_n_s_DISTRO); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 135, __pyx_L5_except_error)
-        __Pyx_GOTREF(__pyx_t_10);
-        __pyx_t_13 = (__Pyx_PyString_Equals(__pyx_t_10, __pyx_n_s_debian, Py_EQ)); if (unlikely(__pyx_t_13 < 0)) __PYX_ERR(0, 135, __pyx_L5_except_error)
-        if (!__pyx_t_13) {
+        __pyx_t_7 = __Pyx_GetModuleGlobalName(__pyx_n_s_DISTRO); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 137, __pyx_L5_except_error)
+        __Pyx_GOTREF(__pyx_t_7);
+        __pyx_t_10 = (__Pyx_PyString_Equals(__pyx_t_7, __pyx_n_s_debian, Py_EQ)); if (unlikely(__pyx_t_10 < 0)) __PYX_ERR(0, 137, __pyx_L5_except_error)
+        if (!__pyx_t_10) {
         } else {
-          __pyx_t_12 = __pyx_t_13;
+          __pyx_t_9 = __pyx_t_10;
           goto __pyx_L11_bool_binop_done;
         }
-        __pyx_t_13 = (__Pyx_PyString_Equals(__pyx_t_10, __pyx_n_s_fedora, Py_EQ)); if (unlikely(__pyx_t_13 < 0)) __PYX_ERR(0, 135, __pyx_L5_except_error)
-        __pyx_t_12 = __pyx_t_13;
+        __pyx_t_10 = (__Pyx_PyString_Equals(__pyx_t_7, __pyx_n_s_fedora, Py_EQ)); if (unlikely(__pyx_t_10 < 0)) __PYX_ERR(0, 137, __pyx_L5_except_error)
+        __pyx_t_9 = __pyx_t_10;
         __pyx_L11_bool_binop_done:;
-        __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
-        if ((__pyx_t_12 != 0)) {
+        __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
+        if ((__pyx_t_9 != 0)) {
           __Pyx_INCREF(__pyx_kp_s_linux_unixchkpwd);
           __pyx_t_1 = __pyx_kp_s_linux_unixchkpwd;
         } else {
@@ -2889,143 +2817,59 @@ static PyObject *__pyx_pf_7typtops_8initiate_typodb(CYTHON_UNUSED PyObject *__py
       __pyx_v_subdir = __pyx_t_3;
       __pyx_t_3 = 0;
 
-      /* "typtops.py":137
+      /* "typtops.py":139
  *                  else 'linux/unixchkpwd' if DISTRO in ('debian', 'fedora')\
  *                       else ''
- *         path_f = os.path.join(thisdir, subdir)             # <<<<<<<<<<<<<<
- *         if not os.path.exists(path_f):
- *             thisdir = '/tmp/typtop_'
+ *         path_f = '/tmp/typtop_' + subdir             # <<<<<<<<<<<<<<
+ *         os.system('cd {} && make && make install'.format(path_f))
+ * 
  */
-      __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_os); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 137, __pyx_L5_except_error)
-      __Pyx_GOTREF(__pyx_t_1);
-      __pyx_t_10 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_path); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 137, __pyx_L5_except_error)
-      __Pyx_GOTREF(__pyx_t_10);
-      __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-      __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_10, __pyx_n_s_join); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 137, __pyx_L5_except_error)
-      __Pyx_GOTREF(__pyx_t_1);
-      __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
-      __pyx_t_10 = NULL;
-      __pyx_t_14 = 0;
-      if (CYTHON_COMPILING_IN_CPYTHON && likely(PyMethod_Check(__pyx_t_1))) {
-        __pyx_t_10 = PyMethod_GET_SELF(__pyx_t_1);
-        if (likely(__pyx_t_10)) {
-          PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_1);
-          __Pyx_INCREF(__pyx_t_10);
-          __Pyx_INCREF(function);
-          __Pyx_DECREF_SET(__pyx_t_1, function);
-          __pyx_t_14 = 1;
-        }
-      }
-      __pyx_t_7 = PyTuple_New(2+__pyx_t_14); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 137, __pyx_L5_except_error)
-      __Pyx_GOTREF(__pyx_t_7);
-      if (__pyx_t_10) {
-        __Pyx_GIVEREF(__pyx_t_10); PyTuple_SET_ITEM(__pyx_t_7, 0, __pyx_t_10); __pyx_t_10 = NULL;
-      }
-      __Pyx_INCREF(__pyx_v_thisdir);
-      __Pyx_GIVEREF(__pyx_v_thisdir);
-      PyTuple_SET_ITEM(__pyx_t_7, 0+__pyx_t_14, __pyx_v_thisdir);
-      __Pyx_INCREF(__pyx_v_subdir);
-      __Pyx_GIVEREF(__pyx_v_subdir);
-      PyTuple_SET_ITEM(__pyx_t_7, 1+__pyx_t_14, __pyx_v_subdir);
-      __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_t_7, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 137, __pyx_L5_except_error)
+      __pyx_t_3 = PyNumber_Add(__pyx_kp_s_tmp_typtop, __pyx_v_subdir); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 139, __pyx_L5_except_error)
       __Pyx_GOTREF(__pyx_t_3);
-      __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
-      __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
       __pyx_v_path_f = __pyx_t_3;
       __pyx_t_3 = 0;
 
-      /* "typtops.py":138
+      /* "typtops.py":140
  *                       else ''
- *         path_f = os.path.join(thisdir, subdir)
- *         if not os.path.exists(path_f):             # <<<<<<<<<<<<<<
- *             thisdir = '/tmp/typtop_'
- *             path_f = thisdir + subdir
+ *         path_f = '/tmp/typtop_' + subdir
+ *         os.system('cd {} && make && make install'.format(path_f))             # <<<<<<<<<<<<<<
+ * 
+ *         # right_pw = False
  */
-      __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_os); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 138, __pyx_L5_except_error)
+      __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_os); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 140, __pyx_L5_except_error)
       __Pyx_GOTREF(__pyx_t_1);
-      __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_path); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 138, __pyx_L5_except_error)
+      __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_system); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 140, __pyx_L5_except_error)
       __Pyx_GOTREF(__pyx_t_7);
       __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-      __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_7, __pyx_n_s_exists); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 138, __pyx_L5_except_error)
-      __Pyx_GOTREF(__pyx_t_1);
-      __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
-      __pyx_t_7 = NULL;
-      if (CYTHON_COMPILING_IN_CPYTHON && likely(PyMethod_Check(__pyx_t_1))) {
-        __pyx_t_7 = PyMethod_GET_SELF(__pyx_t_1);
-        if (likely(__pyx_t_7)) {
-          PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_1);
-          __Pyx_INCREF(__pyx_t_7);
+      __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_kp_s_cd_make_make_install, __pyx_n_s_format); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 140, __pyx_L5_except_error)
+      __Pyx_GOTREF(__pyx_t_2);
+      __pyx_t_11 = NULL;
+      if (CYTHON_COMPILING_IN_CPYTHON && likely(PyMethod_Check(__pyx_t_2))) {
+        __pyx_t_11 = PyMethod_GET_SELF(__pyx_t_2);
+        if (likely(__pyx_t_11)) {
+          PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_2);
+          __Pyx_INCREF(__pyx_t_11);
           __Pyx_INCREF(function);
-          __Pyx_DECREF_SET(__pyx_t_1, function);
+          __Pyx_DECREF_SET(__pyx_t_2, function);
         }
       }
-      if (!__pyx_t_7) {
-        __pyx_t_3 = __Pyx_PyObject_CallOneArg(__pyx_t_1, __pyx_v_path_f); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 138, __pyx_L5_except_error)
-        __Pyx_GOTREF(__pyx_t_3);
+      if (!__pyx_t_11) {
+        __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_v_path_f); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 140, __pyx_L5_except_error)
+        __Pyx_GOTREF(__pyx_t_1);
       } else {
-        __pyx_t_10 = PyTuple_New(1+1); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 138, __pyx_L5_except_error)
-        __Pyx_GOTREF(__pyx_t_10);
-        __Pyx_GIVEREF(__pyx_t_7); PyTuple_SET_ITEM(__pyx_t_10, 0, __pyx_t_7); __pyx_t_7 = NULL;
+        __pyx_t_12 = PyTuple_New(1+1); if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 140, __pyx_L5_except_error)
+        __Pyx_GOTREF(__pyx_t_12);
+        __Pyx_GIVEREF(__pyx_t_11); PyTuple_SET_ITEM(__pyx_t_12, 0, __pyx_t_11); __pyx_t_11 = NULL;
         __Pyx_INCREF(__pyx_v_path_f);
         __Pyx_GIVEREF(__pyx_v_path_f);
-        PyTuple_SET_ITEM(__pyx_t_10, 0+1, __pyx_v_path_f);
-        __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_t_10, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 138, __pyx_L5_except_error)
-        __Pyx_GOTREF(__pyx_t_3);
-        __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
+        PyTuple_SET_ITEM(__pyx_t_12, 0+1, __pyx_v_path_f);
+        __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_12, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 140, __pyx_L5_except_error)
+        __Pyx_GOTREF(__pyx_t_1);
+        __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
       }
-      __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-      __pyx_t_11 = __Pyx_PyObject_IsTrue(__pyx_t_3); if (unlikely(__pyx_t_11 < 0)) __PYX_ERR(0, 138, __pyx_L5_except_error)
-      __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-      __pyx_t_12 = ((!__pyx_t_11) != 0);
-      if (__pyx_t_12) {
-
-        /* "typtops.py":139
- *         path_f = os.path.join(thisdir, subdir)
- *         if not os.path.exists(path_f):
- *             thisdir = '/tmp/typtop_'             # <<<<<<<<<<<<<<
- *             path_f = thisdir + subdir
- *         os.system('cd {} && make && make install'.format(path_f))
- */
-        __Pyx_INCREF(__pyx_kp_s_tmp_typtop);
-        __Pyx_DECREF_SET(__pyx_v_thisdir, __pyx_kp_s_tmp_typtop);
-
-        /* "typtops.py":140
- *         if not os.path.exists(path_f):
- *             thisdir = '/tmp/typtop_'
- *             path_f = thisdir + subdir             # <<<<<<<<<<<<<<
- *         os.system('cd {} && make && make install'.format(path_f))
- *         # right_pw = False
- */
-        __pyx_t_3 = PyNumber_Add(__pyx_v_thisdir, __pyx_v_subdir); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 140, __pyx_L5_except_error)
-        __Pyx_GOTREF(__pyx_t_3);
-        __Pyx_DECREF_SET(__pyx_v_path_f, __pyx_t_3);
-        __pyx_t_3 = 0;
-
-        /* "typtops.py":138
- *                       else ''
- *         path_f = os.path.join(thisdir, subdir)
- *         if not os.path.exists(path_f):             # <<<<<<<<<<<<<<
- *             thisdir = '/tmp/typtop_'
- *             path_f = thisdir + subdir
- */
-      }
-
-      /* "typtops.py":141
- *             thisdir = '/tmp/typtop_'
- *             path_f = thisdir + subdir
- *         os.system('cd {} && make && make install'.format(path_f))             # <<<<<<<<<<<<<<
- *         # right_pw = False
- *         # for _ in range(3):
- */
-      __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_os); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 141, __pyx_L5_except_error)
-      __Pyx_GOTREF(__pyx_t_1);
-      __pyx_t_10 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_system); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 141, __pyx_L5_except_error)
-      __Pyx_GOTREF(__pyx_t_10);
-      __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-      __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_kp_s_cd_make_make_install, __pyx_n_s_format); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 141, __pyx_L5_except_error)
-      __Pyx_GOTREF(__pyx_t_7);
+      __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
       __pyx_t_2 = NULL;
-      if (CYTHON_COMPILING_IN_CPYTHON && likely(PyMethod_Check(__pyx_t_7))) {
+      if (CYTHON_COMPILING_IN_CPYTHON && unlikely(PyMethod_Check(__pyx_t_7))) {
         __pyx_t_2 = PyMethod_GET_SELF(__pyx_t_7);
         if (likely(__pyx_t_2)) {
           PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_7);
@@ -3035,46 +2879,21 @@ static PyObject *__pyx_pf_7typtops_8initiate_typodb(CYTHON_UNUSED PyObject *__py
         }
       }
       if (!__pyx_t_2) {
-        __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_7, __pyx_v_path_f); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 141, __pyx_L5_except_error)
-        __Pyx_GOTREF(__pyx_t_1);
-      } else {
-        __pyx_t_8 = PyTuple_New(1+1); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 141, __pyx_L5_except_error)
-        __Pyx_GOTREF(__pyx_t_8);
-        __Pyx_GIVEREF(__pyx_t_2); PyTuple_SET_ITEM(__pyx_t_8, 0, __pyx_t_2); __pyx_t_2 = NULL;
-        __Pyx_INCREF(__pyx_v_path_f);
-        __Pyx_GIVEREF(__pyx_v_path_f);
-        PyTuple_SET_ITEM(__pyx_t_8, 0+1, __pyx_v_path_f);
-        __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_7, __pyx_t_8, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 141, __pyx_L5_except_error)
-        __Pyx_GOTREF(__pyx_t_1);
-        __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
-      }
-      __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
-      __pyx_t_7 = NULL;
-      if (CYTHON_COMPILING_IN_CPYTHON && unlikely(PyMethod_Check(__pyx_t_10))) {
-        __pyx_t_7 = PyMethod_GET_SELF(__pyx_t_10);
-        if (likely(__pyx_t_7)) {
-          PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_10);
-          __Pyx_INCREF(__pyx_t_7);
-          __Pyx_INCREF(function);
-          __Pyx_DECREF_SET(__pyx_t_10, function);
-        }
-      }
-      if (!__pyx_t_7) {
-        __pyx_t_3 = __Pyx_PyObject_CallOneArg(__pyx_t_10, __pyx_t_1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 141, __pyx_L5_except_error)
+        __pyx_t_3 = __Pyx_PyObject_CallOneArg(__pyx_t_7, __pyx_t_1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 140, __pyx_L5_except_error)
         __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
         __Pyx_GOTREF(__pyx_t_3);
       } else {
-        __pyx_t_8 = PyTuple_New(1+1); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 141, __pyx_L5_except_error)
-        __Pyx_GOTREF(__pyx_t_8);
-        __Pyx_GIVEREF(__pyx_t_7); PyTuple_SET_ITEM(__pyx_t_8, 0, __pyx_t_7); __pyx_t_7 = NULL;
+        __pyx_t_12 = PyTuple_New(1+1); if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 140, __pyx_L5_except_error)
+        __Pyx_GOTREF(__pyx_t_12);
+        __Pyx_GIVEREF(__pyx_t_2); PyTuple_SET_ITEM(__pyx_t_12, 0, __pyx_t_2); __pyx_t_2 = NULL;
         __Pyx_GIVEREF(__pyx_t_1);
-        PyTuple_SET_ITEM(__pyx_t_8, 0+1, __pyx_t_1);
+        PyTuple_SET_ITEM(__pyx_t_12, 0+1, __pyx_t_1);
         __pyx_t_1 = 0;
-        __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_10, __pyx_t_8, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 141, __pyx_L5_except_error)
+        __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_7, __pyx_t_12, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 140, __pyx_L5_except_error)
         __Pyx_GOTREF(__pyx_t_3);
-        __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
+        __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
       }
-      __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
+      __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
       __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
     }
     __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
@@ -3088,141 +2907,141 @@ static PyObject *__pyx_pf_7typtops_8initiate_typodb(CYTHON_UNUSED PyObject *__py
     __Pyx_XDECREF(__pyx_t_1); __pyx_t_1 = 0;
     __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-    /* "typtops.py":126
+    /* "typtops.py":129
  *         # checks that such a user exists:
  *         _ = pwd.getpwnam(user).pw_dir
  *     except KeyError as e:             # <<<<<<<<<<<<<<
  *         print("Error: {}".format(e.message))
  *         print("Hint: The user ({}) must have an account in this computer."\
  */
-    __pyx_t_15 = __Pyx_PyErr_ExceptionMatches(__pyx_builtin_KeyError);
-    if (__pyx_t_15) {
+    __pyx_t_13 = __Pyx_PyErr_ExceptionMatches(__pyx_builtin_KeyError);
+    if (__pyx_t_13) {
       __Pyx_AddTraceback("typtops.initiate_typodb", __pyx_clineno, __pyx_lineno, __pyx_filename);
-      if (__Pyx_GetException(&__pyx_t_3, &__pyx_t_10, &__pyx_t_8) < 0) __PYX_ERR(0, 126, __pyx_L5_except_error)
+      if (__Pyx_GetException(&__pyx_t_3, &__pyx_t_7, &__pyx_t_12) < 0) __PYX_ERR(0, 129, __pyx_L5_except_error)
       __Pyx_GOTREF(__pyx_t_3);
-      __Pyx_GOTREF(__pyx_t_10);
-      __Pyx_GOTREF(__pyx_t_8);
-      __Pyx_INCREF(__pyx_t_10);
-      __pyx_v_e = __pyx_t_10;
+      __Pyx_GOTREF(__pyx_t_7);
+      __Pyx_GOTREF(__pyx_t_12);
+      __Pyx_INCREF(__pyx_t_7);
+      __pyx_v_e = __pyx_t_7;
 
-      /* "typtops.py":127
+      /* "typtops.py":130
  *         _ = pwd.getpwnam(user).pw_dir
  *     except KeyError as e:
  *         print("Error: {}".format(e.message))             # <<<<<<<<<<<<<<
  *         print("Hint: The user ({}) must have an account in this computer."\
  *               .format(user))
  */
-      __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_kp_s_Error, __pyx_n_s_format); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 127, __pyx_L5_except_error)
-      __Pyx_GOTREF(__pyx_t_7);
-      __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_e, __pyx_n_s_message); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 127, __pyx_L5_except_error)
+      __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_kp_s_Error, __pyx_n_s_format); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 130, __pyx_L5_except_error)
       __Pyx_GOTREF(__pyx_t_2);
-      __pyx_t_9 = NULL;
-      if (CYTHON_COMPILING_IN_CPYTHON && likely(PyMethod_Check(__pyx_t_7))) {
-        __pyx_t_9 = PyMethod_GET_SELF(__pyx_t_7);
-        if (likely(__pyx_t_9)) {
-          PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_7);
-          __Pyx_INCREF(__pyx_t_9);
+      __pyx_t_11 = __Pyx_PyObject_GetAttrStr(__pyx_v_e, __pyx_n_s_message); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 130, __pyx_L5_except_error)
+      __Pyx_GOTREF(__pyx_t_11);
+      __pyx_t_14 = NULL;
+      if (CYTHON_COMPILING_IN_CPYTHON && likely(PyMethod_Check(__pyx_t_2))) {
+        __pyx_t_14 = PyMethod_GET_SELF(__pyx_t_2);
+        if (likely(__pyx_t_14)) {
+          PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_2);
+          __Pyx_INCREF(__pyx_t_14);
           __Pyx_INCREF(function);
-          __Pyx_DECREF_SET(__pyx_t_7, function);
+          __Pyx_DECREF_SET(__pyx_t_2, function);
         }
       }
-      if (!__pyx_t_9) {
-        __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_7, __pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 127, __pyx_L5_except_error)
-        __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+      if (!__pyx_t_14) {
+        __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_11); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 130, __pyx_L5_except_error)
+        __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
         __Pyx_GOTREF(__pyx_t_1);
       } else {
-        __pyx_t_16 = PyTuple_New(1+1); if (unlikely(!__pyx_t_16)) __PYX_ERR(0, 127, __pyx_L5_except_error)
-        __Pyx_GOTREF(__pyx_t_16);
-        __Pyx_GIVEREF(__pyx_t_9); PyTuple_SET_ITEM(__pyx_t_16, 0, __pyx_t_9); __pyx_t_9 = NULL;
-        __Pyx_GIVEREF(__pyx_t_2);
-        PyTuple_SET_ITEM(__pyx_t_16, 0+1, __pyx_t_2);
-        __pyx_t_2 = 0;
-        __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_7, __pyx_t_16, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 127, __pyx_L5_except_error)
+        __pyx_t_15 = PyTuple_New(1+1); if (unlikely(!__pyx_t_15)) __PYX_ERR(0, 130, __pyx_L5_except_error)
+        __Pyx_GOTREF(__pyx_t_15);
+        __Pyx_GIVEREF(__pyx_t_14); PyTuple_SET_ITEM(__pyx_t_15, 0, __pyx_t_14); __pyx_t_14 = NULL;
+        __Pyx_GIVEREF(__pyx_t_11);
+        PyTuple_SET_ITEM(__pyx_t_15, 0+1, __pyx_t_11);
+        __pyx_t_11 = 0;
+        __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_15, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 130, __pyx_L5_except_error)
         __Pyx_GOTREF(__pyx_t_1);
-        __Pyx_DECREF(__pyx_t_16); __pyx_t_16 = 0;
+        __Pyx_DECREF(__pyx_t_15); __pyx_t_15 = 0;
       }
-      __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
-      __pyx_t_7 = PyTuple_New(1); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 127, __pyx_L5_except_error)
-      __Pyx_GOTREF(__pyx_t_7);
+      __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+      __pyx_t_2 = PyTuple_New(1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 130, __pyx_L5_except_error)
+      __Pyx_GOTREF(__pyx_t_2);
       __Pyx_GIVEREF(__pyx_t_1);
-      PyTuple_SET_ITEM(__pyx_t_7, 0, __pyx_t_1);
+      PyTuple_SET_ITEM(__pyx_t_2, 0, __pyx_t_1);
       __pyx_t_1 = 0;
-      __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_print, __pyx_t_7, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 127, __pyx_L5_except_error)
+      __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_print, __pyx_t_2, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 130, __pyx_L5_except_error)
       __Pyx_GOTREF(__pyx_t_1);
-      __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
+      __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
       __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-      /* "typtops.py":129
+      /* "typtops.py":132
  *         print("Error: {}".format(e.message))
  *         print("Hint: The user ({}) must have an account in this computer."\
  *               .format(user))             # <<<<<<<<<<<<<<
  *         print("Hint 2: It's not a registration. User the username for "\
  *               "your account in the computer.")
  */
-      __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_kp_s_Hint_The_user_must_have_an_accou, __pyx_n_s_format); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 129, __pyx_L5_except_error)
-      __Pyx_GOTREF(__pyx_t_7);
-      __pyx_t_16 = NULL;
-      if (CYTHON_COMPILING_IN_CPYTHON && likely(PyMethod_Check(__pyx_t_7))) {
-        __pyx_t_16 = PyMethod_GET_SELF(__pyx_t_7);
-        if (likely(__pyx_t_16)) {
-          PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_7);
-          __Pyx_INCREF(__pyx_t_16);
+      __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_kp_s_Hint_The_user_must_have_an_accou, __pyx_n_s_format); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 132, __pyx_L5_except_error)
+      __Pyx_GOTREF(__pyx_t_2);
+      __pyx_t_15 = NULL;
+      if (CYTHON_COMPILING_IN_CPYTHON && likely(PyMethod_Check(__pyx_t_2))) {
+        __pyx_t_15 = PyMethod_GET_SELF(__pyx_t_2);
+        if (likely(__pyx_t_15)) {
+          PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_2);
+          __Pyx_INCREF(__pyx_t_15);
           __Pyx_INCREF(function);
-          __Pyx_DECREF_SET(__pyx_t_7, function);
+          __Pyx_DECREF_SET(__pyx_t_2, function);
         }
       }
-      if (!__pyx_t_16) {
-        __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_7, __pyx_v_user); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 129, __pyx_L5_except_error)
+      if (!__pyx_t_15) {
+        __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_v_user); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 132, __pyx_L5_except_error)
         __Pyx_GOTREF(__pyx_t_1);
       } else {
-        __pyx_t_2 = PyTuple_New(1+1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 129, __pyx_L5_except_error)
-        __Pyx_GOTREF(__pyx_t_2);
-        __Pyx_GIVEREF(__pyx_t_16); PyTuple_SET_ITEM(__pyx_t_2, 0, __pyx_t_16); __pyx_t_16 = NULL;
+        __pyx_t_11 = PyTuple_New(1+1); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 132, __pyx_L5_except_error)
+        __Pyx_GOTREF(__pyx_t_11);
+        __Pyx_GIVEREF(__pyx_t_15); PyTuple_SET_ITEM(__pyx_t_11, 0, __pyx_t_15); __pyx_t_15 = NULL;
         __Pyx_INCREF(__pyx_v_user);
         __Pyx_GIVEREF(__pyx_v_user);
-        PyTuple_SET_ITEM(__pyx_t_2, 0+1, __pyx_v_user);
-        __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_7, __pyx_t_2, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 129, __pyx_L5_except_error)
+        PyTuple_SET_ITEM(__pyx_t_11, 0+1, __pyx_v_user);
+        __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_11, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 132, __pyx_L5_except_error)
         __Pyx_GOTREF(__pyx_t_1);
-        __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+        __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
       }
-      __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
+      __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-      /* "typtops.py":128
+      /* "typtops.py":131
  *     except KeyError as e:
  *         print("Error: {}".format(e.message))
  *         print("Hint: The user ({}) must have an account in this computer."\             # <<<<<<<<<<<<<<
  *               .format(user))
  *         print("Hint 2: It's not a registration. User the username for "\
  */
-      __pyx_t_7 = PyTuple_New(1); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 128, __pyx_L5_except_error)
-      __Pyx_GOTREF(__pyx_t_7);
+      __pyx_t_2 = PyTuple_New(1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 131, __pyx_L5_except_error)
+      __Pyx_GOTREF(__pyx_t_2);
       __Pyx_GIVEREF(__pyx_t_1);
-      PyTuple_SET_ITEM(__pyx_t_7, 0, __pyx_t_1);
+      PyTuple_SET_ITEM(__pyx_t_2, 0, __pyx_t_1);
       __pyx_t_1 = 0;
-      __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_print, __pyx_t_7, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 128, __pyx_L5_except_error)
+      __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_print, __pyx_t_2, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 131, __pyx_L5_except_error)
       __Pyx_GOTREF(__pyx_t_1);
-      __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
+      __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
       __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-      /* "typtops.py":130
+      /* "typtops.py":133
  *         print("Hint: The user ({}) must have an account in this computer."\
  *               .format(user))
  *         print("Hint 2: It's not a registration. User the username for "\             # <<<<<<<<<<<<<<
  *               "your account in the computer.")
  *     else:
  */
-      __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_print, __pyx_tuple__4, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 130, __pyx_L5_except_error)
+      __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_print, __pyx_tuple__4, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 133, __pyx_L5_except_error)
       __Pyx_GOTREF(__pyx_t_1);
       __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
       __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-      __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
-      __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
+      __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
+      __Pyx_DECREF(__pyx_t_12); __pyx_t_12 = 0;
       goto __pyx_L4_exception_handled;
     }
     goto __pyx_L5_except_error;
     __pyx_L5_except_error:;
 
-    /* "typtops.py":123
+    /* "typtops.py":126
  *     root_only_operation()
  *     user = _get_username()
  *     try:             # <<<<<<<<<<<<<<
@@ -3244,7 +3063,7 @@ static PyObject *__pyx_pf_7typtops_8initiate_typodb(CYTHON_UNUSED PyObject *__py
     __pyx_L10_try_end:;
   }
 
-  /* "typtops.py":116
+  /* "typtops.py":119
  *         raise AbortSettings
  * 
  * def initiate_typodb(RE_INIT=False):             # <<<<<<<<<<<<<<
@@ -3260,17 +3079,16 @@ static PyObject *__pyx_pf_7typtops_8initiate_typodb(CYTHON_UNUSED PyObject *__py
   __Pyx_XDECREF(__pyx_t_2);
   __Pyx_XDECREF(__pyx_t_3);
   __Pyx_XDECREF(__pyx_t_7);
-  __Pyx_XDECREF(__pyx_t_8);
-  __Pyx_XDECREF(__pyx_t_9);
-  __Pyx_XDECREF(__pyx_t_10);
-  __Pyx_XDECREF(__pyx_t_16);
+  __Pyx_XDECREF(__pyx_t_11);
+  __Pyx_XDECREF(__pyx_t_12);
+  __Pyx_XDECREF(__pyx_t_14);
+  __Pyx_XDECREF(__pyx_t_15);
   __Pyx_AddTraceback("typtops.initiate_typodb", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
   __Pyx_XDECREF(__pyx_v_user);
   __Pyx_XDECREF(__pyx_v__);
   __Pyx_XDECREF(__pyx_v_e);
-  __Pyx_XDECREF(__pyx_v_thisdir);
   __Pyx_XDECREF(__pyx_v_subdir);
   __Pyx_XDECREF(__pyx_v_path_f);
   __Pyx_XGIVEREF(__pyx_r);
@@ -3363,8 +3181,8 @@ static PyObject *__pyx_pf_7typtops_10uninstall_pam_typtop(CYTHON_UNUSED PyObject
   if (__pyx_t_3) {
 
     /* "typtops.py":190
- * rm -rf /usr/local/bin/typtop
- * pip -q uninstall --yes typtop cryptography word2keypress dataset
+ * rm -rf /usr/local/bin/typtop /usr/local/bin/send_typo_log.py
+ * pip -q uninstall --yes typtop
  *         '''.format(SEC_DB_PATH)             # <<<<<<<<<<<<<<
  *         os.system(cmd)
  *     elif DISTRO in ('debian', 'fedora'):
@@ -3403,7 +3221,7 @@ static PyObject *__pyx_pf_7typtops_10uninstall_pam_typtop(CYTHON_UNUSED PyObject
     __pyx_t_1 = 0;
 
     /* "typtops.py":191
- * pip -q uninstall --yes typtop cryptography word2keypress dataset
+ * pip -q uninstall --yes typtop
  *         '''.format(SEC_DB_PATH)
  *         os.system(cmd)             # <<<<<<<<<<<<<<
  *     elif DISTRO in ('debian', 'fedora'):
@@ -3603,12 +3421,12 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_ValueError, __pyx_k_ValueError, sizeof(__pyx_k_ValueError), 0, 0, 1, 1},
   {&__pyx_n_s_WARM_UP_CACHE, __pyx_k_WARM_UP_CACHE, sizeof(__pyx_k_WARM_UP_CACHE), 0, 0, 1, 1},
   {&__pyx_kp_s_Warmup_cache, __pyx_k_Warmup_cache, sizeof(__pyx_k_Warmup_cache), 0, 0, 1, 0},
-  {&__pyx_n_s__15, __pyx_k__15, sizeof(__pyx_k__15), 0, 0, 1, 1},
-  {&__pyx_kp_s__28, __pyx_k__28, sizeof(__pyx_k__28), 0, 0, 1, 0},
+  {&__pyx_n_s__16, __pyx_k__16, sizeof(__pyx_k__16), 0, 0, 1, 1},
+  {&__pyx_kp_s__29, __pyx_k__29, sizeof(__pyx_k__29), 0, 0, 1, 0},
   {&__pyx_kp_s__3, __pyx_k__3, sizeof(__pyx_k__3), 0, 0, 1, 0},
   {&__pyx_kp_s__7, __pyx_k__7, sizeof(__pyx_k__7), 0, 0, 1, 0},
+  {&__pyx_kp_s__8, __pyx_k__8, sizeof(__pyx_k__8), 0, 0, 1, 0},
   {&__pyx_n_s_abort, __pyx_k_abort, sizeof(__pyx_k_abort), 0, 0, 1, 1},
-  {&__pyx_n_s_abspath, __pyx_k_abspath, sizeof(__pyx_k_abspath), 0, 0, 1, 1},
   {&__pyx_n_s_action, __pyx_k_action, sizeof(__pyx_k_action), 0, 0, 1, 1},
   {&__pyx_n_s_add, __pyx_k_add, sizeof(__pyx_k_add), 0, 0, 1, 1},
   {&__pyx_n_s_add_argument, __pyx_k_add_argument, sizeof(__pyx_k_add_argument), 0, 0, 1, 1},
@@ -3633,17 +3451,14 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_common_auth, __pyx_k_common_auth, sizeof(__pyx_k_common_auth), 0, 0, 1, 1},
   {&__pyx_n_s_darwin, __pyx_k_darwin, sizeof(__pyx_k_darwin), 0, 0, 1, 1},
   {&__pyx_n_s_debian, __pyx_k_debian, sizeof(__pyx_k_debian), 0, 0, 1, 1},
-  {&__pyx_n_s_dirname, __pyx_k_dirname, sizeof(__pyx_k_dirname), 0, 0, 1, 1},
   {&__pyx_n_s_doc, __pyx_k_doc, sizeof(__pyx_k_doc), 0, 0, 1, 1},
   {&__pyx_n_s_e, __pyx_k_e, sizeof(__pyx_k_e), 0, 0, 1, 1},
   {&__pyx_kp_s_etc_pam_d_common_auth, __pyx_k_etc_pam_d_common_auth, sizeof(__pyx_k_etc_pam_d_common_auth), 0, 0, 1, 0},
   {&__pyx_kp_s_etc_pam_d_system_auth, __pyx_k_etc_pam_d_system_auth, sizeof(__pyx_k_etc_pam_d_system_auth), 0, 0, 1, 0},
-  {&__pyx_n_s_exists, __pyx_k_exists, sizeof(__pyx_k_exists), 0, 0, 1, 1},
   {&__pyx_n_s_exit, __pyx_k_exit, sizeof(__pyx_k_exit), 0, 0, 1, 1},
   {&__pyx_n_s_failed, __pyx_k_failed, sizeof(__pyx_k_failed), 0, 0, 1, 1},
   {&__pyx_n_s_fedora, __pyx_k_fedora, sizeof(__pyx_k_fedora), 0, 0, 1, 1},
   {&__pyx_n_s_file, __pyx_k_file, sizeof(__pyx_k_file), 0, 0, 1, 1},
-  {&__pyx_n_s_file_2, __pyx_k_file_2, sizeof(__pyx_k_file_2), 0, 0, 1, 1},
   {&__pyx_n_s_first_line, __pyx_k_first_line, sizeof(__pyx_k_first_line), 0, 0, 1, 1},
   {&__pyx_n_s_first_msg, __pyx_k_first_msg, sizeof(__pyx_k_first_msg), 0, 0, 1, 1},
   {&__pyx_n_s_format, __pyx_k_format, sizeof(__pyx_k_format), 0, 0, 1, 1},
@@ -3652,7 +3467,6 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_get_login_user, __pyx_k_get_login_user, sizeof(__pyx_k_get_login_user), 0, 0, 1, 1},
   {&__pyx_n_s_get_typoDB, __pyx_k_get_typoDB, sizeof(__pyx_k_get_typoDB), 0, 0, 1, 1},
   {&__pyx_n_s_get_username, __pyx_k_get_username, sizeof(__pyx_k_get_username), 0, 0, 1, 1},
-  {&__pyx_n_s_getpass, __pyx_k_getpass, sizeof(__pyx_k_getpass), 0, 0, 1, 1},
   {&__pyx_n_s_getpwnam, __pyx_k_getpwnam, sizeof(__pyx_k_getpwnam), 0, 0, 1, 1},
   {&__pyx_n_s_getuid, __pyx_k_getuid, sizeof(__pyx_k_getuid), 0, 0, 1, 1},
   {&__pyx_n_s_help, __pyx_k_help, sizeof(__pyx_k_help), 0, 0, 1, 1},
@@ -3668,6 +3482,7 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_is_allowed_upload, __pyx_k_is_allowed_upload, sizeof(__pyx_k_is_allowed_upload), 0, 0, 1, 1},
   {&__pyx_n_s_is_root, __pyx_k_is_root, sizeof(__pyx_k_is_root), 0, 0, 1, 1},
   {&__pyx_n_s_is_typotoler_init, __pyx_k_is_typotoler_init, sizeof(__pyx_k_is_typotoler_init), 0, 0, 1, 1},
+  {&__pyx_n_s_is_valid_parent, __pyx_k_is_valid_parent, sizeof(__pyx_k_is_valid_parent), 0, 0, 1, 1},
   {&__pyx_n_s_join, __pyx_k_join, sizeof(__pyx_k_join), 0, 0, 1, 1},
   {&__pyx_kp_s_linux_unixchkpwd, __pyx_k_linux_unixchkpwd, sizeof(__pyx_k_linux_unixchkpwd), 0, 0, 1, 0},
   {&__pyx_n_s_logger, __pyx_k_logger, sizeof(__pyx_k_logger), 0, 0, 1, 1},
@@ -3706,7 +3521,6 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_reinit_2, __pyx_k_reinit_2, sizeof(__pyx_k_reinit_2), 0, 0, 1, 1},
   {&__pyx_n_s_ret, __pyx_k_ret, sizeof(__pyx_k_ret), 0, 0, 1, 1},
   {&__pyx_n_s_root_only_operation, __pyx_k_root_only_operation, sizeof(__pyx_k_root_only_operation), 0, 0, 1, 1},
-  {&__pyx_kp_s_send_typo_log_py, __pyx_k_send_typo_log_py, sizeof(__pyx_k_send_typo_log_py), 0, 0, 1, 0},
   {&__pyx_n_s_set_distro, __pyx_k_set_distro, sizeof(__pyx_k_set_distro), 0, 0, 1, 1},
   {&__pyx_n_s_shell, __pyx_k_shell, sizeof(__pyx_k_shell), 0, 0, 1, 1},
   {&__pyx_n_s_split, __pyx_k_split, sizeof(__pyx_k_split), 0, 0, 1, 1},
@@ -3723,7 +3537,6 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_sys, __pyx_k_sys, sizeof(__pyx_k_sys), 0, 0, 1, 1},
   {&__pyx_n_s_system, __pyx_k_system, sizeof(__pyx_k_system), 0, 0, 1, 1},
   {&__pyx_n_s_test, __pyx_k_test, sizeof(__pyx_k_test), 0, 0, 1, 1},
-  {&__pyx_n_s_thisdir, __pyx_k_thisdir, sizeof(__pyx_k_thisdir), 0, 0, 1, 1},
   {&__pyx_kp_s_tmp_typtop, __pyx_k_tmp_typtop, sizeof(__pyx_k_tmp_typtop), 0, 0, 1, 0},
   {&__pyx_n_s_type, __pyx_k_type, sizeof(__pyx_k_type), 0, 0, 1, 1},
   {&__pyx_n_s_typoDB, __pyx_k_typoDB, sizeof(__pyx_k_typoDB), 0, 0, 1, 1},
@@ -3731,6 +3544,7 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {&__pyx_n_s_typtop_config, __pyx_k_typtop_config, sizeof(__pyx_k_typtop_config), 0, 0, 1, 1},
   {&__pyx_n_s_typtop_dbaccess, __pyx_k_typtop_dbaccess, sizeof(__pyx_k_typtop_dbaccess), 0, 0, 1, 1},
   {&__pyx_n_s_typtop_dbutils, __pyx_k_typtop_dbutils, sizeof(__pyx_k_typtop_dbutils), 0, 0, 1, 1},
+  {&__pyx_n_s_typtop_validate_parent, __pyx_k_typtop_validate_parent, sizeof(__pyx_k_typtop_validate_parent), 0, 0, 1, 1},
   {&__pyx_n_s_typtops, __pyx_k_typtops, sizeof(__pyx_k_typtops), 0, 0, 1, 1},
   {&__pyx_n_s_uid, __pyx_k_uid, sizeof(__pyx_k_uid), 0, 0, 1, 1},
   {&__pyx_kp_s_uninstall, __pyx_k_uninstall, sizeof(__pyx_k_uninstall), 0, 0, 1, 0},
@@ -3751,16 +3565,16 @@ static __Pyx_StringTabEntry __pyx_string_tab[] = {
   {0, 0, 0, 0, 0, 0, 0}
 };
 static int __Pyx_InitCachedBuiltins(void) {
-  __pyx_builtin_RuntimeError = __Pyx_GetBuiltinName(__pyx_n_s_RuntimeError); if (!__pyx_builtin_RuntimeError) __PYX_ERR(0, 63, __pyx_L1_error)
-  __pyx_builtin_print = __Pyx_GetBuiltinName(__pyx_n_s_print); if (!__pyx_builtin_print) __PYX_ERR(0, 259, __pyx_L1_error)
-  __pyx_builtin_exit = __Pyx_GetBuiltinName(__pyx_n_s_exit); if (!__pyx_builtin_exit) __PYX_ERR(0, 260, __pyx_L1_error)
+  __pyx_builtin_print = __Pyx_GetBuiltinName(__pyx_n_s_print); if (!__pyx_builtin_print) __PYX_ERR(0, 5, __pyx_L1_error)
+  __pyx_builtin_RuntimeError = __Pyx_GetBuiltinName(__pyx_n_s_RuntimeError); if (!__pyx_builtin_RuntimeError) __PYX_ERR(0, 66, __pyx_L1_error)
+  __pyx_builtin_exit = __Pyx_GetBuiltinName(__pyx_n_s_exit); if (!__pyx_builtin_exit) __PYX_ERR(0, 259, __pyx_L1_error)
   #if PY_MAJOR_VERSION >= 3
-  __pyx_builtin_raw_input = __Pyx_GetBuiltinName(__pyx_n_s_input); if (!__pyx_builtin_raw_input) __PYX_ERR(0, 321, __pyx_L1_error)
+  __pyx_builtin_raw_input = __Pyx_GetBuiltinName(__pyx_n_s_input); if (!__pyx_builtin_raw_input) __PYX_ERR(0, 320, __pyx_L1_error)
   #else
-  __pyx_builtin_raw_input = __Pyx_GetBuiltinName(__pyx_n_s_raw_input); if (!__pyx_builtin_raw_input) __PYX_ERR(0, 321, __pyx_L1_error)
+  __pyx_builtin_raw_input = __Pyx_GetBuiltinName(__pyx_n_s_raw_input); if (!__pyx_builtin_raw_input) __PYX_ERR(0, 320, __pyx_L1_error)
   #endif
-  __pyx_builtin_Exception = __Pyx_GetBuiltinName(__pyx_n_s_Exception); if (!__pyx_builtin_Exception) __PYX_ERR(0, 96, __pyx_L1_error)
-  __pyx_builtin_KeyError = __Pyx_GetBuiltinName(__pyx_n_s_KeyError); if (!__pyx_builtin_KeyError) __PYX_ERR(0, 126, __pyx_L1_error)
+  __pyx_builtin_Exception = __Pyx_GetBuiltinName(__pyx_n_s_Exception); if (!__pyx_builtin_Exception) __PYX_ERR(0, 99, __pyx_L1_error)
+  __pyx_builtin_KeyError = __Pyx_GetBuiltinName(__pyx_n_s_KeyError); if (!__pyx_builtin_KeyError) __PYX_ERR(0, 129, __pyx_L1_error)
   __pyx_builtin_ValueError = __Pyx_GetBuiltinName(__pyx_n_s_ValueError); if (!__pyx_builtin_ValueError) __PYX_ERR(0, 193, __pyx_L1_error)
   return 0;
   __pyx_L1_error:;
@@ -3771,36 +3585,36 @@ static int __Pyx_InitCachedConstants(void) {
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__Pyx_InitCachedConstants", 0);
 
-  /* "typtops.py":68
+  /* "typtops.py":71
  * def _get_login_user():
  *     # gets the username of the logging user
  *     pp = subprocess.Popen('who', stdout=subprocess.PIPE)             # <<<<<<<<<<<<<<
  *     output = pp.stdout.read()
  *     first_line = output.splitlines()[0]
  */
-  __pyx_tuple_ = PyTuple_Pack(1, __pyx_n_s_who); if (unlikely(!__pyx_tuple_)) __PYX_ERR(0, 68, __pyx_L1_error)
+  __pyx_tuple_ = PyTuple_Pack(1, __pyx_n_s_who); if (unlikely(!__pyx_tuple_)) __PYX_ERR(0, 71, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple_);
   __Pyx_GIVEREF(__pyx_tuple_);
 
-  /* "typtops.py":113
+  /* "typtops.py":116
  * def root_only_operation():
  *     if os.getuid() != 0:
  *         print("ERROR!! You need root priviledge to run this operation")             # <<<<<<<<<<<<<<
  *         raise AbortSettings
  * 
  */
-  __pyx_tuple__2 = PyTuple_Pack(1, __pyx_kp_s_ERROR_You_need_root_priviledge_t); if (unlikely(!__pyx_tuple__2)) __PYX_ERR(0, 113, __pyx_L1_error)
+  __pyx_tuple__2 = PyTuple_Pack(1, __pyx_kp_s_ERROR_You_need_root_priviledge_t); if (unlikely(!__pyx_tuple__2)) __PYX_ERR(0, 116, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__2);
   __Pyx_GIVEREF(__pyx_tuple__2);
 
-  /* "typtops.py":130
+  /* "typtops.py":133
  *         print("Hint: The user ({}) must have an account in this computer."\
  *               .format(user))
  *         print("Hint 2: It's not a registration. User the username for "\             # <<<<<<<<<<<<<<
  *               "your account in the computer.")
  *     else:
  */
-  __pyx_tuple__4 = PyTuple_Pack(1, __pyx_kp_s_Hint_2_It_s_not_a_registration_U); if (unlikely(!__pyx_tuple__4)) __PYX_ERR(0, 130, __pyx_L1_error)
+  __pyx_tuple__4 = PyTuple_Pack(1, __pyx_kp_s_Hint_2_It_s_not_a_registration_U); if (unlikely(!__pyx_tuple__4)) __PYX_ERR(0, 133, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__4);
   __Pyx_GIVEREF(__pyx_tuple__4);
 
@@ -3826,65 +3640,65 @@ static int __Pyx_InitCachedConstants(void) {
   __Pyx_GOTREF(__pyx_tuple__6);
   __Pyx_GIVEREF(__pyx_tuple__6);
 
-  /* "typtops.py":66
+  /* "typtops.py":69
  *     pass
  * 
  * def _get_login_user():             # <<<<<<<<<<<<<<
  *     # gets the username of the logging user
  *     pp = subprocess.Popen('who', stdout=subprocess.PIPE)
  */
-  __pyx_tuple__8 = PyTuple_Pack(4, __pyx_n_s_pp, __pyx_n_s_output, __pyx_n_s_first_line, __pyx_n_s_user); if (unlikely(!__pyx_tuple__8)) __PYX_ERR(0, 66, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__8);
-  __Pyx_GIVEREF(__pyx_tuple__8);
-  __pyx_codeobj__9 = (PyObject*)__Pyx_PyCode_New(0, 0, 4, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__8, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_Users_rahul_pamplay_typtops_py, __pyx_n_s_get_login_user, 66, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__9)) __PYX_ERR(0, 66, __pyx_L1_error)
+  __pyx_tuple__9 = PyTuple_Pack(4, __pyx_n_s_pp, __pyx_n_s_output, __pyx_n_s_first_line, __pyx_n_s_user); if (unlikely(!__pyx_tuple__9)) __PYX_ERR(0, 69, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__9);
+  __Pyx_GIVEREF(__pyx_tuple__9);
+  __pyx_codeobj__10 = (PyObject*)__Pyx_PyCode_New(0, 0, 4, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__9, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_Users_rahul_pamplay_typtops_py, __pyx_n_s_get_login_user, 69, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__10)) __PYX_ERR(0, 69, __pyx_L1_error)
 
-  /* "typtops.py":74
+  /* "typtops.py":77
  *     return user
  * 
  * def _get_username():             # <<<<<<<<<<<<<<
  *     # trying to go over the problem of
  *     if USER:
  */
-  __pyx_tuple__10 = PyTuple_Pack(5, __pyx_n_s_uid, __pyx_n_s_is_root, __pyx_n_s_user, __pyx_n_s_r, __pyx_n_s_abort); if (unlikely(!__pyx_tuple__10)) __PYX_ERR(0, 74, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__10);
-  __Pyx_GIVEREF(__pyx_tuple__10);
-  __pyx_codeobj__11 = (PyObject*)__Pyx_PyCode_New(0, 0, 5, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__10, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_Users_rahul_pamplay_typtops_py, __pyx_n_s_get_username, 74, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__11)) __PYX_ERR(0, 74, __pyx_L1_error)
+  __pyx_tuple__11 = PyTuple_Pack(5, __pyx_n_s_uid, __pyx_n_s_is_root, __pyx_n_s_user, __pyx_n_s_r, __pyx_n_s_abort); if (unlikely(!__pyx_tuple__11)) __PYX_ERR(0, 77, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__11);
+  __Pyx_GIVEREF(__pyx_tuple__11);
+  __pyx_codeobj__12 = (PyObject*)__Pyx_PyCode_New(0, 0, 5, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__11, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_Users_rahul_pamplay_typtops_py, __pyx_n_s_get_username, 77, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__12)) __PYX_ERR(0, 77, __pyx_L1_error)
 
-  /* "typtops.py":92
+  /* "typtops.py":95
  *     return user
  * 
  * def _get_typoDB():             # <<<<<<<<<<<<<<
  *     user = _get_username()
  *     try:
  */
-  __pyx_tuple__12 = PyTuple_Pack(3, __pyx_n_s_user, __pyx_n_s_typoDB, __pyx_n_s_e); if (unlikely(!__pyx_tuple__12)) __PYX_ERR(0, 92, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__12);
-  __Pyx_GIVEREF(__pyx_tuple__12);
-  __pyx_codeobj__13 = (PyObject*)__Pyx_PyCode_New(0, 0, 3, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__12, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_Users_rahul_pamplay_typtops_py, __pyx_n_s_get_typoDB, 92, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__13)) __PYX_ERR(0, 92, __pyx_L1_error)
+  __pyx_tuple__13 = PyTuple_Pack(3, __pyx_n_s_user, __pyx_n_s_typoDB, __pyx_n_s_e); if (unlikely(!__pyx_tuple__13)) __PYX_ERR(0, 95, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__13);
+  __Pyx_GIVEREF(__pyx_tuple__13);
+  __pyx_codeobj__14 = (PyObject*)__Pyx_PyCode_New(0, 0, 3, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__13, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_Users_rahul_pamplay_typtops_py, __pyx_n_s_get_typoDB, 95, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__14)) __PYX_ERR(0, 95, __pyx_L1_error)
 
-  /* "typtops.py":111
+  /* "typtops.py":114
  *     return typoDB
  * 
  * def root_only_operation():             # <<<<<<<<<<<<<<
  *     if os.getuid() != 0:
  *         print("ERROR!! You need root priviledge to run this operation")
  */
-  __pyx_codeobj__14 = (PyObject*)__Pyx_PyCode_New(0, 0, 0, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_Users_rahul_pamplay_typtops_py, __pyx_n_s_root_only_operation, 111, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__14)) __PYX_ERR(0, 111, __pyx_L1_error)
+  __pyx_codeobj__15 = (PyObject*)__Pyx_PyCode_New(0, 0, 0, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_Users_rahul_pamplay_typtops_py, __pyx_n_s_root_only_operation, 114, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__15)) __PYX_ERR(0, 114, __pyx_L1_error)
 
-  /* "typtops.py":116
+  /* "typtops.py":119
  *         raise AbortSettings
  * 
  * def initiate_typodb(RE_INIT=False):             # <<<<<<<<<<<<<<
  *     # ValueError(
  *     #     "You should not require to call this. "
  */
-  __pyx_tuple__16 = PyTuple_Pack(7, __pyx_n_s_RE_INIT, __pyx_n_s_user, __pyx_n_s__15, __pyx_n_s_e, __pyx_n_s_thisdir, __pyx_n_s_subdir, __pyx_n_s_path_f); if (unlikely(!__pyx_tuple__16)) __PYX_ERR(0, 116, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__16);
-  __Pyx_GIVEREF(__pyx_tuple__16);
-  __pyx_codeobj__17 = (PyObject*)__Pyx_PyCode_New(1, 0, 7, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__16, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_Users_rahul_pamplay_typtops_py, __pyx_n_s_initiate_typodb, 116, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__17)) __PYX_ERR(0, 116, __pyx_L1_error)
-  __pyx_tuple__18 = PyTuple_Pack(1, ((PyObject *)Py_False)); if (unlikely(!__pyx_tuple__18)) __PYX_ERR(0, 116, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__18);
-  __Pyx_GIVEREF(__pyx_tuple__18);
+  __pyx_tuple__17 = PyTuple_Pack(6, __pyx_n_s_RE_INIT, __pyx_n_s_user, __pyx_n_s__16, __pyx_n_s_e, __pyx_n_s_subdir, __pyx_n_s_path_f); if (unlikely(!__pyx_tuple__17)) __PYX_ERR(0, 119, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__17);
+  __Pyx_GIVEREF(__pyx_tuple__17);
+  __pyx_codeobj__18 = (PyObject*)__Pyx_PyCode_New(1, 0, 6, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__17, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_Users_rahul_pamplay_typtops_py, __pyx_n_s_initiate_typodb, 119, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__18)) __PYX_ERR(0, 119, __pyx_L1_error)
+  __pyx_tuple__19 = PyTuple_Pack(1, ((PyObject *)Py_False)); if (unlikely(!__pyx_tuple__19)) __PYX_ERR(0, 119, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__19);
+  __Pyx_GIVEREF(__pyx_tuple__19);
 
   /* "typtops.py":169
  * }[DISTRO]
@@ -3893,338 +3707,338 @@ static int __Pyx_InitCachedConstants(void) {
  *     # Last try to send logs
  *     os.system("nohup python -u /usr/local/bin/send_typo_log.py >/dev/null 2>&1 &")
  */
-  __pyx_tuple__19 = PyTuple_Pack(1, __pyx_n_s_cmd); if (unlikely(!__pyx_tuple__19)) __PYX_ERR(0, 169, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__19);
-  __Pyx_GIVEREF(__pyx_tuple__19);
-  __pyx_codeobj__20 = (PyObject*)__Pyx_PyCode_New(0, 0, 1, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__19, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_Users_rahul_pamplay_typtops_py, __pyx_n_s_uninstall_pam_typtop, 169, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__20)) __PYX_ERR(0, 169, __pyx_L1_error)
+  __pyx_tuple__20 = PyTuple_Pack(1, __pyx_n_s_cmd); if (unlikely(!__pyx_tuple__20)) __PYX_ERR(0, 169, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__20);
+  __Pyx_GIVEREF(__pyx_tuple__20);
+  __pyx_codeobj__21 = (PyObject*)__Pyx_PyCode_New(0, 0, 1, 0, 0, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__20, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_Users_rahul_pamplay_typtops_py, __pyx_n_s_uninstall_pam_typtop, 169, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__21)) __PYX_ERR(0, 169, __pyx_L1_error)
 
-  /* "typtops.py":205
+  /* "typtops.py":204
  *         os.system(cmd)
  * 
  * parser = argparse.ArgumentParser("typtop ")             # <<<<<<<<<<<<<<
  * 
  * parser.add_argument(
  */
-  __pyx_tuple__21 = PyTuple_Pack(1, __pyx_kp_s_typtop); if (unlikely(!__pyx_tuple__21)) __PYX_ERR(0, 205, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__21);
-  __Pyx_GIVEREF(__pyx_tuple__21);
+  __pyx_tuple__22 = PyTuple_Pack(1, __pyx_kp_s_typtop); if (unlikely(!__pyx_tuple__22)) __PYX_ERR(0, 204, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__22);
+  __Pyx_GIVEREF(__pyx_tuple__22);
 
-  /* "typtops.py":207
+  /* "typtops.py":206
  * parser = argparse.ArgumentParser("typtop ")
  * 
  * parser.add_argument(             # <<<<<<<<<<<<<<
  *     "--user",
  *     help="To set the username. Otherwise login user will be the target"
  */
-  __pyx_tuple__22 = PyTuple_Pack(1, __pyx_kp_s_user_2); if (unlikely(!__pyx_tuple__22)) __PYX_ERR(0, 207, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__22);
-  __Pyx_GIVEREF(__pyx_tuple__22);
+  __pyx_tuple__23 = PyTuple_Pack(1, __pyx_kp_s_user_2); if (unlikely(!__pyx_tuple__23)) __PYX_ERR(0, 206, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__23);
+  __Pyx_GIVEREF(__pyx_tuple__23);
 
-  /* "typtops.py":211
+  /* "typtops.py":210
  *     help="To set the username. Otherwise login user will be the target"
  * )
  * parser.add_argument(             # <<<<<<<<<<<<<<
  *     "--init", action="store_true",
  *     help="To initialize the DB. You have to run this once you install pam_typtop"
  */
-  __pyx_tuple__23 = PyTuple_Pack(1, __pyx_kp_s_init); if (unlikely(!__pyx_tuple__23)) __PYX_ERR(0, 211, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__23);
-  __Pyx_GIVEREF(__pyx_tuple__23);
+  __pyx_tuple__24 = PyTuple_Pack(1, __pyx_kp_s_init); if (unlikely(!__pyx_tuple__24)) __PYX_ERR(0, 210, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__24);
+  __Pyx_GIVEREF(__pyx_tuple__24);
 
-  /* "typtops.py":216
+  /* "typtops.py":215
  * )
  * 
  * parser.add_argument(             # <<<<<<<<<<<<<<
  *     "--allowtypo", type=str.lower, choices=['yes','no'],
  *     help='Allow login with typos of the password'
  */
-  __pyx_tuple__24 = PyTuple_Pack(1, __pyx_kp_s_allowtypo); if (unlikely(!__pyx_tuple__24)) __PYX_ERR(0, 216, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__24);
-  __Pyx_GIVEREF(__pyx_tuple__24);
+  __pyx_tuple__25 = PyTuple_Pack(1, __pyx_kp_s_allowtypo); if (unlikely(!__pyx_tuple__25)) __PYX_ERR(0, 215, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__25);
+  __Pyx_GIVEREF(__pyx_tuple__25);
 
-  /* "typtops.py":221
+  /* "typtops.py":220
  * )
  * 
  * parser.add_argument(             # <<<<<<<<<<<<<<
  *     "--allowupload", type=str.lower, choices=['yes', 'no'],
  *     help="Allow uploading the non-sensive annonymous "\
  */
-  __pyx_tuple__25 = PyTuple_Pack(1, __pyx_kp_s_allowupload); if (unlikely(!__pyx_tuple__25)) __PYX_ERR(0, 221, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__25);
-  __Pyx_GIVEREF(__pyx_tuple__25);
+  __pyx_tuple__26 = PyTuple_Pack(1, __pyx_kp_s_allowupload); if (unlikely(!__pyx_tuple__26)) __PYX_ERR(0, 220, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__26);
+  __Pyx_GIVEREF(__pyx_tuple__26);
 
-  /* "typtops.py":227
+  /* "typtops.py":226
  * )
  * 
  * parser.add_argument(             # <<<<<<<<<<<<<<
  *     "--installid", action="store_true",
  *     help="Prints the installation id, which you have to submit while filling up the google form"
  */
-  __pyx_tuple__26 = PyTuple_Pack(1, __pyx_kp_s_installid); if (unlikely(!__pyx_tuple__26)) __PYX_ERR(0, 227, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__26);
-  __Pyx_GIVEREF(__pyx_tuple__26);
+  __pyx_tuple__27 = PyTuple_Pack(1, __pyx_kp_s_installid); if (unlikely(!__pyx_tuple__27)) __PYX_ERR(0, 226, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__27);
+  __Pyx_GIVEREF(__pyx_tuple__27);
 
-  /* "typtops.py":232
+  /* "typtops.py":231
  * )
  * 
  * parser.add_argument(             # <<<<<<<<<<<<<<
  *     "--status", action="store", nargs="*",
  *     help='Prints current states of the typotolerance. Needs a username as argument.'
  */
-  __pyx_tuple__27 = PyTuple_Pack(1, __pyx_kp_s_status); if (unlikely(!__pyx_tuple__27)) __PYX_ERR(0, 232, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__27);
-  __Pyx_GIVEREF(__pyx_tuple__27);
+  __pyx_tuple__28 = PyTuple_Pack(1, __pyx_kp_s_status); if (unlikely(!__pyx_tuple__28)) __PYX_ERR(0, 231, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__28);
+  __Pyx_GIVEREF(__pyx_tuple__28);
 
-  /* "typtops.py":237
+  /* "typtops.py":236
  * )
  * 
  * parser.add_argument(             # <<<<<<<<<<<<<<
  *     "--uninstall", action="store_true",
  *     help="Uninstall TypToP from your machine. Will delete all the data related to TypTop too."
  */
-  __pyx_tuple__29 = PyTuple_Pack(1, __pyx_kp_s_uninstall); if (unlikely(!__pyx_tuple__29)) __PYX_ERR(0, 237, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__29);
-  __Pyx_GIVEREF(__pyx_tuple__29);
+  __pyx_tuple__30 = PyTuple_Pack(1, __pyx_kp_s_uninstall); if (unlikely(!__pyx_tuple__30)) __PYX_ERR(0, 236, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__30);
+  __Pyx_GIVEREF(__pyx_tuple__30);
 
-  /* "typtops.py":242
+  /* "typtops.py":241
  * )
  * 
  * parser.add_argument(             # <<<<<<<<<<<<<<
  *     "--reinit", action="store_true",
  *     help="To re-initiate the DB, especially after the user's pw has changed"
  */
-  __pyx_tuple__30 = PyTuple_Pack(1, __pyx_kp_s_reinit); if (unlikely(!__pyx_tuple__30)) __PYX_ERR(0, 242, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__30);
-  __Pyx_GIVEREF(__pyx_tuple__30);
+  __pyx_tuple__31 = PyTuple_Pack(1, __pyx_kp_s_reinit); if (unlikely(!__pyx_tuple__31)) __PYX_ERR(0, 241, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__31);
+  __Pyx_GIVEREF(__pyx_tuple__31);
 
-  /* "typtops.py":247
+  /* "typtops.py":246
  * )
  * 
  * parser.add_argument(             # <<<<<<<<<<<<<<
  *     "--update", action="store_true",
  *     help="Updates TypTop to the latest released version"
  */
-  __pyx_tuple__31 = PyTuple_Pack(1, __pyx_kp_s_update); if (unlikely(!__pyx_tuple__31)) __PYX_ERR(0, 247, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__31);
-  __Pyx_GIVEREF(__pyx_tuple__31);
+  __pyx_tuple__32 = PyTuple_Pack(1, __pyx_kp_s_update); if (unlikely(!__pyx_tuple__32)) __PYX_ERR(0, 246, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__32);
+  __Pyx_GIVEREF(__pyx_tuple__32);
 
-  /* "typtops.py":252
+  /* "typtops.py":251
  * )
  * 
  * parser.add_argument(             # <<<<<<<<<<<<<<
  *     "--check", action="store", nargs=3,
  *     help="(INTERNAL FUNCTION). Please don't call this."
  */
-  __pyx_tuple__32 = PyTuple_Pack(1, __pyx_kp_s_check); if (unlikely(!__pyx_tuple__32)) __PYX_ERR(0, 252, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__32);
-  __Pyx_GIVEREF(__pyx_tuple__32);
+  __pyx_tuple__33 = PyTuple_Pack(1, __pyx_kp_s_check); if (unlikely(!__pyx_tuple__33)) __PYX_ERR(0, 251, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__33);
+  __Pyx_GIVEREF(__pyx_tuple__33);
 
-  /* "typtops.py":260
+  /* "typtops.py":259
  * if len(sys.argv) <=1:
  *     print(parser.print_help())
  *     exit(0)             # <<<<<<<<<<<<<<
  * 
  * # ITS IMPORTENT THIS ONE WILL BE FIRST
  */
-  __pyx_tuple__33 = PyTuple_Pack(1, __pyx_int_0); if (unlikely(!__pyx_tuple__33)) __PYX_ERR(0, 260, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__33);
-  __Pyx_GIVEREF(__pyx_tuple__33);
+  __pyx_tuple__34 = PyTuple_Pack(1, __pyx_int_0); if (unlikely(!__pyx_tuple__34)) __PYX_ERR(0, 259, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__34);
+  __Pyx_GIVEREF(__pyx_tuple__34);
 
-  /* "typtops.py":274
+  /* "typtops.py":273
  *         typoDB = _get_typoDB()
  *         if args.allowtypo == "no":
  *             typoDB.allow_login(False)             # <<<<<<<<<<<<<<
  *             print(
  *                 "Turning OFF login with typos. The software will still monitor\n"\
  */
-  __pyx_tuple__34 = PyTuple_Pack(1, Py_False); if (unlikely(!__pyx_tuple__34)) __PYX_ERR(0, 274, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__34);
-  __Pyx_GIVEREF(__pyx_tuple__34);
+  __pyx_tuple__35 = PyTuple_Pack(1, Py_False); if (unlikely(!__pyx_tuple__35)) __PYX_ERR(0, 273, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__35);
+  __Pyx_GIVEREF(__pyx_tuple__35);
 
-  /* "typtops.py":275
+  /* "typtops.py":274
  *         if args.allowtypo == "no":
  *             typoDB.allow_login(False)
  *             print(             # <<<<<<<<<<<<<<
  *                 "Turning OFF login with typos. The software will still monitor\n"\
  *                 "your typos and build cache of popular typos. You can switch on this\n"\
  */
-  __pyx_tuple__35 = PyTuple_Pack(1, __pyx_kp_s_Turning_OFF_login_with_typos_The); if (unlikely(!__pyx_tuple__35)) __PYX_ERR(0, 275, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__35);
-  __Pyx_GIVEREF(__pyx_tuple__35);
+  __pyx_tuple__36 = PyTuple_Pack(1, __pyx_kp_s_Turning_OFF_login_with_typos_The); if (unlikely(!__pyx_tuple__36)) __PYX_ERR(0, 274, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__36);
+  __Pyx_GIVEREF(__pyx_tuple__36);
 
-  /* "typtops.py":280
+  /* "typtops.py":279
  *                 "whenever you want")# :{}".format(typoDB.is_allowed_login())
  *         elif args.allowtypo == "yes":
  *             print("Turning ON login with typos...",)             # <<<<<<<<<<<<<<
  *             typoDB.allow_login(True)
  * 
  */
-  __pyx_tuple__36 = PyTuple_Pack(1, __pyx_kp_s_Turning_ON_login_with_typos); if (unlikely(!__pyx_tuple__36)) __PYX_ERR(0, 280, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__36);
-  __Pyx_GIVEREF(__pyx_tuple__36);
+  __pyx_tuple__37 = PyTuple_Pack(1, __pyx_kp_s_Turning_ON_login_with_typos); if (unlikely(!__pyx_tuple__37)) __PYX_ERR(0, 279, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__37);
+  __Pyx_GIVEREF(__pyx_tuple__37);
 
-  /* "typtops.py":281
+  /* "typtops.py":280
  *         elif args.allowtypo == "yes":
  *             print("Turning ON login with typos...",)
  *             typoDB.allow_login(True)             # <<<<<<<<<<<<<<
  * 
  *     if args.allowupload:
  */
-  __pyx_tuple__37 = PyTuple_Pack(1, Py_True); if (unlikely(!__pyx_tuple__37)) __PYX_ERR(0, 281, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__37);
-  __Pyx_GIVEREF(__pyx_tuple__37);
+  __pyx_tuple__38 = PyTuple_Pack(1, Py_True); if (unlikely(!__pyx_tuple__38)) __PYX_ERR(0, 280, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__38);
+  __Pyx_GIVEREF(__pyx_tuple__38);
 
-  /* "typtops.py":286
+  /* "typtops.py":285
  *         typoDB = _get_typoDB()
  *         if args.allowupload == "yes":
  *             typoDB.allow_upload(True)             # <<<<<<<<<<<<<<
  *             print("Uploading data is enabled. You are awesome. Thanks!!")
  *         elif args.allowupload == "no":
  */
-  __pyx_tuple__38 = PyTuple_Pack(1, Py_True); if (unlikely(!__pyx_tuple__38)) __PYX_ERR(0, 286, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__38);
-  __Pyx_GIVEREF(__pyx_tuple__38);
+  __pyx_tuple__39 = PyTuple_Pack(1, Py_True); if (unlikely(!__pyx_tuple__39)) __PYX_ERR(0, 285, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__39);
+  __Pyx_GIVEREF(__pyx_tuple__39);
 
-  /* "typtops.py":287
+  /* "typtops.py":286
  *         if args.allowupload == "yes":
  *             typoDB.allow_upload(True)
  *             print("Uploading data is enabled. You are awesome. Thanks!!")             # <<<<<<<<<<<<<<
  *         elif args.allowupload == "no":
  *             typoDB.allow_upload(False)
  */
-  __pyx_tuple__39 = PyTuple_Pack(1, __pyx_kp_s_Uploading_data_is_enabled_You_ar); if (unlikely(!__pyx_tuple__39)) __PYX_ERR(0, 287, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__39);
-  __Pyx_GIVEREF(__pyx_tuple__39);
+  __pyx_tuple__40 = PyTuple_Pack(1, __pyx_kp_s_Uploading_data_is_enabled_You_ar); if (unlikely(!__pyx_tuple__40)) __PYX_ERR(0, 286, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__40);
+  __Pyx_GIVEREF(__pyx_tuple__40);
 
-  /* "typtops.py":289
+  /* "typtops.py":288
  *             print("Uploading data is enabled. You are awesome. Thanks!!")
  *         elif args.allowupload == "no":
  *             typoDB.allow_upload(False)             # <<<<<<<<<<<<<<
  *             print("Uploading data is disabled.  :( :'( :-(!")
  *             print("Thanks for using the software anyway.")
  */
-  __pyx_tuple__40 = PyTuple_Pack(1, Py_False); if (unlikely(!__pyx_tuple__40)) __PYX_ERR(0, 289, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__40);
-  __Pyx_GIVEREF(__pyx_tuple__40);
+  __pyx_tuple__41 = PyTuple_Pack(1, Py_False); if (unlikely(!__pyx_tuple__41)) __PYX_ERR(0, 288, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__41);
+  __Pyx_GIVEREF(__pyx_tuple__41);
 
-  /* "typtops.py":290
+  /* "typtops.py":289
  *         elif args.allowupload == "no":
  *             typoDB.allow_upload(False)
  *             print("Uploading data is disabled.  :( :'( :-(!")             # <<<<<<<<<<<<<<
  *             print("Thanks for using the software anyway.")
  * 
  */
-  __pyx_tuple__41 = PyTuple_Pack(1, __pyx_kp_s_Uploading_data_is_disabled); if (unlikely(!__pyx_tuple__41)) __PYX_ERR(0, 290, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__41);
-  __Pyx_GIVEREF(__pyx_tuple__41);
+  __pyx_tuple__42 = PyTuple_Pack(1, __pyx_kp_s_Uploading_data_is_disabled); if (unlikely(!__pyx_tuple__42)) __PYX_ERR(0, 289, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__42);
+  __Pyx_GIVEREF(__pyx_tuple__42);
 
-  /* "typtops.py":291
+  /* "typtops.py":290
  *             typoDB.allow_upload(False)
  *             print("Uploading data is disabled.  :( :'( :-(!")
  *             print("Thanks for using the software anyway.")             # <<<<<<<<<<<<<<
  * 
  *     if args.init:
  */
-  __pyx_tuple__42 = PyTuple_Pack(1, __pyx_kp_s_Thanks_for_using_the_software_an); if (unlikely(!__pyx_tuple__42)) __PYX_ERR(0, 291, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__42);
-  __Pyx_GIVEREF(__pyx_tuple__42);
+  __pyx_tuple__43 = PyTuple_Pack(1, __pyx_kp_s_Thanks_for_using_the_software_an); if (unlikely(!__pyx_tuple__43)) __PYX_ERR(0, 290, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__43);
+  __Pyx_GIVEREF(__pyx_tuple__43);
 
-  /* "typtops.py":295
+  /* "typtops.py":294
  *     if args.init:
  *         print(first_msg(url=GITHUB_URL, version=VERSION), file=sys.stderr)
  *         print("Initializing the typo database..")             # <<<<<<<<<<<<<<
  *         initiate_typodb()
  * 
  */
-  __pyx_tuple__43 = PyTuple_Pack(1, __pyx_kp_s_Initializing_the_typo_database); if (unlikely(!__pyx_tuple__43)) __PYX_ERR(0, 295, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__43);
-  __Pyx_GIVEREF(__pyx_tuple__43);
+  __pyx_tuple__44 = PyTuple_Pack(1, __pyx_kp_s_Initializing_the_typo_database); if (unlikely(!__pyx_tuple__44)) __PYX_ERR(0, 294, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__44);
+  __Pyx_GIVEREF(__pyx_tuple__44);
 
-  /* "typtops.py":299
+  /* "typtops.py":298
  * 
  *     if args.reinit:
  *         print("RE-initiating pam_typtop")             # <<<<<<<<<<<<<<
  *         initiate_typodb(RE_INIT=True)
  * 
  */
-  __pyx_tuple__44 = PyTuple_Pack(1, __pyx_kp_s_RE_initiating_pam_typtop); if (unlikely(!__pyx_tuple__44)) __PYX_ERR(0, 299, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__44);
-  __Pyx_GIVEREF(__pyx_tuple__44);
+  __pyx_tuple__45 = PyTuple_Pack(1, __pyx_kp_s_RE_initiating_pam_typtop); if (unlikely(!__pyx_tuple__45)) __PYX_ERR(0, 298, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__45);
+  __Pyx_GIVEREF(__pyx_tuple__45);
 
-  /* "typtops.py":308
+  /* "typtops.py":307
  *         for user in users:
  *             typoDB = UserTypoDB(user)
  *             print("\n** TYPO-TOLERANCE STATUS **\n")             # <<<<<<<<<<<<<<
  *             print(">> User: {}".format(user))
  *             print("\tLogin with typos: {}".format(typoDB.is_allowed_login()))
  */
-  __pyx_tuple__45 = PyTuple_Pack(1, __pyx_kp_s_TYPO_TOLERANCE_STATUS); if (unlikely(!__pyx_tuple__45)) __PYX_ERR(0, 308, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__45);
-  __Pyx_GIVEREF(__pyx_tuple__45);
+  __pyx_tuple__46 = PyTuple_Pack(1, __pyx_kp_s_TYPO_TOLERANCE_STATUS); if (unlikely(!__pyx_tuple__46)) __PYX_ERR(0, 307, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__46);
+  __Pyx_GIVEREF(__pyx_tuple__46);
 
-  /* "typtops.py":321
+  /* "typtops.py":320
  * 
  *     if args.uninstall:
  *         r = raw_input("Uninstalling pam_typtop. Will delete all the "\             # <<<<<<<<<<<<<<
  *                       "databases.\nPlease confirm. (yN)")
  *         if r and r.lower() == 'y':
  */
-  __pyx_tuple__46 = PyTuple_Pack(1, __pyx_kp_s_Uninstalling_pam_typtop_Will_del); if (unlikely(!__pyx_tuple__46)) __PYX_ERR(0, 321, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__46);
-  __Pyx_GIVEREF(__pyx_tuple__46);
+  __pyx_tuple__47 = PyTuple_Pack(1, __pyx_kp_s_Uninstalling_pam_typtop_Will_del); if (unlikely(!__pyx_tuple__47)) __PYX_ERR(0, 320, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__47);
+  __Pyx_GIVEREF(__pyx_tuple__47);
 
-  /* "typtops.py":327
+  /* "typtops.py":326
  * 
  *     if args.update:
  *         subprocess.call(             # <<<<<<<<<<<<<<
  *             "pip install -U typtop && sudo typtop --init",
  *             shell=True
  */
-  __pyx_tuple__47 = PyTuple_Pack(1, __pyx_kp_s_pip_install_U_typtop_sudo_typtop); if (unlikely(!__pyx_tuple__47)) __PYX_ERR(0, 327, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__47);
-  __Pyx_GIVEREF(__pyx_tuple__47);
-
-  /* "typtops.py":337
- *         sys.stdout.write(str(ret))
- *         if ret==0:
- *             logger.info("Sending logs ...")             # <<<<<<<<<<<<<<
- *             subprocess.Popen('send_typo_log.py')
- *             logger.info("... Done")
- */
-  __pyx_tuple__48 = PyTuple_Pack(1, __pyx_kp_s_Sending_logs); if (unlikely(!__pyx_tuple__48)) __PYX_ERR(0, 337, __pyx_L1_error)
+  __pyx_tuple__48 = PyTuple_Pack(1, __pyx_kp_s_pip_install_U_typtop_sudo_typtop); if (unlikely(!__pyx_tuple__48)) __PYX_ERR(0, 326, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__48);
   __Pyx_GIVEREF(__pyx_tuple__48);
 
   /* "typtops.py":338
+ *         sys.stdout.write(str(ret))
  *         if ret==0:
- *             logger.info("Sending logs ...")
- *             subprocess.Popen('send_typo_log.py')             # <<<<<<<<<<<<<<
+ *             logger.info("Sending logs ...")             # <<<<<<<<<<<<<<
+ *             subprocess.Popen('/usr/local/bin/send_typo_log.py')
  *             logger.info("... Done")
- * 
  */
-  __pyx_tuple__49 = PyTuple_Pack(1, __pyx_kp_s_send_typo_log_py); if (unlikely(!__pyx_tuple__49)) __PYX_ERR(0, 338, __pyx_L1_error)
+  __pyx_tuple__49 = PyTuple_Pack(1, __pyx_kp_s_Sending_logs); if (unlikely(!__pyx_tuple__49)) __PYX_ERR(0, 338, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__49);
   __Pyx_GIVEREF(__pyx_tuple__49);
 
   /* "typtops.py":339
+ *         if ret==0:
  *             logger.info("Sending logs ...")
- *             subprocess.Popen('send_typo_log.py')
+ *             subprocess.Popen('/usr/local/bin/send_typo_log.py')             # <<<<<<<<<<<<<<
+ *             logger.info("... Done")
+ * 
+ */
+  __pyx_tuple__50 = PyTuple_Pack(1, __pyx_kp_s_usr_local_bin_send_typo_log_py); if (unlikely(!__pyx_tuple__50)) __PYX_ERR(0, 339, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__50);
+  __Pyx_GIVEREF(__pyx_tuple__50);
+
+  /* "typtops.py":340
+ *             logger.info("Sending logs ...")
+ *             subprocess.Popen('/usr/local/bin/send_typo_log.py')
  *             logger.info("... Done")             # <<<<<<<<<<<<<<
  * 
  * 
  */
-  __pyx_tuple__50 = PyTuple_Pack(1, __pyx_kp_s_Done); if (unlikely(!__pyx_tuple__50)) __PYX_ERR(0, 339, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__50);
-  __Pyx_GIVEREF(__pyx_tuple__50);
+  __pyx_tuple__51 = PyTuple_Pack(1, __pyx_kp_s_Done); if (unlikely(!__pyx_tuple__51)) __PYX_ERR(0, 340, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__51);
+  __Pyx_GIVEREF(__pyx_tuple__51);
 
-  /* "typtops.py":343
+  /* "typtops.py":344
  * 
  * except AbortSettings as abort:
  *     print("Settings' change had been aborted.")             # <<<<<<<<<<<<<<
  */
-  __pyx_tuple__51 = PyTuple_Pack(1, __pyx_kp_s_Settings_change_had_been_aborted); if (unlikely(!__pyx_tuple__51)) __PYX_ERR(0, 343, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__51);
-  __Pyx_GIVEREF(__pyx_tuple__51);
+  __pyx_tuple__52 = PyTuple_Pack(1, __pyx_kp_s_Settings_change_had_been_aborted); if (unlikely(!__pyx_tuple__52)) __PYX_ERR(0, 344, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__52);
+  __Pyx_GIVEREF(__pyx_tuple__52);
   __Pyx_RefNannyFinishContext();
   return 0;
   __pyx_L1_error:;
@@ -4251,9 +4065,9 @@ PyMODINIT_FUNC PyInit_typtops(void)
 {
   PyObject *__pyx_t_1 = NULL;
   PyObject *__pyx_t_2 = NULL;
-  PyObject *__pyx_t_3 = NULL;
+  Py_ssize_t __pyx_t_3;
   PyObject *__pyx_t_4 = NULL;
-  Py_ssize_t __pyx_t_5;
+  PyObject *__pyx_t_5 = NULL;
   int __pyx_t_6;
   PyObject *__pyx_t_7 = NULL;
   PyObject *__pyx_t_8 = NULL;
@@ -4352,8 +4166,8 @@ PyMODINIT_FUNC PyInit_typtops(void)
  * #!/usr/local/bin/python
  * from __future__ import print_function
  * import os, sys             # <<<<<<<<<<<<<<
- * import pwd
- * import argparse
+ * 
+ * print(len(sys.path), '\n'.join(sys.path))
  */
   __pyx_t_1 = __Pyx_Import(__pyx_n_s_os, 0, -1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 3, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
@@ -4364,38 +4178,75 @@ PyMODINIT_FUNC PyInit_typtops(void)
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_sys, __pyx_t_1) < 0) __PYX_ERR(0, 3, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "typtops.py":4
- * from __future__ import print_function
+  /* "typtops.py":5
  * import os, sys
+ * 
+ * print(len(sys.path), '\n'.join(sys.path))             # <<<<<<<<<<<<<<
+ * 
+ * import pwd
+ */
+  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_sys); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 5, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_path); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 5, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+  __pyx_t_3 = PyObject_Length(__pyx_t_2); if (unlikely(__pyx_t_3 == -1)) __PYX_ERR(0, 5, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  __pyx_t_2 = PyInt_FromSsize_t(__pyx_t_3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 5, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_sys); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 5, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_path); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 5, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_4);
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+  __pyx_t_1 = __Pyx_PyString_Join(__pyx_kp_s__7, __pyx_t_4); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 5, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+  __pyx_t_4 = PyTuple_New(2); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 5, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_4);
+  __Pyx_GIVEREF(__pyx_t_2);
+  PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_2);
+  __Pyx_GIVEREF(__pyx_t_1);
+  PyTuple_SET_ITEM(__pyx_t_4, 1, __pyx_t_1);
+  __pyx_t_2 = 0;
+  __pyx_t_1 = 0;
+  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_print, __pyx_t_4, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 5, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+
+  /* "typtops.py":7
+ * print(len(sys.path), '\n'.join(sys.path))
+ * 
  * import pwd             # <<<<<<<<<<<<<<
  * import argparse
  * from typtop.dbaccess import (
  */
-  __pyx_t_1 = __Pyx_Import(__pyx_n_s_pwd, 0, -1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 4, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_Import(__pyx_n_s_pwd, 0, -1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 7, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_pwd, __pyx_t_1) < 0) __PYX_ERR(0, 4, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_pwd, __pyx_t_1) < 0) __PYX_ERR(0, 7, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "typtops.py":5
- * import os, sys
+  /* "typtops.py":8
+ * 
  * import pwd
  * import argparse             # <<<<<<<<<<<<<<
  * from typtop.dbaccess import (
  *     UserTypoDB,
  */
-  __pyx_t_1 = __Pyx_Import(__pyx_n_s_argparse, 0, -1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 5, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_Import(__pyx_n_s_argparse, 0, -1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 8, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_argparse, __pyx_t_1) < 0) __PYX_ERR(0, 5, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_argparse, __pyx_t_1) < 0) __PYX_ERR(0, 8, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "typtops.py":7
+  /* "typtops.py":10
  * import argparse
  * from typtop.dbaccess import (
  *     UserTypoDB,             # <<<<<<<<<<<<<<
  *     on_correct_password,
  *     on_wrong_password,
  */
-  __pyx_t_1 = PyList_New(5); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 7, __pyx_L1_error)
+  __pyx_t_1 = PyList_New(5); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 10, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_INCREF(__pyx_n_s_UserTypoDB);
   __Pyx_GIVEREF(__pyx_n_s_UserTypoDB);
@@ -4413,256 +4264,265 @@ PyMODINIT_FUNC PyInit_typtops(void)
   __Pyx_GIVEREF(__pyx_n_s_call_check);
   PyList_SET_ITEM(__pyx_t_1, 4, __pyx_n_s_call_check);
 
-  /* "typtops.py":6
+  /* "typtops.py":9
  * import pwd
  * import argparse
  * from typtop.dbaccess import (             # <<<<<<<<<<<<<<
  *     UserTypoDB,
  *     on_correct_password,
  */
-  __pyx_t_2 = __Pyx_Import(__pyx_n_s_typtop_dbaccess, __pyx_t_1, -1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 6, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
+  __pyx_t_4 = __Pyx_Import(__pyx_n_s_typtop_dbaccess, __pyx_t_1, -1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 9, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_1 = __Pyx_ImportFrom(__pyx_t_2, __pyx_n_s_UserTypoDB); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 6, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_ImportFrom(__pyx_t_4, __pyx_n_s_UserTypoDB); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 9, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_UserTypoDB, __pyx_t_1) < 0) __PYX_ERR(0, 7, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_UserTypoDB, __pyx_t_1) < 0) __PYX_ERR(0, 10, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_1 = __Pyx_ImportFrom(__pyx_t_2, __pyx_n_s_on_correct_password); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 6, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_ImportFrom(__pyx_t_4, __pyx_n_s_on_correct_password); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 9, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_on_correct_password, __pyx_t_1) < 0) __PYX_ERR(0, 8, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_on_correct_password, __pyx_t_1) < 0) __PYX_ERR(0, 11, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_1 = __Pyx_ImportFrom(__pyx_t_2, __pyx_n_s_on_wrong_password); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 6, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_ImportFrom(__pyx_t_4, __pyx_n_s_on_wrong_password); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 9, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_on_wrong_password, __pyx_t_1) < 0) __PYX_ERR(0, 9, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_on_wrong_password, __pyx_t_1) < 0) __PYX_ERR(0, 12, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_1 = __Pyx_ImportFrom(__pyx_t_2, __pyx_n_s_VERSION); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 6, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_ImportFrom(__pyx_t_4, __pyx_n_s_VERSION); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 9, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_VERSION, __pyx_t_1) < 0) __PYX_ERR(0, 10, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_VERSION, __pyx_t_1) < 0) __PYX_ERR(0, 13, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_1 = __Pyx_ImportFrom(__pyx_t_2, __pyx_n_s_call_check); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 6, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_ImportFrom(__pyx_t_4, __pyx_n_s_call_check); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 9, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_call_check, __pyx_t_1) < 0) __PYX_ERR(0, 10, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_call_check, __pyx_t_1) < 0) __PYX_ERR(0, 13, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-  /* "typtops.py":13
+  /* "typtops.py":16
  * )
  * from typtop.config import (
  *     set_distro, SEC_DB_PATH, NUMBER_OF_ENTRIES_TO_ALLOW_TYPO_LOGIN,             # <<<<<<<<<<<<<<
  *     WARM_UP_CACHE
  * )
  */
-  __pyx_t_2 = PyList_New(4); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 13, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
+  __pyx_t_4 = PyList_New(4); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 16, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_4);
   __Pyx_INCREF(__pyx_n_s_set_distro);
   __Pyx_GIVEREF(__pyx_n_s_set_distro);
-  PyList_SET_ITEM(__pyx_t_2, 0, __pyx_n_s_set_distro);
+  PyList_SET_ITEM(__pyx_t_4, 0, __pyx_n_s_set_distro);
   __Pyx_INCREF(__pyx_n_s_SEC_DB_PATH);
   __Pyx_GIVEREF(__pyx_n_s_SEC_DB_PATH);
-  PyList_SET_ITEM(__pyx_t_2, 1, __pyx_n_s_SEC_DB_PATH);
+  PyList_SET_ITEM(__pyx_t_4, 1, __pyx_n_s_SEC_DB_PATH);
   __Pyx_INCREF(__pyx_n_s_NUMBER_OF_ENTRIES_TO_ALLOW_TYPO);
   __Pyx_GIVEREF(__pyx_n_s_NUMBER_OF_ENTRIES_TO_ALLOW_TYPO);
-  PyList_SET_ITEM(__pyx_t_2, 2, __pyx_n_s_NUMBER_OF_ENTRIES_TO_ALLOW_TYPO);
+  PyList_SET_ITEM(__pyx_t_4, 2, __pyx_n_s_NUMBER_OF_ENTRIES_TO_ALLOW_TYPO);
   __Pyx_INCREF(__pyx_n_s_WARM_UP_CACHE);
   __Pyx_GIVEREF(__pyx_n_s_WARM_UP_CACHE);
-  PyList_SET_ITEM(__pyx_t_2, 3, __pyx_n_s_WARM_UP_CACHE);
+  PyList_SET_ITEM(__pyx_t_4, 3, __pyx_n_s_WARM_UP_CACHE);
 
-  /* "typtops.py":12
+  /* "typtops.py":15
  *     VERSION, call_check
  * )
  * from typtop.config import (             # <<<<<<<<<<<<<<
  *     set_distro, SEC_DB_PATH, NUMBER_OF_ENTRIES_TO_ALLOW_TYPO_LOGIN,
  *     WARM_UP_CACHE
  */
-  __pyx_t_1 = __Pyx_Import(__pyx_n_s_typtop_config, __pyx_t_2, -1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 12, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_Import(__pyx_n_s_typtop_config, __pyx_t_4, -1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 15, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = __Pyx_ImportFrom(__pyx_t_1, __pyx_n_s_set_distro); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 12, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_set_distro, __pyx_t_2) < 0) __PYX_ERR(0, 13, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = __Pyx_ImportFrom(__pyx_t_1, __pyx_n_s_SEC_DB_PATH); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 12, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_SEC_DB_PATH, __pyx_t_2) < 0) __PYX_ERR(0, 13, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = __Pyx_ImportFrom(__pyx_t_1, __pyx_n_s_NUMBER_OF_ENTRIES_TO_ALLOW_TYPO); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 12, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_NUMBER_OF_ENTRIES_TO_ALLOW_TYPO, __pyx_t_2) < 0) __PYX_ERR(0, 13, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = __Pyx_ImportFrom(__pyx_t_1, __pyx_n_s_WARM_UP_CACHE); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 12, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_WARM_UP_CACHE, __pyx_t_2) < 0) __PYX_ERR(0, 14, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+  __pyx_t_4 = __Pyx_ImportFrom(__pyx_t_1, __pyx_n_s_set_distro); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 15, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_4);
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_set_distro, __pyx_t_4) < 0) __PYX_ERR(0, 16, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+  __pyx_t_4 = __Pyx_ImportFrom(__pyx_t_1, __pyx_n_s_SEC_DB_PATH); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 15, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_4);
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_SEC_DB_PATH, __pyx_t_4) < 0) __PYX_ERR(0, 16, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+  __pyx_t_4 = __Pyx_ImportFrom(__pyx_t_1, __pyx_n_s_NUMBER_OF_ENTRIES_TO_ALLOW_TYPO); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 15, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_4);
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_NUMBER_OF_ENTRIES_TO_ALLOW_TYPO, __pyx_t_4) < 0) __PYX_ERR(0, 16, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+  __pyx_t_4 = __Pyx_ImportFrom(__pyx_t_1, __pyx_n_s_WARM_UP_CACHE); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 15, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_4);
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_WARM_UP_CACHE, __pyx_t_4) < 0) __PYX_ERR(0, 17, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "typtops.py":16
+  /* "typtops.py":19
  *     WARM_UP_CACHE
  * )
  * from typtop.dbutils import logger             # <<<<<<<<<<<<<<
- * 
+ * from typtop.validate_parent import is_valid_parent
  * import subprocess
  */
-  __pyx_t_1 = PyList_New(1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 16, __pyx_L1_error)
+  __pyx_t_1 = PyList_New(1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 19, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_INCREF(__pyx_n_s_logger);
   __Pyx_GIVEREF(__pyx_n_s_logger);
   PyList_SET_ITEM(__pyx_t_1, 0, __pyx_n_s_logger);
-  __pyx_t_2 = __Pyx_Import(__pyx_n_s_typtop_dbutils, __pyx_t_1, -1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 16, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
+  __pyx_t_4 = __Pyx_Import(__pyx_n_s_typtop_dbutils, __pyx_t_1, -1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 19, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_1 = __Pyx_ImportFrom(__pyx_t_2, __pyx_n_s_logger); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 16, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_ImportFrom(__pyx_t_4, __pyx_n_s_logger); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 19, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_logger, __pyx_t_1) < 0) __PYX_ERR(0, 16, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_logger, __pyx_t_1) < 0) __PYX_ERR(0, 19, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-  /* "typtops.py":18
+  /* "typtops.py":20
+ * )
  * from typtop.dbutils import logger
- * 
- * import subprocess             # <<<<<<<<<<<<<<
- * import getpass
- * 
- */
-  __pyx_t_2 = __Pyx_Import(__pyx_n_s_subprocess, 0, -1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 18, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_subprocess, __pyx_t_2) < 0) __PYX_ERR(0, 18, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-
-  /* "typtops.py":19
- * 
+ * from typtop.validate_parent import is_valid_parent             # <<<<<<<<<<<<<<
  * import subprocess
- * import getpass             # <<<<<<<<<<<<<<
- * 
+ * # import getpass
+ */
+  __pyx_t_4 = PyList_New(1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 20, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_4);
+  __Pyx_INCREF(__pyx_n_s_is_valid_parent);
+  __Pyx_GIVEREF(__pyx_n_s_is_valid_parent);
+  PyList_SET_ITEM(__pyx_t_4, 0, __pyx_n_s_is_valid_parent);
+  __pyx_t_1 = __Pyx_Import(__pyx_n_s_typtop_validate_parent, __pyx_t_4, -1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 20, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+  __pyx_t_4 = __Pyx_ImportFrom(__pyx_t_1, __pyx_n_s_is_valid_parent); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 20, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_4);
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_is_valid_parent, __pyx_t_4) < 0) __PYX_ERR(0, 20, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+
+  /* "typtops.py":21
+ * from typtop.dbutils import logger
+ * from typtop.validate_parent import is_valid_parent
+ * import subprocess             # <<<<<<<<<<<<<<
+ * # import getpass
  * 
  */
-  __pyx_t_2 = __Pyx_Import(__pyx_n_s_getpass, 0, -1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 19, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_getpass, __pyx_t_2) < 0) __PYX_ERR(0, 19, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  __pyx_t_1 = __Pyx_Import(__pyx_n_s_subprocess, 0, -1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 21, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_subprocess, __pyx_t_1) < 0) __PYX_ERR(0, 21, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "typtops.py":22
+  /* "typtops.py":25
  * 
  * 
  * USER = ""             # <<<<<<<<<<<<<<
  * ALLOW_TYPO_LOGIN = True
  * GITHUB_URL = 'https://github.com/rchatterjee/pam-typopw' # URL in github repo
  */
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_USER, __pyx_kp_s__3) < 0) __PYX_ERR(0, 22, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_USER, __pyx_kp_s__3) < 0) __PYX_ERR(0, 25, __pyx_L1_error)
 
-  /* "typtops.py":23
+  /* "typtops.py":26
  * 
  * USER = ""
  * ALLOW_TYPO_LOGIN = True             # <<<<<<<<<<<<<<
  * GITHUB_URL = 'https://github.com/rchatterjee/pam-typopw' # URL in github repo
  * first_msg = """\n\n
  */
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_ALLOW_TYPO_LOGIN, Py_True) < 0) __PYX_ERR(0, 23, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_ALLOW_TYPO_LOGIN, Py_True) < 0) __PYX_ERR(0, 26, __pyx_L1_error)
 
-  /* "typtops.py":24
+  /* "typtops.py":27
  * USER = ""
  * ALLOW_TYPO_LOGIN = True
  * GITHUB_URL = 'https://github.com/rchatterjee/pam-typopw' # URL in github repo             # <<<<<<<<<<<<<<
  * first_msg = """\n\n
  *   /  |                          /  |
  */
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_GITHUB_URL, __pyx_kp_s_https_github_com_rchatterjee_pam) < 0) __PYX_ERR(0, 24, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_GITHUB_URL, __pyx_kp_s_https_github_com_rchatterjee_pam) < 0) __PYX_ERR(0, 27, __pyx_L1_error)
 
-  /* "typtops.py":60
+  /* "typtops.py":63
  * Note, You have to initiate this for each user who intend to use the
  * benefit of adaptive typo-tolerant password login.
  * """.format             # <<<<<<<<<<<<<<
  * 
  * 
  */
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_kp_s__7, __pyx_n_s_format); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 60, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_first_msg, __pyx_t_2) < 0) __PYX_ERR(0, 25, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_kp_s__8, __pyx_n_s_format); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 63, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_first_msg, __pyx_t_1) < 0) __PYX_ERR(0, 28, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "typtops.py":63
+  /* "typtops.py":66
  * 
  * 
  * class AbortSettings(RuntimeError):             # <<<<<<<<<<<<<<
  *     pass
  * 
  */
-  __pyx_t_2 = PyTuple_New(1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 63, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
+  __pyx_t_1 = PyTuple_New(1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 66, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
   __Pyx_INCREF(__pyx_builtin_RuntimeError);
   __Pyx_GIVEREF(__pyx_builtin_RuntimeError);
-  PyTuple_SET_ITEM(__pyx_t_2, 0, __pyx_builtin_RuntimeError);
-  __pyx_t_1 = __Pyx_CalculateMetaclass(NULL, __pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 63, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_3 = __Pyx_Py3MetaclassPrepare(__pyx_t_1, __pyx_t_2, __pyx_n_s_AbortSettings, __pyx_n_s_AbortSettings, (PyObject *) NULL, __pyx_n_s_typtops, (PyObject *) NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 63, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_4 = __Pyx_Py3ClassCreate(__pyx_t_1, __pyx_n_s_AbortSettings, __pyx_t_2, __pyx_t_3, NULL, 0, 1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 63, __pyx_L1_error)
+  PyTuple_SET_ITEM(__pyx_t_1, 0, __pyx_builtin_RuntimeError);
+  __pyx_t_4 = __Pyx_CalculateMetaclass(NULL, __pyx_t_1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 66, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_AbortSettings, __pyx_t_4) < 0) __PYX_ERR(0, 63, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+  __pyx_t_2 = __Pyx_Py3MetaclassPrepare(__pyx_t_4, __pyx_t_1, __pyx_n_s_AbortSettings, __pyx_n_s_AbortSettings, (PyObject *) NULL, __pyx_n_s_typtops, (PyObject *) NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 66, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  __pyx_t_5 = __Pyx_Py3ClassCreate(__pyx_t_4, __pyx_n_s_AbortSettings, __pyx_t_1, __pyx_t_2, NULL, 0, 1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 66, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_5);
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_AbortSettings, __pyx_t_5) < 0) __PYX_ERR(0, 66, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "typtops.py":66
+  /* "typtops.py":69
  *     pass
  * 
  * def _get_login_user():             # <<<<<<<<<<<<<<
  *     # gets the username of the logging user
  *     pp = subprocess.Popen('who', stdout=subprocess.PIPE)
  */
-  __pyx_t_2 = __Pyx_CyFunction_NewEx(&__pyx_mdef_7typtops_1_get_login_user, 0, __pyx_n_s_get_login_user, NULL, __pyx_n_s_typtops, __pyx_d, ((PyObject *)__pyx_codeobj__9)); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 66, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_get_login_user, __pyx_t_2) < 0) __PYX_ERR(0, 66, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  __pyx_t_1 = __Pyx_CyFunction_NewEx(&__pyx_mdef_7typtops_1_get_login_user, 0, __pyx_n_s_get_login_user, NULL, __pyx_n_s_typtops, __pyx_d, ((PyObject *)__pyx_codeobj__10)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 69, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_get_login_user, __pyx_t_1) < 0) __PYX_ERR(0, 69, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "typtops.py":74
+  /* "typtops.py":77
  *     return user
  * 
  * def _get_username():             # <<<<<<<<<<<<<<
  *     # trying to go over the problem of
  *     if USER:
  */
-  __pyx_t_2 = __Pyx_CyFunction_NewEx(&__pyx_mdef_7typtops_3_get_username, 0, __pyx_n_s_get_username, NULL, __pyx_n_s_typtops, __pyx_d, ((PyObject *)__pyx_codeobj__11)); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 74, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_get_username, __pyx_t_2) < 0) __PYX_ERR(0, 74, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  __pyx_t_1 = __Pyx_CyFunction_NewEx(&__pyx_mdef_7typtops_3_get_username, 0, __pyx_n_s_get_username, NULL, __pyx_n_s_typtops, __pyx_d, ((PyObject *)__pyx_codeobj__12)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 77, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_get_username, __pyx_t_1) < 0) __PYX_ERR(0, 77, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "typtops.py":92
+  /* "typtops.py":95
  *     return user
  * 
  * def _get_typoDB():             # <<<<<<<<<<<<<<
  *     user = _get_username()
  *     try:
  */
-  __pyx_t_2 = __Pyx_CyFunction_NewEx(&__pyx_mdef_7typtops_5_get_typoDB, 0, __pyx_n_s_get_typoDB, NULL, __pyx_n_s_typtops, __pyx_d, ((PyObject *)__pyx_codeobj__13)); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 92, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_get_typoDB, __pyx_t_2) < 0) __PYX_ERR(0, 92, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  __pyx_t_1 = __Pyx_CyFunction_NewEx(&__pyx_mdef_7typtops_5_get_typoDB, 0, __pyx_n_s_get_typoDB, NULL, __pyx_n_s_typtops, __pyx_d, ((PyObject *)__pyx_codeobj__14)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 95, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_get_typoDB, __pyx_t_1) < 0) __PYX_ERR(0, 95, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "typtops.py":111
+  /* "typtops.py":114
  *     return typoDB
  * 
  * def root_only_operation():             # <<<<<<<<<<<<<<
  *     if os.getuid() != 0:
  *         print("ERROR!! You need root priviledge to run this operation")
  */
-  __pyx_t_2 = __Pyx_CyFunction_NewEx(&__pyx_mdef_7typtops_7root_only_operation, 0, __pyx_n_s_root_only_operation, NULL, __pyx_n_s_typtops, __pyx_d, ((PyObject *)__pyx_codeobj__14)); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 111, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_root_only_operation, __pyx_t_2) < 0) __PYX_ERR(0, 111, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  __pyx_t_1 = __Pyx_CyFunction_NewEx(&__pyx_mdef_7typtops_7root_only_operation, 0, __pyx_n_s_root_only_operation, NULL, __pyx_n_s_typtops, __pyx_d, ((PyObject *)__pyx_codeobj__15)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 114, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_root_only_operation, __pyx_t_1) < 0) __PYX_ERR(0, 114, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "typtops.py":116
+  /* "typtops.py":119
  *         raise AbortSettings
  * 
  * def initiate_typodb(RE_INIT=False):             # <<<<<<<<<<<<<<
  *     # ValueError(
  *     #     "You should not require to call this. "
  */
-  __pyx_t_2 = __Pyx_CyFunction_NewEx(&__pyx_mdef_7typtops_9initiate_typodb, 0, __pyx_n_s_initiate_typodb, NULL, __pyx_n_s_typtops, __pyx_d, ((PyObject *)__pyx_codeobj__17)); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 116, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
-  __Pyx_CyFunction_SetDefaultsTuple(__pyx_t_2, __pyx_tuple__18);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_initiate_typodb, __pyx_t_2) < 0) __PYX_ERR(0, 116, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  __pyx_t_1 = __Pyx_CyFunction_NewEx(&__pyx_mdef_7typtops_9initiate_typodb, 0, __pyx_n_s_initiate_typodb, NULL, __pyx_n_s_typtops, __pyx_d, ((PyObject *)__pyx_codeobj__18)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 119, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __Pyx_CyFunction_SetDefaultsTuple(__pyx_t_1, __pyx_tuple__19);
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_initiate_typodb, __pyx_t_1) < 0) __PYX_ERR(0, 119, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
   /* "typtops.py":162
  *         # raise ValueError("incorrect pw given 3 times")
@@ -4671,28 +4531,28 @@ PyMODINIT_FUNC PyInit_typtops(void)
  * common_auth = {
  *     'debian': '/etc/pam.d/common-auth',
  */
-  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_set_distro); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 162, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_3 = NULL;
-  if (CYTHON_COMPILING_IN_CPYTHON && unlikely(PyMethod_Check(__pyx_t_1))) {
-    __pyx_t_3 = PyMethod_GET_SELF(__pyx_t_1);
-    if (likely(__pyx_t_3)) {
-      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_1);
-      __Pyx_INCREF(__pyx_t_3);
+  __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_set_distro); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 162, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_4);
+  __pyx_t_2 = NULL;
+  if (CYTHON_COMPILING_IN_CPYTHON && unlikely(PyMethod_Check(__pyx_t_4))) {
+    __pyx_t_2 = PyMethod_GET_SELF(__pyx_t_4);
+    if (likely(__pyx_t_2)) {
+      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_4);
+      __Pyx_INCREF(__pyx_t_2);
       __Pyx_INCREF(function);
-      __Pyx_DECREF_SET(__pyx_t_1, function);
+      __Pyx_DECREF_SET(__pyx_t_4, function);
     }
   }
-  if (__pyx_t_3) {
-    __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_t_1, __pyx_t_3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 162, __pyx_L1_error)
-    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+  if (__pyx_t_2) {
+    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_4, __pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 162, __pyx_L1_error)
+    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   } else {
-    __pyx_t_2 = __Pyx_PyObject_CallNoArg(__pyx_t_1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 162, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_CallNoArg(__pyx_t_4); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 162, __pyx_L1_error)
   }
-  __Pyx_GOTREF(__pyx_t_2);
+  __Pyx_GOTREF(__pyx_t_1);
+  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_DISTRO, __pyx_t_1) < 0) __PYX_ERR(0, 162, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_DISTRO, __pyx_t_2) < 0) __PYX_ERR(0, 162, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
   /* "typtops.py":164
  * DISTRO = set_distro()
@@ -4701,11 +4561,11 @@ PyMODINIT_FUNC PyInit_typtops(void)
  *     'fedora': '/etc/pam.d/system-auth',
  *     'darwin': ''
  */
-  __pyx_t_2 = PyDict_New(); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 164, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
-  if (PyDict_SetItem(__pyx_t_2, __pyx_n_s_debian, __pyx_kp_s_etc_pam_d_common_auth) < 0) __PYX_ERR(0, 164, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_2, __pyx_n_s_fedora, __pyx_kp_s_etc_pam_d_system_auth) < 0) __PYX_ERR(0, 164, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_2, __pyx_n_s_darwin, __pyx_kp_s__3) < 0) __PYX_ERR(0, 164, __pyx_L1_error)
+  __pyx_t_1 = PyDict_New(); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 164, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_debian, __pyx_kp_s_etc_pam_d_common_auth) < 0) __PYX_ERR(0, 164, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_fedora, __pyx_kp_s_etc_pam_d_system_auth) < 0) __PYX_ERR(0, 164, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_darwin, __pyx_kp_s__3) < 0) __PYX_ERR(0, 164, __pyx_L1_error)
 
   /* "typtops.py":167
  *     'fedora': '/etc/pam.d/system-auth',
@@ -4714,14 +4574,14 @@ PyMODINIT_FUNC PyInit_typtops(void)
  * 
  * def uninstall_pam_typtop():
  */
-  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_DISTRO); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 167, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_3 = __Pyx_PyDict_GetItem(__pyx_t_2, __pyx_t_1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 167, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_DISTRO); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 167, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_4);
+  __pyx_t_2 = __Pyx_PyDict_GetItem(__pyx_t_1, __pyx_t_4); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 167, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_common_auth, __pyx_t_3) < 0) __PYX_ERR(0, 163, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_common_auth, __pyx_t_2) < 0) __PYX_ERR(0, 163, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
   /* "typtops.py":169
  * }[DISTRO]
@@ -4730,182 +4590,131 @@ PyMODINIT_FUNC PyInit_typtops(void)
  *     # Last try to send logs
  *     os.system("nohup python -u /usr/local/bin/send_typo_log.py >/dev/null 2>&1 &")
  */
-  __pyx_t_3 = __Pyx_CyFunction_NewEx(&__pyx_mdef_7typtops_11uninstall_pam_typtop, 0, __pyx_n_s_uninstall_pam_typtop, NULL, __pyx_n_s_typtops, __pyx_d, ((PyObject *)__pyx_codeobj__20)); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 169, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_uninstall_pam_typtop, __pyx_t_3) < 0) __PYX_ERR(0, 169, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+  __pyx_t_2 = __Pyx_CyFunction_NewEx(&__pyx_mdef_7typtops_11uninstall_pam_typtop, 0, __pyx_n_s_uninstall_pam_typtop, NULL, __pyx_n_s_typtops, __pyx_d, ((PyObject *)__pyx_codeobj__21)); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 169, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_uninstall_pam_typtop, __pyx_t_2) < 0) __PYX_ERR(0, 169, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "typtops.py":205
+  /* "typtops.py":204
  *         os.system(cmd)
  * 
  * parser = argparse.ArgumentParser("typtop ")             # <<<<<<<<<<<<<<
  * 
  * parser.add_argument(
  */
-  __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_argparse); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 205, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_ArgumentParser); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 205, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_tuple__21, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 205, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_parser, __pyx_t_3) < 0) __PYX_ERR(0, 205, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+  __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_argparse); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 204, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_ArgumentParser); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 204, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_4);
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_tuple__22, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 204, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_parser, __pyx_t_2) < 0) __PYX_ERR(0, 204, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "typtops.py":207
+  /* "typtops.py":206
  * parser = argparse.ArgumentParser("typtop ")
  * 
  * parser.add_argument(             # <<<<<<<<<<<<<<
  *     "--user",
  *     help="To set the username. Otherwise login user will be the target"
  */
-  __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_parser); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 207, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_add_argument); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 207, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+  __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_parser); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 206, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_add_argument); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 206, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_4);
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "typtops.py":209
+  /* "typtops.py":208
  * parser.add_argument(
  *     "--user",
  *     help="To set the username. Otherwise login user will be the target"             # <<<<<<<<<<<<<<
  * )
  * parser.add_argument(
  */
-  __pyx_t_3 = PyDict_New(); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 209, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_help, __pyx_kp_s_To_set_the_username_Otherwise_lo) < 0) __PYX_ERR(0, 209, __pyx_L1_error)
+  __pyx_t_2 = PyDict_New(); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 208, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  if (PyDict_SetItem(__pyx_t_2, __pyx_n_s_help, __pyx_kp_s_To_set_the_username_Otherwise_lo) < 0) __PYX_ERR(0, 208, __pyx_L1_error)
 
-  /* "typtops.py":207
+  /* "typtops.py":206
  * parser = argparse.ArgumentParser("typtop ")
  * 
  * parser.add_argument(             # <<<<<<<<<<<<<<
  *     "--user",
  *     help="To set the username. Otherwise login user will be the target"
  */
-  __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_tuple__22, __pyx_t_3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 207, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_tuple__23, __pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 206, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "typtops.py":211
+  /* "typtops.py":210
  *     help="To set the username. Otherwise login user will be the target"
  * )
  * parser.add_argument(             # <<<<<<<<<<<<<<
  *     "--init", action="store_true",
  *     help="To initialize the DB. You have to run this once you install pam_typtop"
  */
-  __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_parser); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 211, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_parser); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 210, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_add_argument); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 210, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_add_argument); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 211, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "typtops.py":212
+  /* "typtops.py":211
  * )
  * parser.add_argument(
  *     "--init", action="store_true",             # <<<<<<<<<<<<<<
  *     help="To initialize the DB. You have to run this once you install pam_typtop"
  * )
  */
-  __pyx_t_2 = PyDict_New(); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 212, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
-  if (PyDict_SetItem(__pyx_t_2, __pyx_n_s_action, __pyx_n_s_store_true) < 0) __PYX_ERR(0, 212, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_2, __pyx_n_s_help, __pyx_kp_s_To_initialize_the_DB_You_have_to) < 0) __PYX_ERR(0, 212, __pyx_L1_error)
+  __pyx_t_1 = PyDict_New(); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 211, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_action, __pyx_n_s_store_true) < 0) __PYX_ERR(0, 211, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_help, __pyx_kp_s_To_initialize_the_DB_You_have_to) < 0) __PYX_ERR(0, 211, __pyx_L1_error)
 
-  /* "typtops.py":211
+  /* "typtops.py":210
  *     help="To set the username. Otherwise login user will be the target"
  * )
  * parser.add_argument(             # <<<<<<<<<<<<<<
  *     "--init", action="store_true",
  *     help="To initialize the DB. You have to run this once you install pam_typtop"
  */
-  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_tuple__23, __pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 211, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+  __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_tuple__24, __pyx_t_1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 210, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-  /* "typtops.py":216
+  /* "typtops.py":215
  * )
  * 
  * parser.add_argument(             # <<<<<<<<<<<<<<
  *     "--allowtypo", type=str.lower, choices=['yes','no'],
  *     help='Allow login with typos of the password'
  */
-  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_parser); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 216, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_parser); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 215, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_4);
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_add_argument); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 215, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_add_argument); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 216, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-  /* "typtops.py":217
+  /* "typtops.py":216
  * 
  * parser.add_argument(
  *     "--allowtypo", type=str.lower, choices=['yes','no'],             # <<<<<<<<<<<<<<
  *     help='Allow login with typos of the password'
  * )
  */
-  __pyx_t_1 = PyDict_New(); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 217, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(((PyObject *)(&PyString_Type)), __pyx_n_s_lower); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 217, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_type, __pyx_t_3) < 0) __PYX_ERR(0, 217, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_3 = PyList_New(2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 217, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  __Pyx_INCREF(__pyx_n_s_yes);
-  __Pyx_GIVEREF(__pyx_n_s_yes);
-  PyList_SET_ITEM(__pyx_t_3, 0, __pyx_n_s_yes);
-  __Pyx_INCREF(__pyx_n_s_no);
-  __Pyx_GIVEREF(__pyx_n_s_no);
-  PyList_SET_ITEM(__pyx_t_3, 1, __pyx_n_s_no);
-  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_choices, __pyx_t_3) < 0) __PYX_ERR(0, 217, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_help, __pyx_kp_s_Allow_login_with_typos_of_the_pa) < 0) __PYX_ERR(0, 217, __pyx_L1_error)
-
-  /* "typtops.py":216
- * )
- * 
- * parser.add_argument(             # <<<<<<<<<<<<<<
- *     "--allowtypo", type=str.lower, choices=['yes','no'],
- *     help='Allow login with typos of the password'
- */
-  __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_tuple__24, __pyx_t_1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 216, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-
-  /* "typtops.py":221
- * )
- * 
- * parser.add_argument(             # <<<<<<<<<<<<<<
- *     "--allowupload", type=str.lower, choices=['yes', 'no'],
- *     help="Allow uploading the non-sensive annonymous "\
- */
-  __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_parser); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 221, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_add_argument); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 221, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-
-  /* "typtops.py":222
- * 
- * parser.add_argument(
- *     "--allowupload", type=str.lower, choices=['yes', 'no'],             # <<<<<<<<<<<<<<
- *     help="Allow uploading the non-sensive annonymous "\
- *     "data into the server for research purposes."
- */
-  __pyx_t_3 = PyDict_New(); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 222, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(((PyObject *)(&PyString_Type)), __pyx_n_s_lower); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 222, __pyx_L1_error)
+  __pyx_t_4 = PyDict_New(); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 216, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_4);
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(((PyObject *)(&PyString_Type)), __pyx_n_s_lower); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 216, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_type, __pyx_t_2) < 0) __PYX_ERR(0, 222, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_type, __pyx_t_2) < 0) __PYX_ERR(0, 216, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = PyList_New(2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 222, __pyx_L1_error)
+  __pyx_t_2 = PyList_New(2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 216, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_INCREF(__pyx_n_s_yes);
   __Pyx_GIVEREF(__pyx_n_s_yes);
@@ -4913,355 +4722,406 @@ PyMODINIT_FUNC PyInit_typtops(void)
   __Pyx_INCREF(__pyx_n_s_no);
   __Pyx_GIVEREF(__pyx_n_s_no);
   PyList_SET_ITEM(__pyx_t_2, 1, __pyx_n_s_no);
-  if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_choices, __pyx_t_2) < 0) __PYX_ERR(0, 222, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_choices, __pyx_t_2) < 0) __PYX_ERR(0, 216, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_help, __pyx_kp_s_Allow_uploading_the_non_sensive) < 0) __PYX_ERR(0, 222, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_help, __pyx_kp_s_Allow_login_with_typos_of_the_pa) < 0) __PYX_ERR(0, 216, __pyx_L1_error)
 
-  /* "typtops.py":221
+  /* "typtops.py":215
+ * )
+ * 
+ * parser.add_argument(             # <<<<<<<<<<<<<<
+ *     "--allowtypo", type=str.lower, choices=['yes','no'],
+ *     help='Allow login with typos of the password'
+ */
+  __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_tuple__25, __pyx_t_4); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 215, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+
+  /* "typtops.py":220
  * )
  * 
  * parser.add_argument(             # <<<<<<<<<<<<<<
  *     "--allowupload", type=str.lower, choices=['yes', 'no'],
  *     help="Allow uploading the non-sensive annonymous "\
  */
-  __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_tuple__25, __pyx_t_3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 221, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_parser); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 220, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_add_argument); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 220, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "typtops.py":227
+  /* "typtops.py":221
+ * 
+ * parser.add_argument(
+ *     "--allowupload", type=str.lower, choices=['yes', 'no'],             # <<<<<<<<<<<<<<
+ *     help="Allow uploading the non-sensive annonymous "\
+ *     "data into the server for research purposes."
+ */
+  __pyx_t_2 = PyDict_New(); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 221, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)(&PyString_Type)), __pyx_n_s_lower); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 221, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  if (PyDict_SetItem(__pyx_t_2, __pyx_n_s_type, __pyx_t_1) < 0) __PYX_ERR(0, 221, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+  __pyx_t_1 = PyList_New(2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 221, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __Pyx_INCREF(__pyx_n_s_yes);
+  __Pyx_GIVEREF(__pyx_n_s_yes);
+  PyList_SET_ITEM(__pyx_t_1, 0, __pyx_n_s_yes);
+  __Pyx_INCREF(__pyx_n_s_no);
+  __Pyx_GIVEREF(__pyx_n_s_no);
+  PyList_SET_ITEM(__pyx_t_1, 1, __pyx_n_s_no);
+  if (PyDict_SetItem(__pyx_t_2, __pyx_n_s_choices, __pyx_t_1) < 0) __PYX_ERR(0, 221, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+  if (PyDict_SetItem(__pyx_t_2, __pyx_n_s_help, __pyx_kp_s_Allow_uploading_the_non_sensive) < 0) __PYX_ERR(0, 221, __pyx_L1_error)
+
+  /* "typtops.py":220
+ * )
+ * 
+ * parser.add_argument(             # <<<<<<<<<<<<<<
+ *     "--allowupload", type=str.lower, choices=['yes', 'no'],
+ *     help="Allow uploading the non-sensive annonymous "\
+ */
+  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_tuple__26, __pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 220, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+
+  /* "typtops.py":226
  * )
  * 
  * parser.add_argument(             # <<<<<<<<<<<<<<
  *     "--installid", action="store_true",
  *     help="Prints the installation id, which you have to submit while filling up the google form"
  */
-  __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_parser); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 227, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_parser); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 226, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_add_argument); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 226, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_add_argument); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 227, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "typtops.py":228
+  /* "typtops.py":227
  * 
  * parser.add_argument(
  *     "--installid", action="store_true",             # <<<<<<<<<<<<<<
  *     help="Prints the installation id, which you have to submit while filling up the google form"
  * )
  */
-  __pyx_t_2 = PyDict_New(); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 228, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
-  if (PyDict_SetItem(__pyx_t_2, __pyx_n_s_action, __pyx_n_s_store_true) < 0) __PYX_ERR(0, 228, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_2, __pyx_n_s_help, __pyx_kp_s_Prints_the_installation_id_which) < 0) __PYX_ERR(0, 228, __pyx_L1_error)
+  __pyx_t_1 = PyDict_New(); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 227, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_action, __pyx_n_s_store_true) < 0) __PYX_ERR(0, 227, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_help, __pyx_kp_s_Prints_the_installation_id_which) < 0) __PYX_ERR(0, 227, __pyx_L1_error)
 
-  /* "typtops.py":227
+  /* "typtops.py":226
  * )
  * 
  * parser.add_argument(             # <<<<<<<<<<<<<<
  *     "--installid", action="store_true",
  *     help="Prints the installation id, which you have to submit while filling up the google form"
  */
-  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_tuple__26, __pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 227, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+  __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_tuple__27, __pyx_t_1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 226, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-  /* "typtops.py":232
+  /* "typtops.py":231
  * )
  * 
  * parser.add_argument(             # <<<<<<<<<<<<<<
  *     "--status", action="store", nargs="*",
  *     help='Prints current states of the typotolerance. Needs a username as argument.'
  */
-  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_parser); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 232, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_parser); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 231, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_4);
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_add_argument); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 231, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_add_argument); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 232, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-  /* "typtops.py":233
+  /* "typtops.py":232
  * 
  * parser.add_argument(
  *     "--status", action="store", nargs="*",             # <<<<<<<<<<<<<<
  *     help='Prints current states of the typotolerance. Needs a username as argument.'
  * )
  */
-  __pyx_t_1 = PyDict_New(); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 233, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_action, __pyx_n_s_store) < 0) __PYX_ERR(0, 233, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_nargs, __pyx_kp_s__28) < 0) __PYX_ERR(0, 233, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_help, __pyx_kp_s_Prints_current_states_of_the_typ) < 0) __PYX_ERR(0, 233, __pyx_L1_error)
+  __pyx_t_4 = PyDict_New(); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 232, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_4);
+  if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_action, __pyx_n_s_store) < 0) __PYX_ERR(0, 232, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_nargs, __pyx_kp_s__29) < 0) __PYX_ERR(0, 232, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_help, __pyx_kp_s_Prints_current_states_of_the_typ) < 0) __PYX_ERR(0, 232, __pyx_L1_error)
 
-  /* "typtops.py":232
+  /* "typtops.py":231
  * )
  * 
  * parser.add_argument(             # <<<<<<<<<<<<<<
  *     "--status", action="store", nargs="*",
  *     help='Prints current states of the typotolerance. Needs a username as argument.'
  */
-  __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_tuple__27, __pyx_t_1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 232, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_tuple__28, __pyx_t_4); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 231, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "typtops.py":237
+  /* "typtops.py":236
  * )
  * 
  * parser.add_argument(             # <<<<<<<<<<<<<<
  *     "--uninstall", action="store_true",
  *     help="Uninstall TypToP from your machine. Will delete all the data related to TypTop too."
  */
-  __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_parser); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 237, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_add_argument); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 237, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+  __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_parser); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 236, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_add_argument); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 236, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_4);
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "typtops.py":238
+  /* "typtops.py":237
  * 
  * parser.add_argument(
  *     "--uninstall", action="store_true",             # <<<<<<<<<<<<<<
  *     help="Uninstall TypToP from your machine. Will delete all the data related to TypTop too."
  * )
  */
-  __pyx_t_3 = PyDict_New(); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 238, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_action, __pyx_n_s_store_true) < 0) __PYX_ERR(0, 238, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_help, __pyx_kp_s_Uninstall_TypToP_from_your_machi) < 0) __PYX_ERR(0, 238, __pyx_L1_error)
+  __pyx_t_2 = PyDict_New(); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 237, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  if (PyDict_SetItem(__pyx_t_2, __pyx_n_s_action, __pyx_n_s_store_true) < 0) __PYX_ERR(0, 237, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_2, __pyx_n_s_help, __pyx_kp_s_Uninstall_TypToP_from_your_machi) < 0) __PYX_ERR(0, 237, __pyx_L1_error)
 
-  /* "typtops.py":237
+  /* "typtops.py":236
  * )
  * 
  * parser.add_argument(             # <<<<<<<<<<<<<<
  *     "--uninstall", action="store_true",
  *     help="Uninstall TypToP from your machine. Will delete all the data related to TypTop too."
  */
-  __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_tuple__29, __pyx_t_3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 237, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_tuple__30, __pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 236, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "typtops.py":242
+  /* "typtops.py":241
  * )
  * 
  * parser.add_argument(             # <<<<<<<<<<<<<<
  *     "--reinit", action="store_true",
  *     help="To re-initiate the DB, especially after the user's pw has changed"
  */
-  __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_parser); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 242, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_parser); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 241, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_add_argument); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 241, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_add_argument); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 242, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "typtops.py":243
+  /* "typtops.py":242
  * 
  * parser.add_argument(
  *     "--reinit", action="store_true",             # <<<<<<<<<<<<<<
  *     help="To re-initiate the DB, especially after the user's pw has changed"
  * )
  */
-  __pyx_t_2 = PyDict_New(); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 243, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
-  if (PyDict_SetItem(__pyx_t_2, __pyx_n_s_action, __pyx_n_s_store_true) < 0) __PYX_ERR(0, 243, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_2, __pyx_n_s_help, __pyx_kp_s_To_re_initiate_the_DB_especially) < 0) __PYX_ERR(0, 243, __pyx_L1_error)
+  __pyx_t_1 = PyDict_New(); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 242, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_action, __pyx_n_s_store_true) < 0) __PYX_ERR(0, 242, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_help, __pyx_kp_s_To_re_initiate_the_DB_especially) < 0) __PYX_ERR(0, 242, __pyx_L1_error)
 
-  /* "typtops.py":242
+  /* "typtops.py":241
  * )
  * 
  * parser.add_argument(             # <<<<<<<<<<<<<<
  *     "--reinit", action="store_true",
  *     help="To re-initiate the DB, especially after the user's pw has changed"
  */
-  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_tuple__30, __pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 242, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+  __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_tuple__31, __pyx_t_1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 241, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-  /* "typtops.py":247
+  /* "typtops.py":246
  * )
  * 
  * parser.add_argument(             # <<<<<<<<<<<<<<
  *     "--update", action="store_true",
  *     help="Updates TypTop to the latest released version"
  */
-  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_parser); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 247, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_parser); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 246, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_4);
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_add_argument); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 246, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_add_argument); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 247, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-  /* "typtops.py":248
+  /* "typtops.py":247
  * 
  * parser.add_argument(
  *     "--update", action="store_true",             # <<<<<<<<<<<<<<
  *     help="Updates TypTop to the latest released version"
  * )
  */
-  __pyx_t_1 = PyDict_New(); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 248, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_action, __pyx_n_s_store_true) < 0) __PYX_ERR(0, 248, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_help, __pyx_kp_s_Updates_TypTop_to_the_latest_rel) < 0) __PYX_ERR(0, 248, __pyx_L1_error)
+  __pyx_t_4 = PyDict_New(); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 247, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_4);
+  if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_action, __pyx_n_s_store_true) < 0) __PYX_ERR(0, 247, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_help, __pyx_kp_s_Updates_TypTop_to_the_latest_rel) < 0) __PYX_ERR(0, 247, __pyx_L1_error)
 
-  /* "typtops.py":247
+  /* "typtops.py":246
  * )
  * 
  * parser.add_argument(             # <<<<<<<<<<<<<<
  *     "--update", action="store_true",
  *     help="Updates TypTop to the latest released version"
  */
-  __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_tuple__31, __pyx_t_1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 247, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_tuple__32, __pyx_t_4); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 246, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "typtops.py":252
+  /* "typtops.py":251
  * )
  * 
  * parser.add_argument(             # <<<<<<<<<<<<<<
  *     "--check", action="store", nargs=3,
  *     help="(INTERNAL FUNCTION). Please don't call this."
  */
-  __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_parser); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 252, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_add_argument); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 252, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+  __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_parser); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 251, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_add_argument); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 251, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_4);
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "typtops.py":253
+  /* "typtops.py":252
  * 
  * parser.add_argument(
  *     "--check", action="store", nargs=3,             # <<<<<<<<<<<<<<
  *     help="(INTERNAL FUNCTION). Please don't call this."
  * )
  */
-  __pyx_t_3 = PyDict_New(); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 253, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_action, __pyx_n_s_store) < 0) __PYX_ERR(0, 253, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_nargs, __pyx_int_3) < 0) __PYX_ERR(0, 253, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_help, __pyx_kp_s_INTERNAL_FUNCTION_Please_don_t) < 0) __PYX_ERR(0, 253, __pyx_L1_error)
+  __pyx_t_2 = PyDict_New(); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 252, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  if (PyDict_SetItem(__pyx_t_2, __pyx_n_s_action, __pyx_n_s_store) < 0) __PYX_ERR(0, 252, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_2, __pyx_n_s_nargs, __pyx_int_3) < 0) __PYX_ERR(0, 252, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_2, __pyx_n_s_help, __pyx_kp_s_INTERNAL_FUNCTION_Please_don_t) < 0) __PYX_ERR(0, 252, __pyx_L1_error)
 
-  /* "typtops.py":252
+  /* "typtops.py":251
  * )
  * 
  * parser.add_argument(             # <<<<<<<<<<<<<<
  *     "--check", action="store", nargs=3,
  *     help="(INTERNAL FUNCTION). Please don't call this."
  */
-  __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_tuple__32, __pyx_t_3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 252, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_tuple__33, __pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 251, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-  /* "typtops.py":257
+  /* "typtops.py":256
  * )
  * 
  * args = parser.parse_args()             # <<<<<<<<<<<<<<
  * if len(sys.argv) <=1:
  *     print(parser.print_help())
  */
-  __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_parser); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 257, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_parse_args); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 257, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_3 = NULL;
-  if (CYTHON_COMPILING_IN_CPYTHON && unlikely(PyMethod_Check(__pyx_t_1))) {
-    __pyx_t_3 = PyMethod_GET_SELF(__pyx_t_1);
-    if (likely(__pyx_t_3)) {
-      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_1);
-      __Pyx_INCREF(__pyx_t_3);
+  __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_parser); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 256, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_parse_args); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 256, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_4);
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  __pyx_t_2 = NULL;
+  if (CYTHON_COMPILING_IN_CPYTHON && unlikely(PyMethod_Check(__pyx_t_4))) {
+    __pyx_t_2 = PyMethod_GET_SELF(__pyx_t_4);
+    if (likely(__pyx_t_2)) {
+      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_4);
+      __Pyx_INCREF(__pyx_t_2);
       __Pyx_INCREF(function);
-      __Pyx_DECREF_SET(__pyx_t_1, function);
+      __Pyx_DECREF_SET(__pyx_t_4, function);
     }
   }
-  if (__pyx_t_3) {
-    __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_t_1, __pyx_t_3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 257, __pyx_L1_error)
-    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+  if (__pyx_t_2) {
+    __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_4, __pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 256, __pyx_L1_error)
+    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   } else {
-    __pyx_t_2 = __Pyx_PyObject_CallNoArg(__pyx_t_1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 257, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_CallNoArg(__pyx_t_4); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 256, __pyx_L1_error)
   }
-  __Pyx_GOTREF(__pyx_t_2);
+  __Pyx_GOTREF(__pyx_t_1);
+  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_args, __pyx_t_1) < 0) __PYX_ERR(0, 256, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_args, __pyx_t_2) < 0) __PYX_ERR(0, 257, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "typtops.py":258
+  /* "typtops.py":257
  * 
  * args = parser.parse_args()
  * if len(sys.argv) <=1:             # <<<<<<<<<<<<<<
  *     print(parser.print_help())
  *     exit(0)
  */
-  __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_sys); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 258, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_argv); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 258, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_sys); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 257, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_5 = PyObject_Length(__pyx_t_1); if (unlikely(__pyx_t_5 == -1)) __PYX_ERR(0, 258, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_argv); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 257, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_6 = ((__pyx_t_5 <= 1) != 0);
+  __pyx_t_3 = PyObject_Length(__pyx_t_4); if (unlikely(__pyx_t_3 == -1)) __PYX_ERR(0, 257, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+  __pyx_t_6 = ((__pyx_t_3 <= 1) != 0);
   if (__pyx_t_6) {
 
-    /* "typtops.py":259
+    /* "typtops.py":258
  * args = parser.parse_args()
  * if len(sys.argv) <=1:
  *     print(parser.print_help())             # <<<<<<<<<<<<<<
  *     exit(0)
  * 
  */
-    __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_parser); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 259, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_parser); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 258, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_1);
+    __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_print_help); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 258, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
-    __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_print_help); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 259, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_3);
-    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    __pyx_t_2 = NULL;
-    if (CYTHON_COMPILING_IN_CPYTHON && unlikely(PyMethod_Check(__pyx_t_3))) {
-      __pyx_t_2 = PyMethod_GET_SELF(__pyx_t_3);
-      if (likely(__pyx_t_2)) {
-        PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_3);
-        __Pyx_INCREF(__pyx_t_2);
+    __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+    __pyx_t_1 = NULL;
+    if (CYTHON_COMPILING_IN_CPYTHON && unlikely(PyMethod_Check(__pyx_t_2))) {
+      __pyx_t_1 = PyMethod_GET_SELF(__pyx_t_2);
+      if (likely(__pyx_t_1)) {
+        PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_2);
+        __Pyx_INCREF(__pyx_t_1);
         __Pyx_INCREF(function);
-        __Pyx_DECREF_SET(__pyx_t_3, function);
+        __Pyx_DECREF_SET(__pyx_t_2, function);
       }
     }
-    if (__pyx_t_2) {
-      __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 259, __pyx_L1_error)
-      __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+    if (__pyx_t_1) {
+      __pyx_t_4 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 258, __pyx_L1_error)
+      __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
     } else {
-      __pyx_t_1 = __Pyx_PyObject_CallNoArg(__pyx_t_3); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 259, __pyx_L1_error)
+      __pyx_t_4 = __Pyx_PyObject_CallNoArg(__pyx_t_2); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 258, __pyx_L1_error)
     }
-    __Pyx_GOTREF(__pyx_t_1);
-    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    __pyx_t_3 = PyTuple_New(1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 259, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_3);
-    __Pyx_GIVEREF(__pyx_t_1);
-    PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_t_1);
-    __pyx_t_1 = 0;
-    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_print, __pyx_t_3, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 259, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_1);
-    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+    __Pyx_GOTREF(__pyx_t_4);
+    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+    __pyx_t_2 = PyTuple_New(1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 258, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_2);
+    __Pyx_GIVEREF(__pyx_t_4);
+    PyTuple_SET_ITEM(__pyx_t_2, 0, __pyx_t_4);
+    __pyx_t_4 = 0;
+    __pyx_t_4 = __Pyx_PyObject_Call(__pyx_builtin_print, __pyx_t_2, NULL); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 258, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_4);
+    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+    __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-    /* "typtops.py":260
+    /* "typtops.py":259
  * if len(sys.argv) <=1:
  *     print(parser.print_help())
  *     exit(0)             # <<<<<<<<<<<<<<
  * 
  * # ITS IMPORTENT THIS ONE WILL BE FIRST
  */
-    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_exit, __pyx_tuple__33, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 260, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_1);
-    __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+    __pyx_t_4 = __Pyx_PyObject_Call(__pyx_builtin_exit, __pyx_tuple__34, NULL); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 259, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_4);
+    __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-    /* "typtops.py":258
+    /* "typtops.py":257
  * 
  * args = parser.parse_args()
  * if len(sys.argv) <=1:             # <<<<<<<<<<<<<<
@@ -5270,38 +5130,38 @@ PyMODINIT_FUNC PyInit_typtops(void)
  */
   }
 
-  /* "typtops.py":263
+  /* "typtops.py":262
  * 
  * # ITS IMPORTENT THIS ONE WILL BE FIRST
  * if args.user:             # <<<<<<<<<<<<<<
  *     USER = args.user
  *     # print("User settings have been set to {}".format(USER))
  */
-  __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_args); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 263, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_user); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 263, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_6 = __Pyx_PyObject_IsTrue(__pyx_t_3); if (unlikely(__pyx_t_6 < 0)) __PYX_ERR(0, 263, __pyx_L1_error)
-  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+  __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_args); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 262, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_4);
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_user); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 262, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+  __pyx_t_6 = __Pyx_PyObject_IsTrue(__pyx_t_2); if (unlikely(__pyx_t_6 < 0)) __PYX_ERR(0, 262, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   if (__pyx_t_6) {
 
-    /* "typtops.py":264
+    /* "typtops.py":263
  * # ITS IMPORTENT THIS ONE WILL BE FIRST
  * if args.user:
  *     USER = args.user             # <<<<<<<<<<<<<<
  *     # print("User settings have been set to {}".format(USER))
  * 
  */
-    __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_args); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 264, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_3);
-    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_user); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 264, __pyx_L1_error)
-    __Pyx_GOTREF(__pyx_t_1);
-    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    if (PyDict_SetItem(__pyx_d, __pyx_n_s_USER, __pyx_t_1) < 0) __PYX_ERR(0, 264, __pyx_L1_error)
-    __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+    __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_args); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 263, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_2);
+    __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_user); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 263, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_4);
+    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+    if (PyDict_SetItem(__pyx_d, __pyx_n_s_USER, __pyx_t_4) < 0) __PYX_ERR(0, 263, __pyx_L1_error)
+    __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-    /* "typtops.py":263
+    /* "typtops.py":262
  * 
  * # ITS IMPORTENT THIS ONE WILL BE FIRST
  * if args.user:             # <<<<<<<<<<<<<<
@@ -5310,16 +5170,16 @@ PyMODINIT_FUNC PyInit_typtops(void)
  */
   }
 
-  /* "typtops.py":267
+  /* "typtops.py":266
  *     # print("User settings have been set to {}".format(USER))
  * 
  * SEND_LOGS = '/usr/local/bin/send_typo_log.py'             # <<<<<<<<<<<<<<
  * 
  * try:
  */
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_SEND_LOGS, __pyx_kp_s_usr_local_bin_send_typo_log_py) < 0) __PYX_ERR(0, 267, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_SEND_LOGS, __pyx_kp_s_usr_local_bin_send_typo_log_py) < 0) __PYX_ERR(0, 266, __pyx_L1_error)
 
-  /* "typtops.py":269
+  /* "typtops.py":268
  * SEND_LOGS = '/usr/local/bin/send_typo_log.py'
  * 
  * try:             # <<<<<<<<<<<<<<
@@ -5335,97 +5195,97 @@ PyMODINIT_FUNC PyInit_typtops(void)
     __Pyx_XGOTREF(__pyx_t_9);
     /*try:*/ {
 
-      /* "typtops.py":271
+      /* "typtops.py":270
  * try:
  *     # root_only_operation()
  *     if args.allowtypo:             # <<<<<<<<<<<<<<
  *         typoDB = _get_typoDB()
  *         if args.allowtypo == "no":
  */
-      __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_args); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 271, __pyx_L4_error)
-      __Pyx_GOTREF(__pyx_t_1);
-      __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_allowtypo_2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 271, __pyx_L4_error)
-      __Pyx_GOTREF(__pyx_t_3);
-      __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-      __pyx_t_6 = __Pyx_PyObject_IsTrue(__pyx_t_3); if (unlikely(__pyx_t_6 < 0)) __PYX_ERR(0, 271, __pyx_L4_error)
-      __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+      __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_args); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 270, __pyx_L4_error)
+      __Pyx_GOTREF(__pyx_t_4);
+      __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_allowtypo_2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 270, __pyx_L4_error)
+      __Pyx_GOTREF(__pyx_t_2);
+      __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+      __pyx_t_6 = __Pyx_PyObject_IsTrue(__pyx_t_2); if (unlikely(__pyx_t_6 < 0)) __PYX_ERR(0, 270, __pyx_L4_error)
+      __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
       if (__pyx_t_6) {
 
-        /* "typtops.py":272
+        /* "typtops.py":271
  *     # root_only_operation()
  *     if args.allowtypo:
  *         typoDB = _get_typoDB()             # <<<<<<<<<<<<<<
  *         if args.allowtypo == "no":
  *             typoDB.allow_login(False)
  */
-        __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_get_typoDB); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 272, __pyx_L4_error)
-        __Pyx_GOTREF(__pyx_t_1);
-        __pyx_t_2 = NULL;
-        if (CYTHON_COMPILING_IN_CPYTHON && unlikely(PyMethod_Check(__pyx_t_1))) {
-          __pyx_t_2 = PyMethod_GET_SELF(__pyx_t_1);
-          if (likely(__pyx_t_2)) {
-            PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_1);
-            __Pyx_INCREF(__pyx_t_2);
+        __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_get_typoDB); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 271, __pyx_L4_error)
+        __Pyx_GOTREF(__pyx_t_4);
+        __pyx_t_1 = NULL;
+        if (CYTHON_COMPILING_IN_CPYTHON && unlikely(PyMethod_Check(__pyx_t_4))) {
+          __pyx_t_1 = PyMethod_GET_SELF(__pyx_t_4);
+          if (likely(__pyx_t_1)) {
+            PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_4);
+            __Pyx_INCREF(__pyx_t_1);
             __Pyx_INCREF(function);
-            __Pyx_DECREF_SET(__pyx_t_1, function);
+            __Pyx_DECREF_SET(__pyx_t_4, function);
           }
         }
-        if (__pyx_t_2) {
-          __pyx_t_3 = __Pyx_PyObject_CallOneArg(__pyx_t_1, __pyx_t_2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 272, __pyx_L4_error)
-          __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+        if (__pyx_t_1) {
+          __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_t_4, __pyx_t_1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 271, __pyx_L4_error)
+          __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
         } else {
-          __pyx_t_3 = __Pyx_PyObject_CallNoArg(__pyx_t_1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 272, __pyx_L4_error)
+          __pyx_t_2 = __Pyx_PyObject_CallNoArg(__pyx_t_4); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 271, __pyx_L4_error)
         }
-        __Pyx_GOTREF(__pyx_t_3);
-        __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-        if (PyDict_SetItem(__pyx_d, __pyx_n_s_typoDB, __pyx_t_3) < 0) __PYX_ERR(0, 272, __pyx_L4_error)
-        __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+        __Pyx_GOTREF(__pyx_t_2);
+        __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+        if (PyDict_SetItem(__pyx_d, __pyx_n_s_typoDB, __pyx_t_2) < 0) __PYX_ERR(0, 271, __pyx_L4_error)
+        __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-        /* "typtops.py":273
+        /* "typtops.py":272
  *     if args.allowtypo:
  *         typoDB = _get_typoDB()
  *         if args.allowtypo == "no":             # <<<<<<<<<<<<<<
  *             typoDB.allow_login(False)
  *             print(
  */
-        __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_args); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 273, __pyx_L4_error)
-        __Pyx_GOTREF(__pyx_t_3);
-        __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_allowtypo_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 273, __pyx_L4_error)
-        __Pyx_GOTREF(__pyx_t_1);
-        __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-        __pyx_t_6 = (__Pyx_PyString_Equals(__pyx_t_1, __pyx_n_s_no, Py_EQ)); if (unlikely(__pyx_t_6 < 0)) __PYX_ERR(0, 273, __pyx_L4_error)
-        __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+        __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_args); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 272, __pyx_L4_error)
+        __Pyx_GOTREF(__pyx_t_2);
+        __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_allowtypo_2); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 272, __pyx_L4_error)
+        __Pyx_GOTREF(__pyx_t_4);
+        __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+        __pyx_t_6 = (__Pyx_PyString_Equals(__pyx_t_4, __pyx_n_s_no, Py_EQ)); if (unlikely(__pyx_t_6 < 0)) __PYX_ERR(0, 272, __pyx_L4_error)
+        __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
         if (__pyx_t_6) {
 
-          /* "typtops.py":274
+          /* "typtops.py":273
  *         typoDB = _get_typoDB()
  *         if args.allowtypo == "no":
  *             typoDB.allow_login(False)             # <<<<<<<<<<<<<<
  *             print(
  *                 "Turning OFF login with typos. The software will still monitor\n"\
  */
-          __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_typoDB); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 274, __pyx_L4_error)
-          __Pyx_GOTREF(__pyx_t_1);
-          __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_allow_login); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 274, __pyx_L4_error)
-          __Pyx_GOTREF(__pyx_t_3);
-          __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-          __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_tuple__34, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 274, __pyx_L4_error)
-          __Pyx_GOTREF(__pyx_t_1);
-          __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-          __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+          __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_typoDB); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 273, __pyx_L4_error)
+          __Pyx_GOTREF(__pyx_t_4);
+          __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_allow_login); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 273, __pyx_L4_error)
+          __Pyx_GOTREF(__pyx_t_2);
+          __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+          __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_tuple__35, NULL); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 273, __pyx_L4_error)
+          __Pyx_GOTREF(__pyx_t_4);
+          __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+          __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-          /* "typtops.py":275
+          /* "typtops.py":274
  *         if args.allowtypo == "no":
  *             typoDB.allow_login(False)
  *             print(             # <<<<<<<<<<<<<<
  *                 "Turning OFF login with typos. The software will still monitor\n"\
  *                 "your typos and build cache of popular typos. You can switch on this\n"\
  */
-          __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_print, __pyx_tuple__35, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 275, __pyx_L4_error)
-          __Pyx_GOTREF(__pyx_t_1);
-          __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+          __pyx_t_4 = __Pyx_PyObject_Call(__pyx_builtin_print, __pyx_tuple__36, NULL); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 274, __pyx_L4_error)
+          __Pyx_GOTREF(__pyx_t_4);
+          __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-          /* "typtops.py":273
+          /* "typtops.py":272
  *     if args.allowtypo:
  *         typoDB = _get_typoDB()
  *         if args.allowtypo == "no":             # <<<<<<<<<<<<<<
@@ -5435,51 +5295,51 @@ PyMODINIT_FUNC PyInit_typtops(void)
           goto __pyx_L13;
         }
 
-        /* "typtops.py":279
+        /* "typtops.py":278
  *                 "your typos and build cache of popular typos. You can switch on this\n"\
  *                 "whenever you want")# :{}".format(typoDB.is_allowed_login())
  *         elif args.allowtypo == "yes":             # <<<<<<<<<<<<<<
  *             print("Turning ON login with typos...",)
  *             typoDB.allow_login(True)
  */
-        __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_args); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 279, __pyx_L4_error)
-        __Pyx_GOTREF(__pyx_t_1);
-        __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_allowtypo_2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 279, __pyx_L4_error)
-        __Pyx_GOTREF(__pyx_t_3);
-        __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-        __pyx_t_6 = (__Pyx_PyString_Equals(__pyx_t_3, __pyx_n_s_yes, Py_EQ)); if (unlikely(__pyx_t_6 < 0)) __PYX_ERR(0, 279, __pyx_L4_error)
-        __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+        __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_args); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 278, __pyx_L4_error)
+        __Pyx_GOTREF(__pyx_t_4);
+        __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_allowtypo_2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 278, __pyx_L4_error)
+        __Pyx_GOTREF(__pyx_t_2);
+        __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+        __pyx_t_6 = (__Pyx_PyString_Equals(__pyx_t_2, __pyx_n_s_yes, Py_EQ)); if (unlikely(__pyx_t_6 < 0)) __PYX_ERR(0, 278, __pyx_L4_error)
+        __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
         if (__pyx_t_6) {
 
-          /* "typtops.py":280
+          /* "typtops.py":279
  *                 "whenever you want")# :{}".format(typoDB.is_allowed_login())
  *         elif args.allowtypo == "yes":
  *             print("Turning ON login with typos...",)             # <<<<<<<<<<<<<<
  *             typoDB.allow_login(True)
  * 
  */
-          __pyx_t_3 = __Pyx_PyObject_Call(__pyx_builtin_print, __pyx_tuple__36, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 280, __pyx_L4_error)
-          __Pyx_GOTREF(__pyx_t_3);
-          __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+          __pyx_t_2 = __Pyx_PyObject_Call(__pyx_builtin_print, __pyx_tuple__37, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 279, __pyx_L4_error)
+          __Pyx_GOTREF(__pyx_t_2);
+          __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-          /* "typtops.py":281
+          /* "typtops.py":280
  *         elif args.allowtypo == "yes":
  *             print("Turning ON login with typos...",)
  *             typoDB.allow_login(True)             # <<<<<<<<<<<<<<
  * 
  *     if args.allowupload:
  */
-          __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_typoDB); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 281, __pyx_L4_error)
-          __Pyx_GOTREF(__pyx_t_3);
-          __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_allow_login); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 281, __pyx_L4_error)
-          __Pyx_GOTREF(__pyx_t_1);
-          __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-          __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_tuple__37, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 281, __pyx_L4_error)
-          __Pyx_GOTREF(__pyx_t_3);
-          __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-          __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+          __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_typoDB); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 280, __pyx_L4_error)
+          __Pyx_GOTREF(__pyx_t_2);
+          __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_allow_login); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 280, __pyx_L4_error)
+          __Pyx_GOTREF(__pyx_t_4);
+          __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+          __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_tuple__38, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 280, __pyx_L4_error)
+          __Pyx_GOTREF(__pyx_t_2);
+          __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+          __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-          /* "typtops.py":279
+          /* "typtops.py":278
  *                 "your typos and build cache of popular typos. You can switch on this\n"\
  *                 "whenever you want")# :{}".format(typoDB.is_allowed_login())
  *         elif args.allowtypo == "yes":             # <<<<<<<<<<<<<<
@@ -5489,7 +5349,7 @@ PyMODINIT_FUNC PyInit_typtops(void)
         }
         __pyx_L13:;
 
-        /* "typtops.py":271
+        /* "typtops.py":270
  * try:
  *     # root_only_operation()
  *     if args.allowtypo:             # <<<<<<<<<<<<<<
@@ -5498,258 +5358,30 @@ PyMODINIT_FUNC PyInit_typtops(void)
  */
       }
 
-      /* "typtops.py":283
+      /* "typtops.py":282
  *             typoDB.allow_login(True)
  * 
  *     if args.allowupload:             # <<<<<<<<<<<<<<
  *         typoDB = _get_typoDB()
  *         if args.allowupload == "yes":
  */
-      __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_args); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 283, __pyx_L4_error)
-      __Pyx_GOTREF(__pyx_t_3);
-      __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_allowupload_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 283, __pyx_L4_error)
-      __Pyx_GOTREF(__pyx_t_1);
-      __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-      __pyx_t_6 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely(__pyx_t_6 < 0)) __PYX_ERR(0, 283, __pyx_L4_error)
-      __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+      __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_args); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 282, __pyx_L4_error)
+      __Pyx_GOTREF(__pyx_t_2);
+      __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_allowupload_2); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 282, __pyx_L4_error)
+      __Pyx_GOTREF(__pyx_t_4);
+      __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+      __pyx_t_6 = __Pyx_PyObject_IsTrue(__pyx_t_4); if (unlikely(__pyx_t_6 < 0)) __PYX_ERR(0, 282, __pyx_L4_error)
+      __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
       if (__pyx_t_6) {
 
-        /* "typtops.py":284
+        /* "typtops.py":283
  * 
  *     if args.allowupload:
  *         typoDB = _get_typoDB()             # <<<<<<<<<<<<<<
  *         if args.allowupload == "yes":
  *             typoDB.allow_upload(True)
  */
-        __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_get_typoDB); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 284, __pyx_L4_error)
-        __Pyx_GOTREF(__pyx_t_3);
-        __pyx_t_2 = NULL;
-        if (CYTHON_COMPILING_IN_CPYTHON && unlikely(PyMethod_Check(__pyx_t_3))) {
-          __pyx_t_2 = PyMethod_GET_SELF(__pyx_t_3);
-          if (likely(__pyx_t_2)) {
-            PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_3);
-            __Pyx_INCREF(__pyx_t_2);
-            __Pyx_INCREF(function);
-            __Pyx_DECREF_SET(__pyx_t_3, function);
-          }
-        }
-        if (__pyx_t_2) {
-          __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_3, __pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 284, __pyx_L4_error)
-          __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-        } else {
-          __pyx_t_1 = __Pyx_PyObject_CallNoArg(__pyx_t_3); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 284, __pyx_L4_error)
-        }
-        __Pyx_GOTREF(__pyx_t_1);
-        __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-        if (PyDict_SetItem(__pyx_d, __pyx_n_s_typoDB, __pyx_t_1) < 0) __PYX_ERR(0, 284, __pyx_L4_error)
-        __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-
-        /* "typtops.py":285
- *     if args.allowupload:
- *         typoDB = _get_typoDB()
- *         if args.allowupload == "yes":             # <<<<<<<<<<<<<<
- *             typoDB.allow_upload(True)
- *             print("Uploading data is enabled. You are awesome. Thanks!!")
- */
-        __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_args); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 285, __pyx_L4_error)
-        __Pyx_GOTREF(__pyx_t_1);
-        __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_allowupload_2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 285, __pyx_L4_error)
-        __Pyx_GOTREF(__pyx_t_3);
-        __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-        __pyx_t_6 = (__Pyx_PyString_Equals(__pyx_t_3, __pyx_n_s_yes, Py_EQ)); if (unlikely(__pyx_t_6 < 0)) __PYX_ERR(0, 285, __pyx_L4_error)
-        __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-        if (__pyx_t_6) {
-
-          /* "typtops.py":286
- *         typoDB = _get_typoDB()
- *         if args.allowupload == "yes":
- *             typoDB.allow_upload(True)             # <<<<<<<<<<<<<<
- *             print("Uploading data is enabled. You are awesome. Thanks!!")
- *         elif args.allowupload == "no":
- */
-          __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_typoDB); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 286, __pyx_L4_error)
-          __Pyx_GOTREF(__pyx_t_3);
-          __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_allow_upload); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 286, __pyx_L4_error)
-          __Pyx_GOTREF(__pyx_t_1);
-          __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-          __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_tuple__38, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 286, __pyx_L4_error)
-          __Pyx_GOTREF(__pyx_t_3);
-          __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-          __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-
-          /* "typtops.py":287
- *         if args.allowupload == "yes":
- *             typoDB.allow_upload(True)
- *             print("Uploading data is enabled. You are awesome. Thanks!!")             # <<<<<<<<<<<<<<
- *         elif args.allowupload == "no":
- *             typoDB.allow_upload(False)
- */
-          __pyx_t_3 = __Pyx_PyObject_Call(__pyx_builtin_print, __pyx_tuple__39, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 287, __pyx_L4_error)
-          __Pyx_GOTREF(__pyx_t_3);
-          __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-
-          /* "typtops.py":285
- *     if args.allowupload:
- *         typoDB = _get_typoDB()
- *         if args.allowupload == "yes":             # <<<<<<<<<<<<<<
- *             typoDB.allow_upload(True)
- *             print("Uploading data is enabled. You are awesome. Thanks!!")
- */
-          goto __pyx_L15;
-        }
-
-        /* "typtops.py":288
- *             typoDB.allow_upload(True)
- *             print("Uploading data is enabled. You are awesome. Thanks!!")
- *         elif args.allowupload == "no":             # <<<<<<<<<<<<<<
- *             typoDB.allow_upload(False)
- *             print("Uploading data is disabled.  :( :'( :-(!")
- */
-        __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_args); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 288, __pyx_L4_error)
-        __Pyx_GOTREF(__pyx_t_3);
-        __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_allowupload_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 288, __pyx_L4_error)
-        __Pyx_GOTREF(__pyx_t_1);
-        __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-        __pyx_t_6 = (__Pyx_PyString_Equals(__pyx_t_1, __pyx_n_s_no, Py_EQ)); if (unlikely(__pyx_t_6 < 0)) __PYX_ERR(0, 288, __pyx_L4_error)
-        __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-        if (__pyx_t_6) {
-
-          /* "typtops.py":289
- *             print("Uploading data is enabled. You are awesome. Thanks!!")
- *         elif args.allowupload == "no":
- *             typoDB.allow_upload(False)             # <<<<<<<<<<<<<<
- *             print("Uploading data is disabled.  :( :'( :-(!")
- *             print("Thanks for using the software anyway.")
- */
-          __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_typoDB); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 289, __pyx_L4_error)
-          __Pyx_GOTREF(__pyx_t_1);
-          __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_allow_upload); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 289, __pyx_L4_error)
-          __Pyx_GOTREF(__pyx_t_3);
-          __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-          __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_tuple__40, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 289, __pyx_L4_error)
-          __Pyx_GOTREF(__pyx_t_1);
-          __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-          __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-
-          /* "typtops.py":290
- *         elif args.allowupload == "no":
- *             typoDB.allow_upload(False)
- *             print("Uploading data is disabled.  :( :'( :-(!")             # <<<<<<<<<<<<<<
- *             print("Thanks for using the software anyway.")
- * 
- */
-          __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_print, __pyx_tuple__41, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 290, __pyx_L4_error)
-          __Pyx_GOTREF(__pyx_t_1);
-          __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-
-          /* "typtops.py":291
- *             typoDB.allow_upload(False)
- *             print("Uploading data is disabled.  :( :'( :-(!")
- *             print("Thanks for using the software anyway.")             # <<<<<<<<<<<<<<
- * 
- *     if args.init:
- */
-          __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_print, __pyx_tuple__42, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 291, __pyx_L4_error)
-          __Pyx_GOTREF(__pyx_t_1);
-          __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-
-          /* "typtops.py":288
- *             typoDB.allow_upload(True)
- *             print("Uploading data is enabled. You are awesome. Thanks!!")
- *         elif args.allowupload == "no":             # <<<<<<<<<<<<<<
- *             typoDB.allow_upload(False)
- *             print("Uploading data is disabled.  :( :'( :-(!")
- */
-        }
-        __pyx_L15:;
-
-        /* "typtops.py":283
- *             typoDB.allow_login(True)
- * 
- *     if args.allowupload:             # <<<<<<<<<<<<<<
- *         typoDB = _get_typoDB()
- *         if args.allowupload == "yes":
- */
-      }
-
-      /* "typtops.py":293
- *             print("Thanks for using the software anyway.")
- * 
- *     if args.init:             # <<<<<<<<<<<<<<
- *         print(first_msg(url=GITHUB_URL, version=VERSION), file=sys.stderr)
- *         print("Initializing the typo database..")
- */
-      __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_args); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 293, __pyx_L4_error)
-      __Pyx_GOTREF(__pyx_t_1);
-      __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_init_2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 293, __pyx_L4_error)
-      __Pyx_GOTREF(__pyx_t_3);
-      __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-      __pyx_t_6 = __Pyx_PyObject_IsTrue(__pyx_t_3); if (unlikely(__pyx_t_6 < 0)) __PYX_ERR(0, 293, __pyx_L4_error)
-      __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-      if (__pyx_t_6) {
-
-        /* "typtops.py":294
- * 
- *     if args.init:
- *         print(first_msg(url=GITHUB_URL, version=VERSION), file=sys.stderr)             # <<<<<<<<<<<<<<
- *         print("Initializing the typo database..")
- *         initiate_typodb()
- */
-        __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_first_msg); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 294, __pyx_L4_error)
-        __Pyx_GOTREF(__pyx_t_3);
-        __pyx_t_1 = PyDict_New(); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 294, __pyx_L4_error)
-        __Pyx_GOTREF(__pyx_t_1);
-        __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_GITHUB_URL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 294, __pyx_L4_error)
-        __Pyx_GOTREF(__pyx_t_2);
-        if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_url, __pyx_t_2) < 0) __PYX_ERR(0, 294, __pyx_L4_error)
-        __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-        __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_VERSION); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 294, __pyx_L4_error)
-        __Pyx_GOTREF(__pyx_t_2);
-        if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_version, __pyx_t_2) < 0) __PYX_ERR(0, 294, __pyx_L4_error)
-        __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-        __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_empty_tuple, __pyx_t_1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 294, __pyx_L4_error)
-        __Pyx_GOTREF(__pyx_t_2);
-        __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-        __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-        __pyx_t_1 = PyTuple_New(1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 294, __pyx_L4_error)
-        __Pyx_GOTREF(__pyx_t_1);
-        __Pyx_GIVEREF(__pyx_t_2);
-        PyTuple_SET_ITEM(__pyx_t_1, 0, __pyx_t_2);
-        __pyx_t_2 = 0;
-        __pyx_t_2 = PyDict_New(); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 294, __pyx_L4_error)
-        __Pyx_GOTREF(__pyx_t_2);
-        __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_sys); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 294, __pyx_L4_error)
-        __Pyx_GOTREF(__pyx_t_3);
-        __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_stderr); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 294, __pyx_L4_error)
-        __Pyx_GOTREF(__pyx_t_4);
-        __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-        if (PyDict_SetItem(__pyx_t_2, __pyx_n_s_file_2, __pyx_t_4) < 0) __PYX_ERR(0, 294, __pyx_L4_error)
-        __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-        __pyx_t_4 = __Pyx_PyObject_Call(__pyx_builtin_print, __pyx_t_1, __pyx_t_2); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 294, __pyx_L4_error)
-        __Pyx_GOTREF(__pyx_t_4);
-        __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-        __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-        __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-
-        /* "typtops.py":295
- *     if args.init:
- *         print(first_msg(url=GITHUB_URL, version=VERSION), file=sys.stderr)
- *         print("Initializing the typo database..")             # <<<<<<<<<<<<<<
- *         initiate_typodb()
- * 
- */
-        __pyx_t_4 = __Pyx_PyObject_Call(__pyx_builtin_print, __pyx_tuple__43, NULL); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 295, __pyx_L4_error)
-        __Pyx_GOTREF(__pyx_t_4);
-        __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-
-        /* "typtops.py":296
- *         print(first_msg(url=GITHUB_URL, version=VERSION), file=sys.stderr)
- *         print("Initializing the typo database..")
- *         initiate_typodb()             # <<<<<<<<<<<<<<
- * 
- *     if args.reinit:
- */
-        __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_initiate_typodb); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 296, __pyx_L4_error)
+        __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_get_typoDB); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 283, __pyx_L4_error)
         __Pyx_GOTREF(__pyx_t_2);
         __pyx_t_1 = NULL;
         if (CYTHON_COMPILING_IN_CPYTHON && unlikely(PyMethod_Check(__pyx_t_2))) {
@@ -5762,16 +5394,244 @@ PyMODINIT_FUNC PyInit_typtops(void)
           }
         }
         if (__pyx_t_1) {
-          __pyx_t_4 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 296, __pyx_L4_error)
+          __pyx_t_4 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 283, __pyx_L4_error)
           __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
         } else {
-          __pyx_t_4 = __Pyx_PyObject_CallNoArg(__pyx_t_2); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 296, __pyx_L4_error)
+          __pyx_t_4 = __Pyx_PyObject_CallNoArg(__pyx_t_2); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 283, __pyx_L4_error)
         }
         __Pyx_GOTREF(__pyx_t_4);
         __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+        if (PyDict_SetItem(__pyx_d, __pyx_n_s_typoDB, __pyx_t_4) < 0) __PYX_ERR(0, 283, __pyx_L4_error)
         __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
+        /* "typtops.py":284
+ *     if args.allowupload:
+ *         typoDB = _get_typoDB()
+ *         if args.allowupload == "yes":             # <<<<<<<<<<<<<<
+ *             typoDB.allow_upload(True)
+ *             print("Uploading data is enabled. You are awesome. Thanks!!")
+ */
+        __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_args); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 284, __pyx_L4_error)
+        __Pyx_GOTREF(__pyx_t_4);
+        __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_allowupload_2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 284, __pyx_L4_error)
+        __Pyx_GOTREF(__pyx_t_2);
+        __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+        __pyx_t_6 = (__Pyx_PyString_Equals(__pyx_t_2, __pyx_n_s_yes, Py_EQ)); if (unlikely(__pyx_t_6 < 0)) __PYX_ERR(0, 284, __pyx_L4_error)
+        __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+        if (__pyx_t_6) {
+
+          /* "typtops.py":285
+ *         typoDB = _get_typoDB()
+ *         if args.allowupload == "yes":
+ *             typoDB.allow_upload(True)             # <<<<<<<<<<<<<<
+ *             print("Uploading data is enabled. You are awesome. Thanks!!")
+ *         elif args.allowupload == "no":
+ */
+          __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_typoDB); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 285, __pyx_L4_error)
+          __Pyx_GOTREF(__pyx_t_2);
+          __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_allow_upload); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 285, __pyx_L4_error)
+          __Pyx_GOTREF(__pyx_t_4);
+          __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+          __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_tuple__39, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 285, __pyx_L4_error)
+          __Pyx_GOTREF(__pyx_t_2);
+          __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+          __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+
+          /* "typtops.py":286
+ *         if args.allowupload == "yes":
+ *             typoDB.allow_upload(True)
+ *             print("Uploading data is enabled. You are awesome. Thanks!!")             # <<<<<<<<<<<<<<
+ *         elif args.allowupload == "no":
+ *             typoDB.allow_upload(False)
+ */
+          __pyx_t_2 = __Pyx_PyObject_Call(__pyx_builtin_print, __pyx_tuple__40, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 286, __pyx_L4_error)
+          __Pyx_GOTREF(__pyx_t_2);
+          __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+
+          /* "typtops.py":284
+ *     if args.allowupload:
+ *         typoDB = _get_typoDB()
+ *         if args.allowupload == "yes":             # <<<<<<<<<<<<<<
+ *             typoDB.allow_upload(True)
+ *             print("Uploading data is enabled. You are awesome. Thanks!!")
+ */
+          goto __pyx_L15;
+        }
+
+        /* "typtops.py":287
+ *             typoDB.allow_upload(True)
+ *             print("Uploading data is enabled. You are awesome. Thanks!!")
+ *         elif args.allowupload == "no":             # <<<<<<<<<<<<<<
+ *             typoDB.allow_upload(False)
+ *             print("Uploading data is disabled.  :( :'( :-(!")
+ */
+        __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_args); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 287, __pyx_L4_error)
+        __Pyx_GOTREF(__pyx_t_2);
+        __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_allowupload_2); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 287, __pyx_L4_error)
+        __Pyx_GOTREF(__pyx_t_4);
+        __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+        __pyx_t_6 = (__Pyx_PyString_Equals(__pyx_t_4, __pyx_n_s_no, Py_EQ)); if (unlikely(__pyx_t_6 < 0)) __PYX_ERR(0, 287, __pyx_L4_error)
+        __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+        if (__pyx_t_6) {
+
+          /* "typtops.py":288
+ *             print("Uploading data is enabled. You are awesome. Thanks!!")
+ *         elif args.allowupload == "no":
+ *             typoDB.allow_upload(False)             # <<<<<<<<<<<<<<
+ *             print("Uploading data is disabled.  :( :'( :-(!")
+ *             print("Thanks for using the software anyway.")
+ */
+          __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_typoDB); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 288, __pyx_L4_error)
+          __Pyx_GOTREF(__pyx_t_4);
+          __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_allow_upload); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 288, __pyx_L4_error)
+          __Pyx_GOTREF(__pyx_t_2);
+          __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+          __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_tuple__41, NULL); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 288, __pyx_L4_error)
+          __Pyx_GOTREF(__pyx_t_4);
+          __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+          __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+
+          /* "typtops.py":289
+ *         elif args.allowupload == "no":
+ *             typoDB.allow_upload(False)
+ *             print("Uploading data is disabled.  :( :'( :-(!")             # <<<<<<<<<<<<<<
+ *             print("Thanks for using the software anyway.")
+ * 
+ */
+          __pyx_t_4 = __Pyx_PyObject_Call(__pyx_builtin_print, __pyx_tuple__42, NULL); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 289, __pyx_L4_error)
+          __Pyx_GOTREF(__pyx_t_4);
+          __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+
+          /* "typtops.py":290
+ *             typoDB.allow_upload(False)
+ *             print("Uploading data is disabled.  :( :'( :-(!")
+ *             print("Thanks for using the software anyway.")             # <<<<<<<<<<<<<<
+ * 
+ *     if args.init:
+ */
+          __pyx_t_4 = __Pyx_PyObject_Call(__pyx_builtin_print, __pyx_tuple__43, NULL); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 290, __pyx_L4_error)
+          __Pyx_GOTREF(__pyx_t_4);
+          __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+
+          /* "typtops.py":287
+ *             typoDB.allow_upload(True)
+ *             print("Uploading data is enabled. You are awesome. Thanks!!")
+ *         elif args.allowupload == "no":             # <<<<<<<<<<<<<<
+ *             typoDB.allow_upload(False)
+ *             print("Uploading data is disabled.  :( :'( :-(!")
+ */
+        }
+        __pyx_L15:;
+
+        /* "typtops.py":282
+ *             typoDB.allow_login(True)
+ * 
+ *     if args.allowupload:             # <<<<<<<<<<<<<<
+ *         typoDB = _get_typoDB()
+ *         if args.allowupload == "yes":
+ */
+      }
+
+      /* "typtops.py":292
+ *             print("Thanks for using the software anyway.")
+ * 
+ *     if args.init:             # <<<<<<<<<<<<<<
+ *         print(first_msg(url=GITHUB_URL, version=VERSION), file=sys.stderr)
+ *         print("Initializing the typo database..")
+ */
+      __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_args); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 292, __pyx_L4_error)
+      __Pyx_GOTREF(__pyx_t_4);
+      __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_init_2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 292, __pyx_L4_error)
+      __Pyx_GOTREF(__pyx_t_2);
+      __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+      __pyx_t_6 = __Pyx_PyObject_IsTrue(__pyx_t_2); if (unlikely(__pyx_t_6 < 0)) __PYX_ERR(0, 292, __pyx_L4_error)
+      __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+      if (__pyx_t_6) {
+
         /* "typtops.py":293
+ * 
+ *     if args.init:
+ *         print(first_msg(url=GITHUB_URL, version=VERSION), file=sys.stderr)             # <<<<<<<<<<<<<<
+ *         print("Initializing the typo database..")
+ *         initiate_typodb()
+ */
+        __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_first_msg); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 293, __pyx_L4_error)
+        __Pyx_GOTREF(__pyx_t_2);
+        __pyx_t_4 = PyDict_New(); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 293, __pyx_L4_error)
+        __Pyx_GOTREF(__pyx_t_4);
+        __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_GITHUB_URL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 293, __pyx_L4_error)
+        __Pyx_GOTREF(__pyx_t_1);
+        if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_url, __pyx_t_1) < 0) __PYX_ERR(0, 293, __pyx_L4_error)
+        __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+        __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_VERSION); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 293, __pyx_L4_error)
+        __Pyx_GOTREF(__pyx_t_1);
+        if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_version, __pyx_t_1) < 0) __PYX_ERR(0, 293, __pyx_L4_error)
+        __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+        __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_empty_tuple, __pyx_t_4); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 293, __pyx_L4_error)
+        __Pyx_GOTREF(__pyx_t_1);
+        __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+        __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+        __pyx_t_4 = PyTuple_New(1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 293, __pyx_L4_error)
+        __Pyx_GOTREF(__pyx_t_4);
+        __Pyx_GIVEREF(__pyx_t_1);
+        PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_1);
+        __pyx_t_1 = 0;
+        __pyx_t_1 = PyDict_New(); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 293, __pyx_L4_error)
+        __Pyx_GOTREF(__pyx_t_1);
+        __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_sys); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 293, __pyx_L4_error)
+        __Pyx_GOTREF(__pyx_t_2);
+        __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_stderr); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 293, __pyx_L4_error)
+        __Pyx_GOTREF(__pyx_t_5);
+        __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+        if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_file, __pyx_t_5) < 0) __PYX_ERR(0, 293, __pyx_L4_error)
+        __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+        __pyx_t_5 = __Pyx_PyObject_Call(__pyx_builtin_print, __pyx_t_4, __pyx_t_1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 293, __pyx_L4_error)
+        __Pyx_GOTREF(__pyx_t_5);
+        __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+        __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+        __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+
+        /* "typtops.py":294
+ *     if args.init:
+ *         print(first_msg(url=GITHUB_URL, version=VERSION), file=sys.stderr)
+ *         print("Initializing the typo database..")             # <<<<<<<<<<<<<<
+ *         initiate_typodb()
+ * 
+ */
+        __pyx_t_5 = __Pyx_PyObject_Call(__pyx_builtin_print, __pyx_tuple__44, NULL); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 294, __pyx_L4_error)
+        __Pyx_GOTREF(__pyx_t_5);
+        __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+
+        /* "typtops.py":295
+ *         print(first_msg(url=GITHUB_URL, version=VERSION), file=sys.stderr)
+ *         print("Initializing the typo database..")
+ *         initiate_typodb()             # <<<<<<<<<<<<<<
+ * 
+ *     if args.reinit:
+ */
+        __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_initiate_typodb); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 295, __pyx_L4_error)
+        __Pyx_GOTREF(__pyx_t_1);
+        __pyx_t_4 = NULL;
+        if (CYTHON_COMPILING_IN_CPYTHON && unlikely(PyMethod_Check(__pyx_t_1))) {
+          __pyx_t_4 = PyMethod_GET_SELF(__pyx_t_1);
+          if (likely(__pyx_t_4)) {
+            PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_1);
+            __Pyx_INCREF(__pyx_t_4);
+            __Pyx_INCREF(function);
+            __Pyx_DECREF_SET(__pyx_t_1, function);
+          }
+        }
+        if (__pyx_t_4) {
+          __pyx_t_5 = __Pyx_PyObject_CallOneArg(__pyx_t_1, __pyx_t_4); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 295, __pyx_L4_error)
+          __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+        } else {
+          __pyx_t_5 = __Pyx_PyObject_CallNoArg(__pyx_t_1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 295, __pyx_L4_error)
+        }
+        __Pyx_GOTREF(__pyx_t_5);
+        __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+        __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+
+        /* "typtops.py":292
  *             print("Thanks for using the software anyway.")
  * 
  *     if args.init:             # <<<<<<<<<<<<<<
@@ -5780,52 +5640,52 @@ PyMODINIT_FUNC PyInit_typtops(void)
  */
       }
 
-      /* "typtops.py":298
+      /* "typtops.py":297
  *         initiate_typodb()
  * 
  *     if args.reinit:             # <<<<<<<<<<<<<<
  *         print("RE-initiating pam_typtop")
  *         initiate_typodb(RE_INIT=True)
  */
-      __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_args); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 298, __pyx_L4_error)
-      __Pyx_GOTREF(__pyx_t_4);
-      __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_reinit_2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 298, __pyx_L4_error)
-      __Pyx_GOTREF(__pyx_t_2);
-      __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-      __pyx_t_6 = __Pyx_PyObject_IsTrue(__pyx_t_2); if (unlikely(__pyx_t_6 < 0)) __PYX_ERR(0, 298, __pyx_L4_error)
-      __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+      __pyx_t_5 = __Pyx_GetModuleGlobalName(__pyx_n_s_args); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 297, __pyx_L4_error)
+      __Pyx_GOTREF(__pyx_t_5);
+      __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_reinit_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 297, __pyx_L4_error)
+      __Pyx_GOTREF(__pyx_t_1);
+      __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+      __pyx_t_6 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely(__pyx_t_6 < 0)) __PYX_ERR(0, 297, __pyx_L4_error)
+      __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
       if (__pyx_t_6) {
 
-        /* "typtops.py":299
+        /* "typtops.py":298
  * 
  *     if args.reinit:
  *         print("RE-initiating pam_typtop")             # <<<<<<<<<<<<<<
  *         initiate_typodb(RE_INIT=True)
  * 
  */
-        __pyx_t_2 = __Pyx_PyObject_Call(__pyx_builtin_print, __pyx_tuple__44, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 299, __pyx_L4_error)
-        __Pyx_GOTREF(__pyx_t_2);
-        __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+        __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_print, __pyx_tuple__45, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 298, __pyx_L4_error)
+        __Pyx_GOTREF(__pyx_t_1);
+        __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-        /* "typtops.py":300
+        /* "typtops.py":299
  *     if args.reinit:
  *         print("RE-initiating pam_typtop")
  *         initiate_typodb(RE_INIT=True)             # <<<<<<<<<<<<<<
  * 
  *     if args.status:
  */
-        __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_initiate_typodb); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 300, __pyx_L4_error)
-        __Pyx_GOTREF(__pyx_t_2);
-        __pyx_t_4 = PyDict_New(); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 300, __pyx_L4_error)
-        __Pyx_GOTREF(__pyx_t_4);
-        if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_RE_INIT, Py_True) < 0) __PYX_ERR(0, 300, __pyx_L4_error)
-        __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_empty_tuple, __pyx_t_4); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 300, __pyx_L4_error)
+        __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_initiate_typodb); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 299, __pyx_L4_error)
         __Pyx_GOTREF(__pyx_t_1);
-        __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-        __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+        __pyx_t_5 = PyDict_New(); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 299, __pyx_L4_error)
+        __Pyx_GOTREF(__pyx_t_5);
+        if (PyDict_SetItem(__pyx_t_5, __pyx_n_s_RE_INIT, Py_True) < 0) __PYX_ERR(0, 299, __pyx_L4_error)
+        __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_empty_tuple, __pyx_t_5); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 299, __pyx_L4_error)
+        __Pyx_GOTREF(__pyx_t_4);
         __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+        __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+        __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-        /* "typtops.py":298
+        /* "typtops.py":297
  *         initiate_typodb()
  * 
  *     if args.reinit:             # <<<<<<<<<<<<<<
@@ -5834,94 +5694,94 @@ PyMODINIT_FUNC PyInit_typtops(void)
  */
       }
 
-      /* "typtops.py":302
+      /* "typtops.py":301
  *         initiate_typodb(RE_INIT=True)
  * 
  *     if args.status:             # <<<<<<<<<<<<<<
  *         users = args.status
  *         if not users:
  */
-      __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_args); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 302, __pyx_L4_error)
-      __Pyx_GOTREF(__pyx_t_1);
-      __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_status_2); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 302, __pyx_L4_error)
+      __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_args); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 301, __pyx_L4_error)
       __Pyx_GOTREF(__pyx_t_4);
-      __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-      __pyx_t_6 = __Pyx_PyObject_IsTrue(__pyx_t_4); if (unlikely(__pyx_t_6 < 0)) __PYX_ERR(0, 302, __pyx_L4_error)
+      __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_status_2); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 301, __pyx_L4_error)
+      __Pyx_GOTREF(__pyx_t_5);
       __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+      __pyx_t_6 = __Pyx_PyObject_IsTrue(__pyx_t_5); if (unlikely(__pyx_t_6 < 0)) __PYX_ERR(0, 301, __pyx_L4_error)
+      __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
       if (__pyx_t_6) {
 
-        /* "typtops.py":303
+        /* "typtops.py":302
  * 
  *     if args.status:
  *         users = args.status             # <<<<<<<<<<<<<<
  *         if not users:
  *             users.add(_get_username)
  */
-        __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_args); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 303, __pyx_L4_error)
+        __pyx_t_5 = __Pyx_GetModuleGlobalName(__pyx_n_s_args); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 302, __pyx_L4_error)
+        __Pyx_GOTREF(__pyx_t_5);
+        __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_status_2); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 302, __pyx_L4_error)
         __Pyx_GOTREF(__pyx_t_4);
-        __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_status_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 303, __pyx_L4_error)
-        __Pyx_GOTREF(__pyx_t_1);
+        __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+        if (PyDict_SetItem(__pyx_d, __pyx_n_s_users, __pyx_t_4) < 0) __PYX_ERR(0, 302, __pyx_L4_error)
         __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-        if (PyDict_SetItem(__pyx_d, __pyx_n_s_users, __pyx_t_1) < 0) __PYX_ERR(0, 303, __pyx_L4_error)
-        __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-        /* "typtops.py":304
+        /* "typtops.py":303
  *     if args.status:
  *         users = args.status
  *         if not users:             # <<<<<<<<<<<<<<
  *             users.add(_get_username)
  *         for user in users:
  */
-        __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_users); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 304, __pyx_L4_error)
-        __Pyx_GOTREF(__pyx_t_1);
-        __pyx_t_6 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely(__pyx_t_6 < 0)) __PYX_ERR(0, 304, __pyx_L4_error)
-        __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+        __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_users); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 303, __pyx_L4_error)
+        __Pyx_GOTREF(__pyx_t_4);
+        __pyx_t_6 = __Pyx_PyObject_IsTrue(__pyx_t_4); if (unlikely(__pyx_t_6 < 0)) __PYX_ERR(0, 303, __pyx_L4_error)
+        __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
         __pyx_t_10 = ((!__pyx_t_6) != 0);
         if (__pyx_t_10) {
 
-          /* "typtops.py":305
+          /* "typtops.py":304
  *         users = args.status
  *         if not users:
  *             users.add(_get_username)             # <<<<<<<<<<<<<<
  *         for user in users:
  *             typoDB = UserTypoDB(user)
  */
-          __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_users); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 305, __pyx_L4_error)
-          __Pyx_GOTREF(__pyx_t_4);
-          __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_add); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 305, __pyx_L4_error)
-          __Pyx_GOTREF(__pyx_t_2);
-          __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-          __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_get_username); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 305, __pyx_L4_error)
-          __Pyx_GOTREF(__pyx_t_4);
-          __pyx_t_3 = NULL;
-          if (CYTHON_COMPILING_IN_CPYTHON && unlikely(PyMethod_Check(__pyx_t_2))) {
-            __pyx_t_3 = PyMethod_GET_SELF(__pyx_t_2);
-            if (likely(__pyx_t_3)) {
-              PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_2);
-              __Pyx_INCREF(__pyx_t_3);
+          __pyx_t_5 = __Pyx_GetModuleGlobalName(__pyx_n_s_users); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 304, __pyx_L4_error)
+          __Pyx_GOTREF(__pyx_t_5);
+          __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_add); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 304, __pyx_L4_error)
+          __Pyx_GOTREF(__pyx_t_1);
+          __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+          __pyx_t_5 = __Pyx_GetModuleGlobalName(__pyx_n_s_get_username); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 304, __pyx_L4_error)
+          __Pyx_GOTREF(__pyx_t_5);
+          __pyx_t_2 = NULL;
+          if (CYTHON_COMPILING_IN_CPYTHON && unlikely(PyMethod_Check(__pyx_t_1))) {
+            __pyx_t_2 = PyMethod_GET_SELF(__pyx_t_1);
+            if (likely(__pyx_t_2)) {
+              PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_1);
+              __Pyx_INCREF(__pyx_t_2);
               __Pyx_INCREF(function);
-              __Pyx_DECREF_SET(__pyx_t_2, function);
+              __Pyx_DECREF_SET(__pyx_t_1, function);
             }
           }
-          if (!__pyx_t_3) {
-            __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_2, __pyx_t_4); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 305, __pyx_L4_error)
-            __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-            __Pyx_GOTREF(__pyx_t_1);
+          if (!__pyx_t_2) {
+            __pyx_t_4 = __Pyx_PyObject_CallOneArg(__pyx_t_1, __pyx_t_5); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 304, __pyx_L4_error)
+            __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+            __Pyx_GOTREF(__pyx_t_4);
           } else {
-            __pyx_t_11 = PyTuple_New(1+1); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 305, __pyx_L4_error)
+            __pyx_t_11 = PyTuple_New(1+1); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 304, __pyx_L4_error)
             __Pyx_GOTREF(__pyx_t_11);
-            __Pyx_GIVEREF(__pyx_t_3); PyTuple_SET_ITEM(__pyx_t_11, 0, __pyx_t_3); __pyx_t_3 = NULL;
-            __Pyx_GIVEREF(__pyx_t_4);
-            PyTuple_SET_ITEM(__pyx_t_11, 0+1, __pyx_t_4);
-            __pyx_t_4 = 0;
-            __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_11, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 305, __pyx_L4_error)
-            __Pyx_GOTREF(__pyx_t_1);
+            __Pyx_GIVEREF(__pyx_t_2); PyTuple_SET_ITEM(__pyx_t_11, 0, __pyx_t_2); __pyx_t_2 = NULL;
+            __Pyx_GIVEREF(__pyx_t_5);
+            PyTuple_SET_ITEM(__pyx_t_11, 0+1, __pyx_t_5);
+            __pyx_t_5 = 0;
+            __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_t_11, NULL); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 304, __pyx_L4_error)
+            __Pyx_GOTREF(__pyx_t_4);
             __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
           }
-          __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
           __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+          __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-          /* "typtops.py":304
+          /* "typtops.py":303
  *     if args.status:
  *         users = args.status
  *         if not users:             # <<<<<<<<<<<<<<
@@ -5930,415 +5790,415 @@ PyMODINIT_FUNC PyInit_typtops(void)
  */
         }
 
-        /* "typtops.py":306
+        /* "typtops.py":305
  *         if not users:
  *             users.add(_get_username)
  *         for user in users:             # <<<<<<<<<<<<<<
  *             typoDB = UserTypoDB(user)
  *             print("\n** TYPO-TOLERANCE STATUS **\n")
  */
-        __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_users); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 306, __pyx_L4_error)
-        __Pyx_GOTREF(__pyx_t_1);
-        if (likely(PyList_CheckExact(__pyx_t_1)) || PyTuple_CheckExact(__pyx_t_1)) {
-          __pyx_t_2 = __pyx_t_1; __Pyx_INCREF(__pyx_t_2); __pyx_t_5 = 0;
+        __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_users); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 305, __pyx_L4_error)
+        __Pyx_GOTREF(__pyx_t_4);
+        if (likely(PyList_CheckExact(__pyx_t_4)) || PyTuple_CheckExact(__pyx_t_4)) {
+          __pyx_t_1 = __pyx_t_4; __Pyx_INCREF(__pyx_t_1); __pyx_t_3 = 0;
           __pyx_t_12 = NULL;
         } else {
-          __pyx_t_5 = -1; __pyx_t_2 = PyObject_GetIter(__pyx_t_1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 306, __pyx_L4_error)
-          __Pyx_GOTREF(__pyx_t_2);
-          __pyx_t_12 = Py_TYPE(__pyx_t_2)->tp_iternext; if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 306, __pyx_L4_error)
+          __pyx_t_3 = -1; __pyx_t_1 = PyObject_GetIter(__pyx_t_4); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 305, __pyx_L4_error)
+          __Pyx_GOTREF(__pyx_t_1);
+          __pyx_t_12 = Py_TYPE(__pyx_t_1)->tp_iternext; if (unlikely(!__pyx_t_12)) __PYX_ERR(0, 305, __pyx_L4_error)
         }
-        __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+        __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
         for (;;) {
           if (likely(!__pyx_t_12)) {
-            if (likely(PyList_CheckExact(__pyx_t_2))) {
-              if (__pyx_t_5 >= PyList_GET_SIZE(__pyx_t_2)) break;
+            if (likely(PyList_CheckExact(__pyx_t_1))) {
+              if (__pyx_t_3 >= PyList_GET_SIZE(__pyx_t_1)) break;
               #if CYTHON_COMPILING_IN_CPYTHON
-              __pyx_t_1 = PyList_GET_ITEM(__pyx_t_2, __pyx_t_5); __Pyx_INCREF(__pyx_t_1); __pyx_t_5++; if (unlikely(0 < 0)) __PYX_ERR(0, 306, __pyx_L4_error)
+              __pyx_t_4 = PyList_GET_ITEM(__pyx_t_1, __pyx_t_3); __Pyx_INCREF(__pyx_t_4); __pyx_t_3++; if (unlikely(0 < 0)) __PYX_ERR(0, 305, __pyx_L4_error)
               #else
-              __pyx_t_1 = PySequence_ITEM(__pyx_t_2, __pyx_t_5); __pyx_t_5++; if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 306, __pyx_L4_error)
-              __Pyx_GOTREF(__pyx_t_1);
+              __pyx_t_4 = PySequence_ITEM(__pyx_t_1, __pyx_t_3); __pyx_t_3++; if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 305, __pyx_L4_error)
+              __Pyx_GOTREF(__pyx_t_4);
               #endif
             } else {
-              if (__pyx_t_5 >= PyTuple_GET_SIZE(__pyx_t_2)) break;
+              if (__pyx_t_3 >= PyTuple_GET_SIZE(__pyx_t_1)) break;
               #if CYTHON_COMPILING_IN_CPYTHON
-              __pyx_t_1 = PyTuple_GET_ITEM(__pyx_t_2, __pyx_t_5); __Pyx_INCREF(__pyx_t_1); __pyx_t_5++; if (unlikely(0 < 0)) __PYX_ERR(0, 306, __pyx_L4_error)
+              __pyx_t_4 = PyTuple_GET_ITEM(__pyx_t_1, __pyx_t_3); __Pyx_INCREF(__pyx_t_4); __pyx_t_3++; if (unlikely(0 < 0)) __PYX_ERR(0, 305, __pyx_L4_error)
               #else
-              __pyx_t_1 = PySequence_ITEM(__pyx_t_2, __pyx_t_5); __pyx_t_5++; if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 306, __pyx_L4_error)
-              __Pyx_GOTREF(__pyx_t_1);
+              __pyx_t_4 = PySequence_ITEM(__pyx_t_1, __pyx_t_3); __pyx_t_3++; if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 305, __pyx_L4_error)
+              __Pyx_GOTREF(__pyx_t_4);
               #endif
             }
           } else {
-            __pyx_t_1 = __pyx_t_12(__pyx_t_2);
-            if (unlikely(!__pyx_t_1)) {
+            __pyx_t_4 = __pyx_t_12(__pyx_t_1);
+            if (unlikely(!__pyx_t_4)) {
               PyObject* exc_type = PyErr_Occurred();
               if (exc_type) {
                 if (likely(exc_type == PyExc_StopIteration || PyErr_GivenExceptionMatches(exc_type, PyExc_StopIteration))) PyErr_Clear();
-                else __PYX_ERR(0, 306, __pyx_L4_error)
+                else __PYX_ERR(0, 305, __pyx_L4_error)
               }
               break;
             }
-            __Pyx_GOTREF(__pyx_t_1);
+            __Pyx_GOTREF(__pyx_t_4);
           }
-          if (PyDict_SetItem(__pyx_d, __pyx_n_s_user, __pyx_t_1) < 0) __PYX_ERR(0, 306, __pyx_L4_error)
-          __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+          if (PyDict_SetItem(__pyx_d, __pyx_n_s_user, __pyx_t_4) < 0) __PYX_ERR(0, 305, __pyx_L4_error)
+          __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-          /* "typtops.py":307
+          /* "typtops.py":306
  *             users.add(_get_username)
  *         for user in users:
  *             typoDB = UserTypoDB(user)             # <<<<<<<<<<<<<<
  *             print("\n** TYPO-TOLERANCE STATUS **\n")
  *             print(">> User: {}".format(user))
  */
-          __pyx_t_11 = __Pyx_GetModuleGlobalName(__pyx_n_s_UserTypoDB); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 307, __pyx_L4_error)
+          __pyx_t_11 = __Pyx_GetModuleGlobalName(__pyx_n_s_UserTypoDB); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 306, __pyx_L4_error)
           __Pyx_GOTREF(__pyx_t_11);
-          __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_user); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 307, __pyx_L4_error)
-          __Pyx_GOTREF(__pyx_t_4);
-          __pyx_t_3 = NULL;
+          __pyx_t_5 = __Pyx_GetModuleGlobalName(__pyx_n_s_user); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 306, __pyx_L4_error)
+          __Pyx_GOTREF(__pyx_t_5);
+          __pyx_t_2 = NULL;
           if (CYTHON_COMPILING_IN_CPYTHON && unlikely(PyMethod_Check(__pyx_t_11))) {
-            __pyx_t_3 = PyMethod_GET_SELF(__pyx_t_11);
-            if (likely(__pyx_t_3)) {
+            __pyx_t_2 = PyMethod_GET_SELF(__pyx_t_11);
+            if (likely(__pyx_t_2)) {
               PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_11);
-              __Pyx_INCREF(__pyx_t_3);
+              __Pyx_INCREF(__pyx_t_2);
               __Pyx_INCREF(function);
               __Pyx_DECREF_SET(__pyx_t_11, function);
             }
           }
-          if (!__pyx_t_3) {
-            __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_11, __pyx_t_4); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 307, __pyx_L4_error)
-            __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-            __Pyx_GOTREF(__pyx_t_1);
+          if (!__pyx_t_2) {
+            __pyx_t_4 = __Pyx_PyObject_CallOneArg(__pyx_t_11, __pyx_t_5); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 306, __pyx_L4_error)
+            __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+            __Pyx_GOTREF(__pyx_t_4);
           } else {
-            __pyx_t_13 = PyTuple_New(1+1); if (unlikely(!__pyx_t_13)) __PYX_ERR(0, 307, __pyx_L4_error)
+            __pyx_t_13 = PyTuple_New(1+1); if (unlikely(!__pyx_t_13)) __PYX_ERR(0, 306, __pyx_L4_error)
             __Pyx_GOTREF(__pyx_t_13);
-            __Pyx_GIVEREF(__pyx_t_3); PyTuple_SET_ITEM(__pyx_t_13, 0, __pyx_t_3); __pyx_t_3 = NULL;
-            __Pyx_GIVEREF(__pyx_t_4);
-            PyTuple_SET_ITEM(__pyx_t_13, 0+1, __pyx_t_4);
-            __pyx_t_4 = 0;
-            __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_11, __pyx_t_13, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 307, __pyx_L4_error)
-            __Pyx_GOTREF(__pyx_t_1);
+            __Pyx_GIVEREF(__pyx_t_2); PyTuple_SET_ITEM(__pyx_t_13, 0, __pyx_t_2); __pyx_t_2 = NULL;
+            __Pyx_GIVEREF(__pyx_t_5);
+            PyTuple_SET_ITEM(__pyx_t_13, 0+1, __pyx_t_5);
+            __pyx_t_5 = 0;
+            __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_11, __pyx_t_13, NULL); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 306, __pyx_L4_error)
+            __Pyx_GOTREF(__pyx_t_4);
             __Pyx_DECREF(__pyx_t_13); __pyx_t_13 = 0;
           }
           __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
-          if (PyDict_SetItem(__pyx_d, __pyx_n_s_typoDB, __pyx_t_1) < 0) __PYX_ERR(0, 307, __pyx_L4_error)
-          __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+          if (PyDict_SetItem(__pyx_d, __pyx_n_s_typoDB, __pyx_t_4) < 0) __PYX_ERR(0, 306, __pyx_L4_error)
+          __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-          /* "typtops.py":308
+          /* "typtops.py":307
  *         for user in users:
  *             typoDB = UserTypoDB(user)
  *             print("\n** TYPO-TOLERANCE STATUS **\n")             # <<<<<<<<<<<<<<
  *             print(">> User: {}".format(user))
  *             print("\tLogin with typos: {}".format(typoDB.is_allowed_login()))
  */
-          __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_print, __pyx_tuple__45, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 308, __pyx_L4_error)
-          __Pyx_GOTREF(__pyx_t_1);
-          __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+          __pyx_t_4 = __Pyx_PyObject_Call(__pyx_builtin_print, __pyx_tuple__46, NULL); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 307, __pyx_L4_error)
+          __Pyx_GOTREF(__pyx_t_4);
+          __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-          /* "typtops.py":309
+          /* "typtops.py":308
  *             typoDB = UserTypoDB(user)
  *             print("\n** TYPO-TOLERANCE STATUS **\n")
  *             print(">> User: {}".format(user))             # <<<<<<<<<<<<<<
  *             print("\tLogin with typos: {}".format(typoDB.is_allowed_login()))
  *             print("\tParticipate in the study: {}"\
  */
-          __pyx_t_11 = __Pyx_PyObject_GetAttrStr(__pyx_kp_s_User, __pyx_n_s_format); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 309, __pyx_L4_error)
+          __pyx_t_11 = __Pyx_PyObject_GetAttrStr(__pyx_kp_s_User, __pyx_n_s_format); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 308, __pyx_L4_error)
           __Pyx_GOTREF(__pyx_t_11);
-          __pyx_t_13 = __Pyx_GetModuleGlobalName(__pyx_n_s_user); if (unlikely(!__pyx_t_13)) __PYX_ERR(0, 309, __pyx_L4_error)
+          __pyx_t_13 = __Pyx_GetModuleGlobalName(__pyx_n_s_user); if (unlikely(!__pyx_t_13)) __PYX_ERR(0, 308, __pyx_L4_error)
           __Pyx_GOTREF(__pyx_t_13);
-          __pyx_t_4 = NULL;
+          __pyx_t_5 = NULL;
           if (CYTHON_COMPILING_IN_CPYTHON && likely(PyMethod_Check(__pyx_t_11))) {
-            __pyx_t_4 = PyMethod_GET_SELF(__pyx_t_11);
-            if (likely(__pyx_t_4)) {
+            __pyx_t_5 = PyMethod_GET_SELF(__pyx_t_11);
+            if (likely(__pyx_t_5)) {
               PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_11);
-              __Pyx_INCREF(__pyx_t_4);
+              __Pyx_INCREF(__pyx_t_5);
               __Pyx_INCREF(function);
               __Pyx_DECREF_SET(__pyx_t_11, function);
             }
           }
-          if (!__pyx_t_4) {
-            __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_11, __pyx_t_13); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 309, __pyx_L4_error)
+          if (!__pyx_t_5) {
+            __pyx_t_4 = __Pyx_PyObject_CallOneArg(__pyx_t_11, __pyx_t_13); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 308, __pyx_L4_error)
             __Pyx_DECREF(__pyx_t_13); __pyx_t_13 = 0;
-            __Pyx_GOTREF(__pyx_t_1);
+            __Pyx_GOTREF(__pyx_t_4);
           } else {
-            __pyx_t_3 = PyTuple_New(1+1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 309, __pyx_L4_error)
-            __Pyx_GOTREF(__pyx_t_3);
-            __Pyx_GIVEREF(__pyx_t_4); PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_t_4); __pyx_t_4 = NULL;
+            __pyx_t_2 = PyTuple_New(1+1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 308, __pyx_L4_error)
+            __Pyx_GOTREF(__pyx_t_2);
+            __Pyx_GIVEREF(__pyx_t_5); PyTuple_SET_ITEM(__pyx_t_2, 0, __pyx_t_5); __pyx_t_5 = NULL;
             __Pyx_GIVEREF(__pyx_t_13);
-            PyTuple_SET_ITEM(__pyx_t_3, 0+1, __pyx_t_13);
+            PyTuple_SET_ITEM(__pyx_t_2, 0+1, __pyx_t_13);
             __pyx_t_13 = 0;
-            __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_11, __pyx_t_3, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 309, __pyx_L4_error)
-            __Pyx_GOTREF(__pyx_t_1);
-            __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+            __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_11, __pyx_t_2, NULL); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 308, __pyx_L4_error)
+            __Pyx_GOTREF(__pyx_t_4);
+            __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
           }
           __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
-          __pyx_t_11 = PyTuple_New(1); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 309, __pyx_L4_error)
+          __pyx_t_11 = PyTuple_New(1); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 308, __pyx_L4_error)
           __Pyx_GOTREF(__pyx_t_11);
-          __Pyx_GIVEREF(__pyx_t_1);
-          PyTuple_SET_ITEM(__pyx_t_11, 0, __pyx_t_1);
-          __pyx_t_1 = 0;
-          __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_print, __pyx_t_11, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 309, __pyx_L4_error)
-          __Pyx_GOTREF(__pyx_t_1);
+          __Pyx_GIVEREF(__pyx_t_4);
+          PyTuple_SET_ITEM(__pyx_t_11, 0, __pyx_t_4);
+          __pyx_t_4 = 0;
+          __pyx_t_4 = __Pyx_PyObject_Call(__pyx_builtin_print, __pyx_t_11, NULL); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 308, __pyx_L4_error)
+          __Pyx_GOTREF(__pyx_t_4);
           __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
-          __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+          __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-          /* "typtops.py":310
+          /* "typtops.py":309
  *             print("\n** TYPO-TOLERANCE STATUS **\n")
  *             print(">> User: {}".format(user))
  *             print("\tLogin with typos: {}".format(typoDB.is_allowed_login()))             # <<<<<<<<<<<<<<
  *             print("\tParticipate in the study: {}"\
  *                   .format(typoDB.is_allowed_upload()))
  */
-          __pyx_t_11 = __Pyx_PyObject_GetAttrStr(__pyx_kp_s_Login_with_typos, __pyx_n_s_format); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 310, __pyx_L4_error)
+          __pyx_t_11 = __Pyx_PyObject_GetAttrStr(__pyx_kp_s_Login_with_typos, __pyx_n_s_format); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 309, __pyx_L4_error)
           __Pyx_GOTREF(__pyx_t_11);
-          __pyx_t_13 = __Pyx_GetModuleGlobalName(__pyx_n_s_typoDB); if (unlikely(!__pyx_t_13)) __PYX_ERR(0, 310, __pyx_L4_error)
+          __pyx_t_13 = __Pyx_GetModuleGlobalName(__pyx_n_s_typoDB); if (unlikely(!__pyx_t_13)) __PYX_ERR(0, 309, __pyx_L4_error)
           __Pyx_GOTREF(__pyx_t_13);
-          __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_13, __pyx_n_s_is_allowed_login); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 310, __pyx_L4_error)
-          __Pyx_GOTREF(__pyx_t_4);
+          __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_13, __pyx_n_s_is_allowed_login); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 309, __pyx_L4_error)
+          __Pyx_GOTREF(__pyx_t_5);
           __Pyx_DECREF(__pyx_t_13); __pyx_t_13 = 0;
           __pyx_t_13 = NULL;
-          if (CYTHON_COMPILING_IN_CPYTHON && unlikely(PyMethod_Check(__pyx_t_4))) {
-            __pyx_t_13 = PyMethod_GET_SELF(__pyx_t_4);
+          if (CYTHON_COMPILING_IN_CPYTHON && unlikely(PyMethod_Check(__pyx_t_5))) {
+            __pyx_t_13 = PyMethod_GET_SELF(__pyx_t_5);
             if (likely(__pyx_t_13)) {
-              PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_4);
+              PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_5);
               __Pyx_INCREF(__pyx_t_13);
               __Pyx_INCREF(function);
-              __Pyx_DECREF_SET(__pyx_t_4, function);
+              __Pyx_DECREF_SET(__pyx_t_5, function);
             }
           }
           if (__pyx_t_13) {
-            __pyx_t_3 = __Pyx_PyObject_CallOneArg(__pyx_t_4, __pyx_t_13); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 310, __pyx_L4_error)
+            __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_t_5, __pyx_t_13); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 309, __pyx_L4_error)
             __Pyx_DECREF(__pyx_t_13); __pyx_t_13 = 0;
           } else {
-            __pyx_t_3 = __Pyx_PyObject_CallNoArg(__pyx_t_4); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 310, __pyx_L4_error)
+            __pyx_t_2 = __Pyx_PyObject_CallNoArg(__pyx_t_5); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 309, __pyx_L4_error)
           }
-          __Pyx_GOTREF(__pyx_t_3);
-          __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-          __pyx_t_4 = NULL;
+          __Pyx_GOTREF(__pyx_t_2);
+          __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+          __pyx_t_5 = NULL;
           if (CYTHON_COMPILING_IN_CPYTHON && likely(PyMethod_Check(__pyx_t_11))) {
-            __pyx_t_4 = PyMethod_GET_SELF(__pyx_t_11);
-            if (likely(__pyx_t_4)) {
+            __pyx_t_5 = PyMethod_GET_SELF(__pyx_t_11);
+            if (likely(__pyx_t_5)) {
               PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_11);
-              __Pyx_INCREF(__pyx_t_4);
+              __Pyx_INCREF(__pyx_t_5);
               __Pyx_INCREF(function);
               __Pyx_DECREF_SET(__pyx_t_11, function);
             }
           }
-          if (!__pyx_t_4) {
-            __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_11, __pyx_t_3); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 310, __pyx_L4_error)
-            __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-            __Pyx_GOTREF(__pyx_t_1);
+          if (!__pyx_t_5) {
+            __pyx_t_4 = __Pyx_PyObject_CallOneArg(__pyx_t_11, __pyx_t_2); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 309, __pyx_L4_error)
+            __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+            __Pyx_GOTREF(__pyx_t_4);
           } else {
-            __pyx_t_13 = PyTuple_New(1+1); if (unlikely(!__pyx_t_13)) __PYX_ERR(0, 310, __pyx_L4_error)
+            __pyx_t_13 = PyTuple_New(1+1); if (unlikely(!__pyx_t_13)) __PYX_ERR(0, 309, __pyx_L4_error)
             __Pyx_GOTREF(__pyx_t_13);
-            __Pyx_GIVEREF(__pyx_t_4); PyTuple_SET_ITEM(__pyx_t_13, 0, __pyx_t_4); __pyx_t_4 = NULL;
-            __Pyx_GIVEREF(__pyx_t_3);
-            PyTuple_SET_ITEM(__pyx_t_13, 0+1, __pyx_t_3);
-            __pyx_t_3 = 0;
-            __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_11, __pyx_t_13, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 310, __pyx_L4_error)
-            __Pyx_GOTREF(__pyx_t_1);
+            __Pyx_GIVEREF(__pyx_t_5); PyTuple_SET_ITEM(__pyx_t_13, 0, __pyx_t_5); __pyx_t_5 = NULL;
+            __Pyx_GIVEREF(__pyx_t_2);
+            PyTuple_SET_ITEM(__pyx_t_13, 0+1, __pyx_t_2);
+            __pyx_t_2 = 0;
+            __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_11, __pyx_t_13, NULL); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 309, __pyx_L4_error)
+            __Pyx_GOTREF(__pyx_t_4);
             __Pyx_DECREF(__pyx_t_13); __pyx_t_13 = 0;
           }
           __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
-          __pyx_t_11 = PyTuple_New(1); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 310, __pyx_L4_error)
+          __pyx_t_11 = PyTuple_New(1); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 309, __pyx_L4_error)
           __Pyx_GOTREF(__pyx_t_11);
-          __Pyx_GIVEREF(__pyx_t_1);
-          PyTuple_SET_ITEM(__pyx_t_11, 0, __pyx_t_1);
-          __pyx_t_1 = 0;
-          __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_print, __pyx_t_11, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 310, __pyx_L4_error)
-          __Pyx_GOTREF(__pyx_t_1);
+          __Pyx_GIVEREF(__pyx_t_4);
+          PyTuple_SET_ITEM(__pyx_t_11, 0, __pyx_t_4);
+          __pyx_t_4 = 0;
+          __pyx_t_4 = __Pyx_PyObject_Call(__pyx_builtin_print, __pyx_t_11, NULL); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 309, __pyx_L4_error)
+          __Pyx_GOTREF(__pyx_t_4);
           __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
-          __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+          __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-          /* "typtops.py":312
+          /* "typtops.py":311
  *             print("\tLogin with typos: {}".format(typoDB.is_allowed_login()))
  *             print("\tParticipate in the study: {}"\
  *                   .format(typoDB.is_allowed_upload()))             # <<<<<<<<<<<<<<
  *             print("\tIs enough logins to allow typos: {}"\
  *                   .format(typoDB.check_login_count(update=False)))
  */
-          __pyx_t_11 = __Pyx_PyObject_GetAttrStr(__pyx_kp_s_Participate_in_the_study, __pyx_n_s_format); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 312, __pyx_L4_error)
+          __pyx_t_11 = __Pyx_PyObject_GetAttrStr(__pyx_kp_s_Participate_in_the_study, __pyx_n_s_format); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 311, __pyx_L4_error)
           __Pyx_GOTREF(__pyx_t_11);
-          __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_typoDB); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 312, __pyx_L4_error)
-          __Pyx_GOTREF(__pyx_t_3);
-          __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_is_allowed_upload); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 312, __pyx_L4_error)
-          __Pyx_GOTREF(__pyx_t_4);
-          __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-          __pyx_t_3 = NULL;
-          if (CYTHON_COMPILING_IN_CPYTHON && unlikely(PyMethod_Check(__pyx_t_4))) {
-            __pyx_t_3 = PyMethod_GET_SELF(__pyx_t_4);
-            if (likely(__pyx_t_3)) {
-              PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_4);
-              __Pyx_INCREF(__pyx_t_3);
+          __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_typoDB); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 311, __pyx_L4_error)
+          __Pyx_GOTREF(__pyx_t_2);
+          __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_is_allowed_upload); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 311, __pyx_L4_error)
+          __Pyx_GOTREF(__pyx_t_5);
+          __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+          __pyx_t_2 = NULL;
+          if (CYTHON_COMPILING_IN_CPYTHON && unlikely(PyMethod_Check(__pyx_t_5))) {
+            __pyx_t_2 = PyMethod_GET_SELF(__pyx_t_5);
+            if (likely(__pyx_t_2)) {
+              PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_5);
+              __Pyx_INCREF(__pyx_t_2);
               __Pyx_INCREF(function);
-              __Pyx_DECREF_SET(__pyx_t_4, function);
+              __Pyx_DECREF_SET(__pyx_t_5, function);
             }
           }
-          if (__pyx_t_3) {
-            __pyx_t_13 = __Pyx_PyObject_CallOneArg(__pyx_t_4, __pyx_t_3); if (unlikely(!__pyx_t_13)) __PYX_ERR(0, 312, __pyx_L4_error)
-            __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+          if (__pyx_t_2) {
+            __pyx_t_13 = __Pyx_PyObject_CallOneArg(__pyx_t_5, __pyx_t_2); if (unlikely(!__pyx_t_13)) __PYX_ERR(0, 311, __pyx_L4_error)
+            __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
           } else {
-            __pyx_t_13 = __Pyx_PyObject_CallNoArg(__pyx_t_4); if (unlikely(!__pyx_t_13)) __PYX_ERR(0, 312, __pyx_L4_error)
+            __pyx_t_13 = __Pyx_PyObject_CallNoArg(__pyx_t_5); if (unlikely(!__pyx_t_13)) __PYX_ERR(0, 311, __pyx_L4_error)
           }
           __Pyx_GOTREF(__pyx_t_13);
-          __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-          __pyx_t_4 = NULL;
+          __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+          __pyx_t_5 = NULL;
           if (CYTHON_COMPILING_IN_CPYTHON && likely(PyMethod_Check(__pyx_t_11))) {
-            __pyx_t_4 = PyMethod_GET_SELF(__pyx_t_11);
-            if (likely(__pyx_t_4)) {
+            __pyx_t_5 = PyMethod_GET_SELF(__pyx_t_11);
+            if (likely(__pyx_t_5)) {
               PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_11);
-              __Pyx_INCREF(__pyx_t_4);
+              __Pyx_INCREF(__pyx_t_5);
               __Pyx_INCREF(function);
               __Pyx_DECREF_SET(__pyx_t_11, function);
             }
           }
-          if (!__pyx_t_4) {
-            __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_11, __pyx_t_13); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 312, __pyx_L4_error)
+          if (!__pyx_t_5) {
+            __pyx_t_4 = __Pyx_PyObject_CallOneArg(__pyx_t_11, __pyx_t_13); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 311, __pyx_L4_error)
             __Pyx_DECREF(__pyx_t_13); __pyx_t_13 = 0;
-            __Pyx_GOTREF(__pyx_t_1);
+            __Pyx_GOTREF(__pyx_t_4);
           } else {
-            __pyx_t_3 = PyTuple_New(1+1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 312, __pyx_L4_error)
-            __Pyx_GOTREF(__pyx_t_3);
-            __Pyx_GIVEREF(__pyx_t_4); PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_t_4); __pyx_t_4 = NULL;
+            __pyx_t_2 = PyTuple_New(1+1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 311, __pyx_L4_error)
+            __Pyx_GOTREF(__pyx_t_2);
+            __Pyx_GIVEREF(__pyx_t_5); PyTuple_SET_ITEM(__pyx_t_2, 0, __pyx_t_5); __pyx_t_5 = NULL;
             __Pyx_GIVEREF(__pyx_t_13);
-            PyTuple_SET_ITEM(__pyx_t_3, 0+1, __pyx_t_13);
+            PyTuple_SET_ITEM(__pyx_t_2, 0+1, __pyx_t_13);
             __pyx_t_13 = 0;
-            __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_11, __pyx_t_3, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 312, __pyx_L4_error)
-            __Pyx_GOTREF(__pyx_t_1);
-            __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+            __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_11, __pyx_t_2, NULL); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 311, __pyx_L4_error)
+            __Pyx_GOTREF(__pyx_t_4);
+            __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
           }
           __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
 
-          /* "typtops.py":311
+          /* "typtops.py":310
  *             print(">> User: {}".format(user))
  *             print("\tLogin with typos: {}".format(typoDB.is_allowed_login()))
  *             print("\tParticipate in the study: {}"\             # <<<<<<<<<<<<<<
  *                   .format(typoDB.is_allowed_upload()))
  *             print("\tIs enough logins to allow typos: {}"\
  */
-          __pyx_t_11 = PyTuple_New(1); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 311, __pyx_L4_error)
+          __pyx_t_11 = PyTuple_New(1); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 310, __pyx_L4_error)
           __Pyx_GOTREF(__pyx_t_11);
-          __Pyx_GIVEREF(__pyx_t_1);
-          PyTuple_SET_ITEM(__pyx_t_11, 0, __pyx_t_1);
-          __pyx_t_1 = 0;
-          __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_print, __pyx_t_11, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 311, __pyx_L4_error)
-          __Pyx_GOTREF(__pyx_t_1);
+          __Pyx_GIVEREF(__pyx_t_4);
+          PyTuple_SET_ITEM(__pyx_t_11, 0, __pyx_t_4);
+          __pyx_t_4 = 0;
+          __pyx_t_4 = __Pyx_PyObject_Call(__pyx_builtin_print, __pyx_t_11, NULL); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 310, __pyx_L4_error)
+          __Pyx_GOTREF(__pyx_t_4);
           __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
-          __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+          __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-          /* "typtops.py":314
+          /* "typtops.py":313
  *                   .format(typoDB.is_allowed_upload()))
  *             print("\tIs enough logins to allow typos: {}"\
  *                   .format(typoDB.check_login_count(update=False)))             # <<<<<<<<<<<<<<
  *             print("\tInstall Id: {}".format(typoDB.get_installation_id().strip()))
  *             print("\tSoftware Version: {}".format(VERSION))
  */
-          __pyx_t_11 = __Pyx_PyObject_GetAttrStr(__pyx_kp_s_Is_enough_logins_to_allow_typos, __pyx_n_s_format); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 314, __pyx_L4_error)
+          __pyx_t_11 = __Pyx_PyObject_GetAttrStr(__pyx_kp_s_Is_enough_logins_to_allow_typos, __pyx_n_s_format); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 313, __pyx_L4_error)
           __Pyx_GOTREF(__pyx_t_11);
-          __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_typoDB); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 314, __pyx_L4_error)
-          __Pyx_GOTREF(__pyx_t_3);
-          __pyx_t_13 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_check_login_count); if (unlikely(!__pyx_t_13)) __PYX_ERR(0, 314, __pyx_L4_error)
+          __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_typoDB); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 313, __pyx_L4_error)
+          __Pyx_GOTREF(__pyx_t_2);
+          __pyx_t_13 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_check_login_count); if (unlikely(!__pyx_t_13)) __PYX_ERR(0, 313, __pyx_L4_error)
           __Pyx_GOTREF(__pyx_t_13);
-          __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-          __pyx_t_3 = PyDict_New(); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 314, __pyx_L4_error)
-          __Pyx_GOTREF(__pyx_t_3);
-          if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_update_2, Py_False) < 0) __PYX_ERR(0, 314, __pyx_L4_error)
-          __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_13, __pyx_empty_tuple, __pyx_t_3); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 314, __pyx_L4_error)
-          __Pyx_GOTREF(__pyx_t_4);
+          __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+          __pyx_t_2 = PyDict_New(); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 313, __pyx_L4_error)
+          __Pyx_GOTREF(__pyx_t_2);
+          if (PyDict_SetItem(__pyx_t_2, __pyx_n_s_update_2, Py_False) < 0) __PYX_ERR(0, 313, __pyx_L4_error)
+          __pyx_t_5 = __Pyx_PyObject_Call(__pyx_t_13, __pyx_empty_tuple, __pyx_t_2); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 313, __pyx_L4_error)
+          __Pyx_GOTREF(__pyx_t_5);
           __Pyx_DECREF(__pyx_t_13); __pyx_t_13 = 0;
-          __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-          __pyx_t_3 = NULL;
+          __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+          __pyx_t_2 = NULL;
           if (CYTHON_COMPILING_IN_CPYTHON && likely(PyMethod_Check(__pyx_t_11))) {
-            __pyx_t_3 = PyMethod_GET_SELF(__pyx_t_11);
-            if (likely(__pyx_t_3)) {
+            __pyx_t_2 = PyMethod_GET_SELF(__pyx_t_11);
+            if (likely(__pyx_t_2)) {
               PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_11);
-              __Pyx_INCREF(__pyx_t_3);
+              __Pyx_INCREF(__pyx_t_2);
               __Pyx_INCREF(function);
               __Pyx_DECREF_SET(__pyx_t_11, function);
             }
           }
-          if (!__pyx_t_3) {
-            __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_11, __pyx_t_4); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 314, __pyx_L4_error)
-            __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-            __Pyx_GOTREF(__pyx_t_1);
+          if (!__pyx_t_2) {
+            __pyx_t_4 = __Pyx_PyObject_CallOneArg(__pyx_t_11, __pyx_t_5); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 313, __pyx_L4_error)
+            __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+            __Pyx_GOTREF(__pyx_t_4);
           } else {
-            __pyx_t_13 = PyTuple_New(1+1); if (unlikely(!__pyx_t_13)) __PYX_ERR(0, 314, __pyx_L4_error)
+            __pyx_t_13 = PyTuple_New(1+1); if (unlikely(!__pyx_t_13)) __PYX_ERR(0, 313, __pyx_L4_error)
             __Pyx_GOTREF(__pyx_t_13);
-            __Pyx_GIVEREF(__pyx_t_3); PyTuple_SET_ITEM(__pyx_t_13, 0, __pyx_t_3); __pyx_t_3 = NULL;
-            __Pyx_GIVEREF(__pyx_t_4);
-            PyTuple_SET_ITEM(__pyx_t_13, 0+1, __pyx_t_4);
-            __pyx_t_4 = 0;
-            __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_11, __pyx_t_13, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 314, __pyx_L4_error)
-            __Pyx_GOTREF(__pyx_t_1);
+            __Pyx_GIVEREF(__pyx_t_2); PyTuple_SET_ITEM(__pyx_t_13, 0, __pyx_t_2); __pyx_t_2 = NULL;
+            __Pyx_GIVEREF(__pyx_t_5);
+            PyTuple_SET_ITEM(__pyx_t_13, 0+1, __pyx_t_5);
+            __pyx_t_5 = 0;
+            __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_11, __pyx_t_13, NULL); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 313, __pyx_L4_error)
+            __Pyx_GOTREF(__pyx_t_4);
             __Pyx_DECREF(__pyx_t_13); __pyx_t_13 = 0;
           }
           __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
 
-          /* "typtops.py":313
+          /* "typtops.py":312
  *             print("\tParticipate in the study: {}"\
  *                   .format(typoDB.is_allowed_upload()))
  *             print("\tIs enough logins to allow typos: {}"\             # <<<<<<<<<<<<<<
  *                   .format(typoDB.check_login_count(update=False)))
  *             print("\tInstall Id: {}".format(typoDB.get_installation_id().strip()))
  */
-          __pyx_t_11 = PyTuple_New(1); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 313, __pyx_L4_error)
+          __pyx_t_11 = PyTuple_New(1); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 312, __pyx_L4_error)
           __Pyx_GOTREF(__pyx_t_11);
-          __Pyx_GIVEREF(__pyx_t_1);
-          PyTuple_SET_ITEM(__pyx_t_11, 0, __pyx_t_1);
-          __pyx_t_1 = 0;
-          __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_print, __pyx_t_11, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 313, __pyx_L4_error)
-          __Pyx_GOTREF(__pyx_t_1);
+          __Pyx_GIVEREF(__pyx_t_4);
+          PyTuple_SET_ITEM(__pyx_t_11, 0, __pyx_t_4);
+          __pyx_t_4 = 0;
+          __pyx_t_4 = __Pyx_PyObject_Call(__pyx_builtin_print, __pyx_t_11, NULL); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 312, __pyx_L4_error)
+          __Pyx_GOTREF(__pyx_t_4);
           __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
-          __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+          __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-          /* "typtops.py":315
+          /* "typtops.py":314
  *             print("\tIs enough logins to allow typos: {}"\
  *                   .format(typoDB.check_login_count(update=False)))
  *             print("\tInstall Id: {}".format(typoDB.get_installation_id().strip()))             # <<<<<<<<<<<<<<
  *             print("\tSoftware Version: {}".format(VERSION))
  *             print("\tNum entries before typo-login allowed: {}".format(NUMBER_OF_ENTRIES_TO_ALLOW_TYPO_LOGIN))
  */
-          __pyx_t_11 = __Pyx_PyObject_GetAttrStr(__pyx_kp_s_Install_Id, __pyx_n_s_format); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 315, __pyx_L4_error)
+          __pyx_t_11 = __Pyx_PyObject_GetAttrStr(__pyx_kp_s_Install_Id, __pyx_n_s_format); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 314, __pyx_L4_error)
           __Pyx_GOTREF(__pyx_t_11);
-          __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_typoDB); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 315, __pyx_L4_error)
-          __Pyx_GOTREF(__pyx_t_3);
-          __pyx_t_14 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_get_installation_id); if (unlikely(!__pyx_t_14)) __PYX_ERR(0, 315, __pyx_L4_error)
+          __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_typoDB); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 314, __pyx_L4_error)
+          __Pyx_GOTREF(__pyx_t_2);
+          __pyx_t_14 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_get_installation_id); if (unlikely(!__pyx_t_14)) __PYX_ERR(0, 314, __pyx_L4_error)
           __Pyx_GOTREF(__pyx_t_14);
-          __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-          __pyx_t_3 = NULL;
+          __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+          __pyx_t_2 = NULL;
           if (CYTHON_COMPILING_IN_CPYTHON && unlikely(PyMethod_Check(__pyx_t_14))) {
-            __pyx_t_3 = PyMethod_GET_SELF(__pyx_t_14);
-            if (likely(__pyx_t_3)) {
+            __pyx_t_2 = PyMethod_GET_SELF(__pyx_t_14);
+            if (likely(__pyx_t_2)) {
               PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_14);
-              __Pyx_INCREF(__pyx_t_3);
+              __Pyx_INCREF(__pyx_t_2);
               __Pyx_INCREF(function);
               __Pyx_DECREF_SET(__pyx_t_14, function);
             }
           }
-          if (__pyx_t_3) {
-            __pyx_t_4 = __Pyx_PyObject_CallOneArg(__pyx_t_14, __pyx_t_3); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 315, __pyx_L4_error)
-            __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+          if (__pyx_t_2) {
+            __pyx_t_5 = __Pyx_PyObject_CallOneArg(__pyx_t_14, __pyx_t_2); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 314, __pyx_L4_error)
+            __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
           } else {
-            __pyx_t_4 = __Pyx_PyObject_CallNoArg(__pyx_t_14); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 315, __pyx_L4_error)
+            __pyx_t_5 = __Pyx_PyObject_CallNoArg(__pyx_t_14); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 314, __pyx_L4_error)
           }
-          __Pyx_GOTREF(__pyx_t_4);
+          __Pyx_GOTREF(__pyx_t_5);
           __Pyx_DECREF(__pyx_t_14); __pyx_t_14 = 0;
-          __pyx_t_14 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_strip); if (unlikely(!__pyx_t_14)) __PYX_ERR(0, 315, __pyx_L4_error)
+          __pyx_t_14 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_strip); if (unlikely(!__pyx_t_14)) __PYX_ERR(0, 314, __pyx_L4_error)
           __Pyx_GOTREF(__pyx_t_14);
-          __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-          __pyx_t_4 = NULL;
+          __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+          __pyx_t_5 = NULL;
           if (CYTHON_COMPILING_IN_CPYTHON && likely(PyMethod_Check(__pyx_t_14))) {
-            __pyx_t_4 = PyMethod_GET_SELF(__pyx_t_14);
-            if (likely(__pyx_t_4)) {
+            __pyx_t_5 = PyMethod_GET_SELF(__pyx_t_14);
+            if (likely(__pyx_t_5)) {
               PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_14);
-              __Pyx_INCREF(__pyx_t_4);
+              __Pyx_INCREF(__pyx_t_5);
               __Pyx_INCREF(function);
               __Pyx_DECREF_SET(__pyx_t_14, function);
             }
           }
-          if (__pyx_t_4) {
-            __pyx_t_13 = __Pyx_PyObject_CallOneArg(__pyx_t_14, __pyx_t_4); if (unlikely(!__pyx_t_13)) __PYX_ERR(0, 315, __pyx_L4_error)
-            __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+          if (__pyx_t_5) {
+            __pyx_t_13 = __Pyx_PyObject_CallOneArg(__pyx_t_14, __pyx_t_5); if (unlikely(!__pyx_t_13)) __PYX_ERR(0, 314, __pyx_L4_error)
+            __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
           } else {
-            __pyx_t_13 = __Pyx_PyObject_CallNoArg(__pyx_t_14); if (unlikely(!__pyx_t_13)) __PYX_ERR(0, 315, __pyx_L4_error)
+            __pyx_t_13 = __Pyx_PyObject_CallNoArg(__pyx_t_14); if (unlikely(!__pyx_t_13)) __PYX_ERR(0, 314, __pyx_L4_error)
           }
           __Pyx_GOTREF(__pyx_t_13);
           __Pyx_DECREF(__pyx_t_14); __pyx_t_14 = 0;
@@ -6353,42 +6213,42 @@ PyMODINIT_FUNC PyInit_typtops(void)
             }
           }
           if (!__pyx_t_14) {
-            __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_11, __pyx_t_13); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 315, __pyx_L4_error)
+            __pyx_t_4 = __Pyx_PyObject_CallOneArg(__pyx_t_11, __pyx_t_13); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 314, __pyx_L4_error)
             __Pyx_DECREF(__pyx_t_13); __pyx_t_13 = 0;
-            __Pyx_GOTREF(__pyx_t_1);
-          } else {
-            __pyx_t_4 = PyTuple_New(1+1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 315, __pyx_L4_error)
             __Pyx_GOTREF(__pyx_t_4);
-            __Pyx_GIVEREF(__pyx_t_14); PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_14); __pyx_t_14 = NULL;
+          } else {
+            __pyx_t_5 = PyTuple_New(1+1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 314, __pyx_L4_error)
+            __Pyx_GOTREF(__pyx_t_5);
+            __Pyx_GIVEREF(__pyx_t_14); PyTuple_SET_ITEM(__pyx_t_5, 0, __pyx_t_14); __pyx_t_14 = NULL;
             __Pyx_GIVEREF(__pyx_t_13);
-            PyTuple_SET_ITEM(__pyx_t_4, 0+1, __pyx_t_13);
+            PyTuple_SET_ITEM(__pyx_t_5, 0+1, __pyx_t_13);
             __pyx_t_13 = 0;
-            __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_11, __pyx_t_4, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 315, __pyx_L4_error)
-            __Pyx_GOTREF(__pyx_t_1);
-            __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+            __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_11, __pyx_t_5, NULL); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 314, __pyx_L4_error)
+            __Pyx_GOTREF(__pyx_t_4);
+            __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
           }
           __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
-          __pyx_t_11 = PyTuple_New(1); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 315, __pyx_L4_error)
+          __pyx_t_11 = PyTuple_New(1); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 314, __pyx_L4_error)
           __Pyx_GOTREF(__pyx_t_11);
-          __Pyx_GIVEREF(__pyx_t_1);
-          PyTuple_SET_ITEM(__pyx_t_11, 0, __pyx_t_1);
-          __pyx_t_1 = 0;
-          __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_print, __pyx_t_11, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 315, __pyx_L4_error)
-          __Pyx_GOTREF(__pyx_t_1);
+          __Pyx_GIVEREF(__pyx_t_4);
+          PyTuple_SET_ITEM(__pyx_t_11, 0, __pyx_t_4);
+          __pyx_t_4 = 0;
+          __pyx_t_4 = __Pyx_PyObject_Call(__pyx_builtin_print, __pyx_t_11, NULL); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 314, __pyx_L4_error)
+          __Pyx_GOTREF(__pyx_t_4);
           __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
-          __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+          __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-          /* "typtops.py":316
+          /* "typtops.py":315
  *                   .format(typoDB.check_login_count(update=False)))
  *             print("\tInstall Id: {}".format(typoDB.get_installation_id().strip()))
  *             print("\tSoftware Version: {}".format(VERSION))             # <<<<<<<<<<<<<<
  *             print("\tNum entries before typo-login allowed: {}".format(NUMBER_OF_ENTRIES_TO_ALLOW_TYPO_LOGIN))
  *             print("\tWarmup cache: {}".format(WARM_UP_CACHE))
  */
-          __pyx_t_11 = __Pyx_PyObject_GetAttrStr(__pyx_kp_s_Software_Version, __pyx_n_s_format); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 316, __pyx_L4_error)
+          __pyx_t_11 = __Pyx_PyObject_GetAttrStr(__pyx_kp_s_Software_Version, __pyx_n_s_format); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 315, __pyx_L4_error)
           __Pyx_GOTREF(__pyx_t_11);
-          __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_VERSION); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 316, __pyx_L4_error)
-          __Pyx_GOTREF(__pyx_t_4);
+          __pyx_t_5 = __Pyx_GetModuleGlobalName(__pyx_n_s_VERSION); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 315, __pyx_L4_error)
+          __Pyx_GOTREF(__pyx_t_5);
           __pyx_t_13 = NULL;
           if (CYTHON_COMPILING_IN_CPYTHON && likely(PyMethod_Check(__pyx_t_11))) {
             __pyx_t_13 = PyMethod_GET_SELF(__pyx_t_11);
@@ -6400,88 +6260,88 @@ PyMODINIT_FUNC PyInit_typtops(void)
             }
           }
           if (!__pyx_t_13) {
-            __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_11, __pyx_t_4); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 316, __pyx_L4_error)
-            __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-            __Pyx_GOTREF(__pyx_t_1);
+            __pyx_t_4 = __Pyx_PyObject_CallOneArg(__pyx_t_11, __pyx_t_5); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 315, __pyx_L4_error)
+            __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+            __Pyx_GOTREF(__pyx_t_4);
           } else {
-            __pyx_t_14 = PyTuple_New(1+1); if (unlikely(!__pyx_t_14)) __PYX_ERR(0, 316, __pyx_L4_error)
+            __pyx_t_14 = PyTuple_New(1+1); if (unlikely(!__pyx_t_14)) __PYX_ERR(0, 315, __pyx_L4_error)
             __Pyx_GOTREF(__pyx_t_14);
             __Pyx_GIVEREF(__pyx_t_13); PyTuple_SET_ITEM(__pyx_t_14, 0, __pyx_t_13); __pyx_t_13 = NULL;
-            __Pyx_GIVEREF(__pyx_t_4);
-            PyTuple_SET_ITEM(__pyx_t_14, 0+1, __pyx_t_4);
-            __pyx_t_4 = 0;
-            __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_11, __pyx_t_14, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 316, __pyx_L4_error)
-            __Pyx_GOTREF(__pyx_t_1);
+            __Pyx_GIVEREF(__pyx_t_5);
+            PyTuple_SET_ITEM(__pyx_t_14, 0+1, __pyx_t_5);
+            __pyx_t_5 = 0;
+            __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_11, __pyx_t_14, NULL); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 315, __pyx_L4_error)
+            __Pyx_GOTREF(__pyx_t_4);
             __Pyx_DECREF(__pyx_t_14); __pyx_t_14 = 0;
           }
           __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
-          __pyx_t_11 = PyTuple_New(1); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 316, __pyx_L4_error)
+          __pyx_t_11 = PyTuple_New(1); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 315, __pyx_L4_error)
           __Pyx_GOTREF(__pyx_t_11);
-          __Pyx_GIVEREF(__pyx_t_1);
-          PyTuple_SET_ITEM(__pyx_t_11, 0, __pyx_t_1);
-          __pyx_t_1 = 0;
-          __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_print, __pyx_t_11, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 316, __pyx_L4_error)
-          __Pyx_GOTREF(__pyx_t_1);
+          __Pyx_GIVEREF(__pyx_t_4);
+          PyTuple_SET_ITEM(__pyx_t_11, 0, __pyx_t_4);
+          __pyx_t_4 = 0;
+          __pyx_t_4 = __Pyx_PyObject_Call(__pyx_builtin_print, __pyx_t_11, NULL); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 315, __pyx_L4_error)
+          __Pyx_GOTREF(__pyx_t_4);
           __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
-          __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+          __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-          /* "typtops.py":317
+          /* "typtops.py":316
  *             print("\tInstall Id: {}".format(typoDB.get_installation_id().strip()))
  *             print("\tSoftware Version: {}".format(VERSION))
  *             print("\tNum entries before typo-login allowed: {}".format(NUMBER_OF_ENTRIES_TO_ALLOW_TYPO_LOGIN))             # <<<<<<<<<<<<<<
  *             print("\tWarmup cache: {}".format(WARM_UP_CACHE))
  * 
  */
-          __pyx_t_11 = __Pyx_PyObject_GetAttrStr(__pyx_kp_s_Num_entries_before_typo_login_a, __pyx_n_s_format); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 317, __pyx_L4_error)
+          __pyx_t_11 = __Pyx_PyObject_GetAttrStr(__pyx_kp_s_Num_entries_before_typo_login_a, __pyx_n_s_format); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 316, __pyx_L4_error)
           __Pyx_GOTREF(__pyx_t_11);
-          __pyx_t_14 = __Pyx_GetModuleGlobalName(__pyx_n_s_NUMBER_OF_ENTRIES_TO_ALLOW_TYPO); if (unlikely(!__pyx_t_14)) __PYX_ERR(0, 317, __pyx_L4_error)
+          __pyx_t_14 = __Pyx_GetModuleGlobalName(__pyx_n_s_NUMBER_OF_ENTRIES_TO_ALLOW_TYPO); if (unlikely(!__pyx_t_14)) __PYX_ERR(0, 316, __pyx_L4_error)
           __Pyx_GOTREF(__pyx_t_14);
-          __pyx_t_4 = NULL;
+          __pyx_t_5 = NULL;
           if (CYTHON_COMPILING_IN_CPYTHON && likely(PyMethod_Check(__pyx_t_11))) {
-            __pyx_t_4 = PyMethod_GET_SELF(__pyx_t_11);
-            if (likely(__pyx_t_4)) {
+            __pyx_t_5 = PyMethod_GET_SELF(__pyx_t_11);
+            if (likely(__pyx_t_5)) {
               PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_11);
-              __Pyx_INCREF(__pyx_t_4);
+              __Pyx_INCREF(__pyx_t_5);
               __Pyx_INCREF(function);
               __Pyx_DECREF_SET(__pyx_t_11, function);
             }
           }
-          if (!__pyx_t_4) {
-            __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_11, __pyx_t_14); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 317, __pyx_L4_error)
+          if (!__pyx_t_5) {
+            __pyx_t_4 = __Pyx_PyObject_CallOneArg(__pyx_t_11, __pyx_t_14); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 316, __pyx_L4_error)
             __Pyx_DECREF(__pyx_t_14); __pyx_t_14 = 0;
-            __Pyx_GOTREF(__pyx_t_1);
+            __Pyx_GOTREF(__pyx_t_4);
           } else {
-            __pyx_t_13 = PyTuple_New(1+1); if (unlikely(!__pyx_t_13)) __PYX_ERR(0, 317, __pyx_L4_error)
+            __pyx_t_13 = PyTuple_New(1+1); if (unlikely(!__pyx_t_13)) __PYX_ERR(0, 316, __pyx_L4_error)
             __Pyx_GOTREF(__pyx_t_13);
-            __Pyx_GIVEREF(__pyx_t_4); PyTuple_SET_ITEM(__pyx_t_13, 0, __pyx_t_4); __pyx_t_4 = NULL;
+            __Pyx_GIVEREF(__pyx_t_5); PyTuple_SET_ITEM(__pyx_t_13, 0, __pyx_t_5); __pyx_t_5 = NULL;
             __Pyx_GIVEREF(__pyx_t_14);
             PyTuple_SET_ITEM(__pyx_t_13, 0+1, __pyx_t_14);
             __pyx_t_14 = 0;
-            __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_11, __pyx_t_13, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 317, __pyx_L4_error)
-            __Pyx_GOTREF(__pyx_t_1);
+            __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_11, __pyx_t_13, NULL); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 316, __pyx_L4_error)
+            __Pyx_GOTREF(__pyx_t_4);
             __Pyx_DECREF(__pyx_t_13); __pyx_t_13 = 0;
           }
           __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
-          __pyx_t_11 = PyTuple_New(1); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 317, __pyx_L4_error)
+          __pyx_t_11 = PyTuple_New(1); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 316, __pyx_L4_error)
           __Pyx_GOTREF(__pyx_t_11);
-          __Pyx_GIVEREF(__pyx_t_1);
-          PyTuple_SET_ITEM(__pyx_t_11, 0, __pyx_t_1);
-          __pyx_t_1 = 0;
-          __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_print, __pyx_t_11, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 317, __pyx_L4_error)
-          __Pyx_GOTREF(__pyx_t_1);
+          __Pyx_GIVEREF(__pyx_t_4);
+          PyTuple_SET_ITEM(__pyx_t_11, 0, __pyx_t_4);
+          __pyx_t_4 = 0;
+          __pyx_t_4 = __Pyx_PyObject_Call(__pyx_builtin_print, __pyx_t_11, NULL); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 316, __pyx_L4_error)
+          __Pyx_GOTREF(__pyx_t_4);
           __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
-          __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+          __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-          /* "typtops.py":318
+          /* "typtops.py":317
  *             print("\tSoftware Version: {}".format(VERSION))
  *             print("\tNum entries before typo-login allowed: {}".format(NUMBER_OF_ENTRIES_TO_ALLOW_TYPO_LOGIN))
  *             print("\tWarmup cache: {}".format(WARM_UP_CACHE))             # <<<<<<<<<<<<<<
  * 
  *     if args.uninstall:
  */
-          __pyx_t_11 = __Pyx_PyObject_GetAttrStr(__pyx_kp_s_Warmup_cache, __pyx_n_s_format); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 318, __pyx_L4_error)
+          __pyx_t_11 = __Pyx_PyObject_GetAttrStr(__pyx_kp_s_Warmup_cache, __pyx_n_s_format); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 317, __pyx_L4_error)
           __Pyx_GOTREF(__pyx_t_11);
-          __pyx_t_13 = __Pyx_GetModuleGlobalName(__pyx_n_s_WARM_UP_CACHE); if (unlikely(!__pyx_t_13)) __PYX_ERR(0, 318, __pyx_L4_error)
+          __pyx_t_13 = __Pyx_GetModuleGlobalName(__pyx_n_s_WARM_UP_CACHE); if (unlikely(!__pyx_t_13)) __PYX_ERR(0, 317, __pyx_L4_error)
           __Pyx_GOTREF(__pyx_t_13);
           __pyx_t_14 = NULL;
           if (CYTHON_COMPILING_IN_CPYTHON && likely(PyMethod_Check(__pyx_t_11))) {
@@ -6494,32 +6354,32 @@ PyMODINIT_FUNC PyInit_typtops(void)
             }
           }
           if (!__pyx_t_14) {
-            __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_11, __pyx_t_13); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 318, __pyx_L4_error)
+            __pyx_t_4 = __Pyx_PyObject_CallOneArg(__pyx_t_11, __pyx_t_13); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 317, __pyx_L4_error)
             __Pyx_DECREF(__pyx_t_13); __pyx_t_13 = 0;
-            __Pyx_GOTREF(__pyx_t_1);
-          } else {
-            __pyx_t_4 = PyTuple_New(1+1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 318, __pyx_L4_error)
             __Pyx_GOTREF(__pyx_t_4);
-            __Pyx_GIVEREF(__pyx_t_14); PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_14); __pyx_t_14 = NULL;
+          } else {
+            __pyx_t_5 = PyTuple_New(1+1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 317, __pyx_L4_error)
+            __Pyx_GOTREF(__pyx_t_5);
+            __Pyx_GIVEREF(__pyx_t_14); PyTuple_SET_ITEM(__pyx_t_5, 0, __pyx_t_14); __pyx_t_14 = NULL;
             __Pyx_GIVEREF(__pyx_t_13);
-            PyTuple_SET_ITEM(__pyx_t_4, 0+1, __pyx_t_13);
+            PyTuple_SET_ITEM(__pyx_t_5, 0+1, __pyx_t_13);
             __pyx_t_13 = 0;
-            __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_11, __pyx_t_4, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 318, __pyx_L4_error)
-            __Pyx_GOTREF(__pyx_t_1);
-            __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+            __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_11, __pyx_t_5, NULL); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 317, __pyx_L4_error)
+            __Pyx_GOTREF(__pyx_t_4);
+            __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
           }
           __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
-          __pyx_t_11 = PyTuple_New(1); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 318, __pyx_L4_error)
+          __pyx_t_11 = PyTuple_New(1); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 317, __pyx_L4_error)
           __Pyx_GOTREF(__pyx_t_11);
-          __Pyx_GIVEREF(__pyx_t_1);
-          PyTuple_SET_ITEM(__pyx_t_11, 0, __pyx_t_1);
-          __pyx_t_1 = 0;
-          __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_print, __pyx_t_11, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 318, __pyx_L4_error)
-          __Pyx_GOTREF(__pyx_t_1);
+          __Pyx_GIVEREF(__pyx_t_4);
+          PyTuple_SET_ITEM(__pyx_t_11, 0, __pyx_t_4);
+          __pyx_t_4 = 0;
+          __pyx_t_4 = __Pyx_PyObject_Call(__pyx_builtin_print, __pyx_t_11, NULL); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 317, __pyx_L4_error)
+          __Pyx_GOTREF(__pyx_t_4);
           __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
-          __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+          __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-          /* "typtops.py":306
+          /* "typtops.py":305
  *         if not users:
  *             users.add(_get_username)
  *         for user in users:             # <<<<<<<<<<<<<<
@@ -6527,9 +6387,9 @@ PyMODINIT_FUNC PyInit_typtops(void)
  *             print("\n** TYPO-TOLERANCE STATUS **\n")
  */
         }
-        __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+        __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-        /* "typtops.py":302
+        /* "typtops.py":301
  *         initiate_typodb(RE_INIT=True)
  * 
  *     if args.status:             # <<<<<<<<<<<<<<
@@ -6538,109 +6398,109 @@ PyMODINIT_FUNC PyInit_typtops(void)
  */
       }
 
-      /* "typtops.py":320
+      /* "typtops.py":319
  *             print("\tWarmup cache: {}".format(WARM_UP_CACHE))
  * 
  *     if args.uninstall:             # <<<<<<<<<<<<<<
  *         r = raw_input("Uninstalling pam_typtop. Will delete all the "\
  *                       "databases.\nPlease confirm. (yN)")
  */
-      __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_args); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 320, __pyx_L4_error)
-      __Pyx_GOTREF(__pyx_t_2);
-      __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_uninstall_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 320, __pyx_L4_error)
+      __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_args); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 319, __pyx_L4_error)
       __Pyx_GOTREF(__pyx_t_1);
-      __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-      __pyx_t_10 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely(__pyx_t_10 < 0)) __PYX_ERR(0, 320, __pyx_L4_error)
+      __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_uninstall_2); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 319, __pyx_L4_error)
+      __Pyx_GOTREF(__pyx_t_4);
       __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+      __pyx_t_10 = __Pyx_PyObject_IsTrue(__pyx_t_4); if (unlikely(__pyx_t_10 < 0)) __PYX_ERR(0, 319, __pyx_L4_error)
+      __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
       if (__pyx_t_10) {
 
-        /* "typtops.py":321
+        /* "typtops.py":320
  * 
  *     if args.uninstall:
  *         r = raw_input("Uninstalling pam_typtop. Will delete all the "\             # <<<<<<<<<<<<<<
  *                       "databases.\nPlease confirm. (yN)")
  *         if r and r.lower() == 'y':
  */
-        __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_raw_input, __pyx_tuple__46, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 321, __pyx_L4_error)
-        __Pyx_GOTREF(__pyx_t_1);
-        if (PyDict_SetItem(__pyx_d, __pyx_n_s_r, __pyx_t_1) < 0) __PYX_ERR(0, 321, __pyx_L4_error)
-        __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+        __pyx_t_4 = __Pyx_PyObject_Call(__pyx_builtin_raw_input, __pyx_tuple__47, NULL); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 320, __pyx_L4_error)
+        __Pyx_GOTREF(__pyx_t_4);
+        if (PyDict_SetItem(__pyx_d, __pyx_n_s_r, __pyx_t_4) < 0) __PYX_ERR(0, 320, __pyx_L4_error)
+        __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-        /* "typtops.py":323
+        /* "typtops.py":322
  *         r = raw_input("Uninstalling pam_typtop. Will delete all the "\
  *                       "databases.\nPlease confirm. (yN)")
  *         if r and r.lower() == 'y':             # <<<<<<<<<<<<<<
  *             uninstall_pam_typtop()
  * 
  */
-        __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_r); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 323, __pyx_L4_error)
-        __Pyx_GOTREF(__pyx_t_1);
-        __pyx_t_6 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely(__pyx_t_6 < 0)) __PYX_ERR(0, 323, __pyx_L4_error)
-        __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+        __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_r); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 322, __pyx_L4_error)
+        __Pyx_GOTREF(__pyx_t_4);
+        __pyx_t_6 = __Pyx_PyObject_IsTrue(__pyx_t_4); if (unlikely(__pyx_t_6 < 0)) __PYX_ERR(0, 322, __pyx_L4_error)
+        __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
         if (__pyx_t_6) {
         } else {
           __pyx_t_10 = __pyx_t_6;
           goto __pyx_L24_bool_binop_done;
         }
-        __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_r); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 323, __pyx_L4_error)
-        __Pyx_GOTREF(__pyx_t_2);
-        __pyx_t_11 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_lower); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 323, __pyx_L4_error)
+        __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_r); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 322, __pyx_L4_error)
+        __Pyx_GOTREF(__pyx_t_1);
+        __pyx_t_11 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_lower); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 322, __pyx_L4_error)
         __Pyx_GOTREF(__pyx_t_11);
-        __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-        __pyx_t_2 = NULL;
+        __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+        __pyx_t_1 = NULL;
         if (CYTHON_COMPILING_IN_CPYTHON && unlikely(PyMethod_Check(__pyx_t_11))) {
-          __pyx_t_2 = PyMethod_GET_SELF(__pyx_t_11);
-          if (likely(__pyx_t_2)) {
+          __pyx_t_1 = PyMethod_GET_SELF(__pyx_t_11);
+          if (likely(__pyx_t_1)) {
             PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_11);
-            __Pyx_INCREF(__pyx_t_2);
+            __Pyx_INCREF(__pyx_t_1);
             __Pyx_INCREF(function);
             __Pyx_DECREF_SET(__pyx_t_11, function);
           }
         }
-        if (__pyx_t_2) {
-          __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_11, __pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 323, __pyx_L4_error)
-          __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+        if (__pyx_t_1) {
+          __pyx_t_4 = __Pyx_PyObject_CallOneArg(__pyx_t_11, __pyx_t_1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 322, __pyx_L4_error)
+          __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
         } else {
-          __pyx_t_1 = __Pyx_PyObject_CallNoArg(__pyx_t_11); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 323, __pyx_L4_error)
+          __pyx_t_4 = __Pyx_PyObject_CallNoArg(__pyx_t_11); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 322, __pyx_L4_error)
         }
-        __Pyx_GOTREF(__pyx_t_1);
+        __Pyx_GOTREF(__pyx_t_4);
         __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
-        __pyx_t_6 = (__Pyx_PyString_Equals(__pyx_t_1, __pyx_n_s_y, Py_EQ)); if (unlikely(__pyx_t_6 < 0)) __PYX_ERR(0, 323, __pyx_L4_error)
-        __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+        __pyx_t_6 = (__Pyx_PyString_Equals(__pyx_t_4, __pyx_n_s_y, Py_EQ)); if (unlikely(__pyx_t_6 < 0)) __PYX_ERR(0, 322, __pyx_L4_error)
+        __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
         __pyx_t_10 = __pyx_t_6;
         __pyx_L24_bool_binop_done:;
         if (__pyx_t_10) {
 
-          /* "typtops.py":324
+          /* "typtops.py":323
  *                       "databases.\nPlease confirm. (yN)")
  *         if r and r.lower() == 'y':
  *             uninstall_pam_typtop()             # <<<<<<<<<<<<<<
  * 
  *     if args.update:
  */
-          __pyx_t_11 = __Pyx_GetModuleGlobalName(__pyx_n_s_uninstall_pam_typtop); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 324, __pyx_L4_error)
+          __pyx_t_11 = __Pyx_GetModuleGlobalName(__pyx_n_s_uninstall_pam_typtop); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 323, __pyx_L4_error)
           __Pyx_GOTREF(__pyx_t_11);
-          __pyx_t_2 = NULL;
+          __pyx_t_1 = NULL;
           if (CYTHON_COMPILING_IN_CPYTHON && unlikely(PyMethod_Check(__pyx_t_11))) {
-            __pyx_t_2 = PyMethod_GET_SELF(__pyx_t_11);
-            if (likely(__pyx_t_2)) {
+            __pyx_t_1 = PyMethod_GET_SELF(__pyx_t_11);
+            if (likely(__pyx_t_1)) {
               PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_11);
-              __Pyx_INCREF(__pyx_t_2);
+              __Pyx_INCREF(__pyx_t_1);
               __Pyx_INCREF(function);
               __Pyx_DECREF_SET(__pyx_t_11, function);
             }
           }
-          if (__pyx_t_2) {
-            __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_11, __pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 324, __pyx_L4_error)
-            __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+          if (__pyx_t_1) {
+            __pyx_t_4 = __Pyx_PyObject_CallOneArg(__pyx_t_11, __pyx_t_1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 323, __pyx_L4_error)
+            __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
           } else {
-            __pyx_t_1 = __Pyx_PyObject_CallNoArg(__pyx_t_11); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 324, __pyx_L4_error)
+            __pyx_t_4 = __Pyx_PyObject_CallNoArg(__pyx_t_11); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 323, __pyx_L4_error)
           }
-          __Pyx_GOTREF(__pyx_t_1);
+          __Pyx_GOTREF(__pyx_t_4);
           __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
-          __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+          __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-          /* "typtops.py":323
+          /* "typtops.py":322
  *         r = raw_input("Uninstalling pam_typtop. Will delete all the "\
  *                       "databases.\nPlease confirm. (yN)")
  *         if r and r.lower() == 'y':             # <<<<<<<<<<<<<<
@@ -6649,7 +6509,7 @@ PyMODINIT_FUNC PyInit_typtops(void)
  */
         }
 
-        /* "typtops.py":320
+        /* "typtops.py":319
  *             print("\tWarmup cache: {}".format(WARM_UP_CACHE))
  * 
  *     if args.uninstall:             # <<<<<<<<<<<<<<
@@ -6658,60 +6518,60 @@ PyMODINIT_FUNC PyInit_typtops(void)
  */
       }
 
-      /* "typtops.py":326
+      /* "typtops.py":325
  *             uninstall_pam_typtop()
  * 
  *     if args.update:             # <<<<<<<<<<<<<<
  *         subprocess.call(
  *             "pip install -U typtop && sudo typtop --init",
  */
-      __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_args); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 326, __pyx_L4_error)
-      __Pyx_GOTREF(__pyx_t_1);
-      __pyx_t_11 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_update_2); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 326, __pyx_L4_error)
+      __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_args); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 325, __pyx_L4_error)
+      __Pyx_GOTREF(__pyx_t_4);
+      __pyx_t_11 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_update_2); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 325, __pyx_L4_error)
       __Pyx_GOTREF(__pyx_t_11);
-      __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-      __pyx_t_10 = __Pyx_PyObject_IsTrue(__pyx_t_11); if (unlikely(__pyx_t_10 < 0)) __PYX_ERR(0, 326, __pyx_L4_error)
+      __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+      __pyx_t_10 = __Pyx_PyObject_IsTrue(__pyx_t_11); if (unlikely(__pyx_t_10 < 0)) __PYX_ERR(0, 325, __pyx_L4_error)
       __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
       if (__pyx_t_10) {
 
-        /* "typtops.py":327
+        /* "typtops.py":326
  * 
  *     if args.update:
  *         subprocess.call(             # <<<<<<<<<<<<<<
  *             "pip install -U typtop && sudo typtop --init",
  *             shell=True
  */
-        __pyx_t_11 = __Pyx_GetModuleGlobalName(__pyx_n_s_subprocess); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 327, __pyx_L4_error)
+        __pyx_t_11 = __Pyx_GetModuleGlobalName(__pyx_n_s_subprocess); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 326, __pyx_L4_error)
         __Pyx_GOTREF(__pyx_t_11);
-        __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_11, __pyx_n_s_call); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 327, __pyx_L4_error)
-        __Pyx_GOTREF(__pyx_t_1);
+        __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_11, __pyx_n_s_call); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 326, __pyx_L4_error)
+        __Pyx_GOTREF(__pyx_t_4);
         __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
 
-        /* "typtops.py":329
+        /* "typtops.py":328
  *         subprocess.call(
  *             "pip install -U typtop && sudo typtop --init",
  *             shell=True             # <<<<<<<<<<<<<<
  *         )
  * 
  */
-        __pyx_t_11 = PyDict_New(); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 329, __pyx_L4_error)
+        __pyx_t_11 = PyDict_New(); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 328, __pyx_L4_error)
         __Pyx_GOTREF(__pyx_t_11);
-        if (PyDict_SetItem(__pyx_t_11, __pyx_n_s_shell, Py_True) < 0) __PYX_ERR(0, 329, __pyx_L4_error)
+        if (PyDict_SetItem(__pyx_t_11, __pyx_n_s_shell, Py_True) < 0) __PYX_ERR(0, 328, __pyx_L4_error)
 
-        /* "typtops.py":327
+        /* "typtops.py":326
  * 
  *     if args.update:
  *         subprocess.call(             # <<<<<<<<<<<<<<
  *             "pip install -U typtop && sudo typtop --init",
  *             shell=True
  */
-        __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_tuple__47, __pyx_t_11); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 327, __pyx_L4_error)
-        __Pyx_GOTREF(__pyx_t_2);
-        __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+        __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_tuple__48, __pyx_t_11); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 326, __pyx_L4_error)
+        __Pyx_GOTREF(__pyx_t_1);
+        __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
         __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
-        __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+        __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-        /* "typtops.py":326
+        /* "typtops.py":325
  *             uninstall_pam_typtop()
  * 
  *     if args.update:             # <<<<<<<<<<<<<<
@@ -6720,36 +6580,74 @@ PyMODINIT_FUNC PyInit_typtops(void)
  */
       }
 
-      /* "typtops.py":332
+      /* "typtops.py":331
  *         )
  * 
  *     if args.check:             # <<<<<<<<<<<<<<
- *         failed, user, pw =  args.check
- *         ret = call_check(failed, user, pw)
+ *         # ensure the parent is pam_opendirectory_typo.so
+ *         assert is_valid_parent()
  */
-      __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_args); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 332, __pyx_L4_error)
-      __Pyx_GOTREF(__pyx_t_2);
-      __pyx_t_11 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_check_2); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 332, __pyx_L4_error)
+      __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_args); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 331, __pyx_L4_error)
+      __Pyx_GOTREF(__pyx_t_1);
+      __pyx_t_11 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_check_2); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 331, __pyx_L4_error)
       __Pyx_GOTREF(__pyx_t_11);
-      __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-      __pyx_t_10 = __Pyx_PyObject_IsTrue(__pyx_t_11); if (unlikely(__pyx_t_10 < 0)) __PYX_ERR(0, 332, __pyx_L4_error)
+      __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+      __pyx_t_10 = __Pyx_PyObject_IsTrue(__pyx_t_11); if (unlikely(__pyx_t_10 < 0)) __PYX_ERR(0, 331, __pyx_L4_error)
       __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
       if (__pyx_t_10) {
 
         /* "typtops.py":333
- * 
  *     if args.check:
+ *         # ensure the parent is pam_opendirectory_typo.so
+ *         assert is_valid_parent()             # <<<<<<<<<<<<<<
+ *         failed, user, pw =  args.check
+ *         ret = call_check(failed, user, pw)
+ */
+        #ifndef CYTHON_WITHOUT_ASSERTIONS
+        if (unlikely(!Py_OptimizeFlag)) {
+          __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_is_valid_parent); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 333, __pyx_L4_error)
+          __Pyx_GOTREF(__pyx_t_1);
+          __pyx_t_4 = NULL;
+          if (CYTHON_COMPILING_IN_CPYTHON && unlikely(PyMethod_Check(__pyx_t_1))) {
+            __pyx_t_4 = PyMethod_GET_SELF(__pyx_t_1);
+            if (likely(__pyx_t_4)) {
+              PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_1);
+              __Pyx_INCREF(__pyx_t_4);
+              __Pyx_INCREF(function);
+              __Pyx_DECREF_SET(__pyx_t_1, function);
+            }
+          }
+          if (__pyx_t_4) {
+            __pyx_t_11 = __Pyx_PyObject_CallOneArg(__pyx_t_1, __pyx_t_4); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 333, __pyx_L4_error)
+            __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+          } else {
+            __pyx_t_11 = __Pyx_PyObject_CallNoArg(__pyx_t_1); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 333, __pyx_L4_error)
+          }
+          __Pyx_GOTREF(__pyx_t_11);
+          __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+          __pyx_t_10 = __Pyx_PyObject_IsTrue(__pyx_t_11); if (unlikely(__pyx_t_10 < 0)) __PYX_ERR(0, 333, __pyx_L4_error)
+          __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
+          if (unlikely(!__pyx_t_10)) {
+            PyErr_SetNone(PyExc_AssertionError);
+            __PYX_ERR(0, 333, __pyx_L4_error)
+          }
+        }
+        #endif
+
+        /* "typtops.py":334
+ *         # ensure the parent is pam_opendirectory_typo.so
+ *         assert is_valid_parent()
  *         failed, user, pw =  args.check             # <<<<<<<<<<<<<<
  *         ret = call_check(failed, user, pw)
  *         sys.stdout.write(str(ret))
  */
-        __pyx_t_11 = __Pyx_GetModuleGlobalName(__pyx_n_s_args); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 333, __pyx_L4_error)
+        __pyx_t_11 = __Pyx_GetModuleGlobalName(__pyx_n_s_args); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 334, __pyx_L4_error)
         __Pyx_GOTREF(__pyx_t_11);
-        __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_11, __pyx_n_s_check_2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 333, __pyx_L4_error)
-        __Pyx_GOTREF(__pyx_t_2);
+        __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_11, __pyx_n_s_check_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 334, __pyx_L4_error)
+        __Pyx_GOTREF(__pyx_t_1);
         __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
-        if ((likely(PyTuple_CheckExact(__pyx_t_2))) || (PyList_CheckExact(__pyx_t_2))) {
-          PyObject* sequence = __pyx_t_2;
+        if ((likely(PyTuple_CheckExact(__pyx_t_1))) || (PyList_CheckExact(__pyx_t_1))) {
+          PyObject* sequence = __pyx_t_1;
           #if CYTHON_COMPILING_IN_CPYTHON
           Py_ssize_t size = Py_SIZE(sequence);
           #else
@@ -6758,43 +6656,43 @@ PyMODINIT_FUNC PyInit_typtops(void)
           if (unlikely(size != 3)) {
             if (size > 3) __Pyx_RaiseTooManyValuesError(3);
             else if (size >= 0) __Pyx_RaiseNeedMoreValuesError(size);
-            __PYX_ERR(0, 333, __pyx_L4_error)
+            __PYX_ERR(0, 334, __pyx_L4_error)
           }
           #if CYTHON_COMPILING_IN_CPYTHON
           if (likely(PyTuple_CheckExact(sequence))) {
             __pyx_t_11 = PyTuple_GET_ITEM(sequence, 0); 
-            __pyx_t_1 = PyTuple_GET_ITEM(sequence, 1); 
-            __pyx_t_4 = PyTuple_GET_ITEM(sequence, 2); 
+            __pyx_t_4 = PyTuple_GET_ITEM(sequence, 1); 
+            __pyx_t_5 = PyTuple_GET_ITEM(sequence, 2); 
           } else {
             __pyx_t_11 = PyList_GET_ITEM(sequence, 0); 
-            __pyx_t_1 = PyList_GET_ITEM(sequence, 1); 
-            __pyx_t_4 = PyList_GET_ITEM(sequence, 2); 
+            __pyx_t_4 = PyList_GET_ITEM(sequence, 1); 
+            __pyx_t_5 = PyList_GET_ITEM(sequence, 2); 
           }
           __Pyx_INCREF(__pyx_t_11);
-          __Pyx_INCREF(__pyx_t_1);
           __Pyx_INCREF(__pyx_t_4);
+          __Pyx_INCREF(__pyx_t_5);
           #else
-          __pyx_t_11 = PySequence_ITEM(sequence, 0); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 333, __pyx_L4_error)
+          __pyx_t_11 = PySequence_ITEM(sequence, 0); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 334, __pyx_L4_error)
           __Pyx_GOTREF(__pyx_t_11);
-          __pyx_t_1 = PySequence_ITEM(sequence, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 333, __pyx_L4_error)
-          __Pyx_GOTREF(__pyx_t_1);
-          __pyx_t_4 = PySequence_ITEM(sequence, 2); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 333, __pyx_L4_error)
+          __pyx_t_4 = PySequence_ITEM(sequence, 1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 334, __pyx_L4_error)
           __Pyx_GOTREF(__pyx_t_4);
+          __pyx_t_5 = PySequence_ITEM(sequence, 2); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 334, __pyx_L4_error)
+          __Pyx_GOTREF(__pyx_t_5);
           #endif
-          __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+          __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
         } else {
           Py_ssize_t index = -1;
-          __pyx_t_13 = PyObject_GetIter(__pyx_t_2); if (unlikely(!__pyx_t_13)) __PYX_ERR(0, 333, __pyx_L4_error)
+          __pyx_t_13 = PyObject_GetIter(__pyx_t_1); if (unlikely(!__pyx_t_13)) __PYX_ERR(0, 334, __pyx_L4_error)
           __Pyx_GOTREF(__pyx_t_13);
-          __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+          __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
           __pyx_t_15 = Py_TYPE(__pyx_t_13)->tp_iternext;
           index = 0; __pyx_t_11 = __pyx_t_15(__pyx_t_13); if (unlikely(!__pyx_t_11)) goto __pyx_L28_unpacking_failed;
           __Pyx_GOTREF(__pyx_t_11);
-          index = 1; __pyx_t_1 = __pyx_t_15(__pyx_t_13); if (unlikely(!__pyx_t_1)) goto __pyx_L28_unpacking_failed;
-          __Pyx_GOTREF(__pyx_t_1);
-          index = 2; __pyx_t_4 = __pyx_t_15(__pyx_t_13); if (unlikely(!__pyx_t_4)) goto __pyx_L28_unpacking_failed;
+          index = 1; __pyx_t_4 = __pyx_t_15(__pyx_t_13); if (unlikely(!__pyx_t_4)) goto __pyx_L28_unpacking_failed;
           __Pyx_GOTREF(__pyx_t_4);
-          if (__Pyx_IternextUnpackEndCheck(__pyx_t_15(__pyx_t_13), 3) < 0) __PYX_ERR(0, 333, __pyx_L4_error)
+          index = 2; __pyx_t_5 = __pyx_t_15(__pyx_t_13); if (unlikely(!__pyx_t_5)) goto __pyx_L28_unpacking_failed;
+          __Pyx_GOTREF(__pyx_t_5);
+          if (__Pyx_IternextUnpackEndCheck(__pyx_t_15(__pyx_t_13), 3) < 0) __PYX_ERR(0, 334, __pyx_L4_error)
           __pyx_t_15 = NULL;
           __Pyx_DECREF(__pyx_t_13); __pyx_t_13 = 0;
           goto __pyx_L29_unpacking_done;
@@ -6802,203 +6700,203 @@ PyMODINIT_FUNC PyInit_typtops(void)
           __Pyx_DECREF(__pyx_t_13); __pyx_t_13 = 0;
           __pyx_t_15 = NULL;
           if (__Pyx_IterFinish() == 0) __Pyx_RaiseNeedMoreValuesError(index);
-          __PYX_ERR(0, 333, __pyx_L4_error)
+          __PYX_ERR(0, 334, __pyx_L4_error)
           __pyx_L29_unpacking_done:;
         }
-        if (PyDict_SetItem(__pyx_d, __pyx_n_s_failed, __pyx_t_11) < 0) __PYX_ERR(0, 333, __pyx_L4_error)
+        if (PyDict_SetItem(__pyx_d, __pyx_n_s_failed, __pyx_t_11) < 0) __PYX_ERR(0, 334, __pyx_L4_error)
         __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
-        if (PyDict_SetItem(__pyx_d, __pyx_n_s_user, __pyx_t_1) < 0) __PYX_ERR(0, 333, __pyx_L4_error)
-        __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-        if (PyDict_SetItem(__pyx_d, __pyx_n_s_pw, __pyx_t_4) < 0) __PYX_ERR(0, 333, __pyx_L4_error)
+        if (PyDict_SetItem(__pyx_d, __pyx_n_s_user, __pyx_t_4) < 0) __PYX_ERR(0, 334, __pyx_L4_error)
         __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+        if (PyDict_SetItem(__pyx_d, __pyx_n_s_pw, __pyx_t_5) < 0) __PYX_ERR(0, 334, __pyx_L4_error)
+        __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
 
-        /* "typtops.py":334
- *     if args.check:
+        /* "typtops.py":335
+ *         assert is_valid_parent()
  *         failed, user, pw =  args.check
  *         ret = call_check(failed, user, pw)             # <<<<<<<<<<<<<<
  *         sys.stdout.write(str(ret))
  *         if ret==0:
  */
-        __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_call_check); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 334, __pyx_L4_error)
+        __pyx_t_5 = __Pyx_GetModuleGlobalName(__pyx_n_s_call_check); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 335, __pyx_L4_error)
+        __Pyx_GOTREF(__pyx_t_5);
+        __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_failed); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 335, __pyx_L4_error)
         __Pyx_GOTREF(__pyx_t_4);
-        __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_failed); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 334, __pyx_L4_error)
-        __Pyx_GOTREF(__pyx_t_1);
-        __pyx_t_11 = __Pyx_GetModuleGlobalName(__pyx_n_s_user); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 334, __pyx_L4_error)
+        __pyx_t_11 = __Pyx_GetModuleGlobalName(__pyx_n_s_user); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 335, __pyx_L4_error)
         __Pyx_GOTREF(__pyx_t_11);
-        __pyx_t_13 = __Pyx_GetModuleGlobalName(__pyx_n_s_pw); if (unlikely(!__pyx_t_13)) __PYX_ERR(0, 334, __pyx_L4_error)
+        __pyx_t_13 = __Pyx_GetModuleGlobalName(__pyx_n_s_pw); if (unlikely(!__pyx_t_13)) __PYX_ERR(0, 335, __pyx_L4_error)
         __Pyx_GOTREF(__pyx_t_13);
         __pyx_t_14 = NULL;
-        __pyx_t_5 = 0;
-        if (CYTHON_COMPILING_IN_CPYTHON && unlikely(PyMethod_Check(__pyx_t_4))) {
-          __pyx_t_14 = PyMethod_GET_SELF(__pyx_t_4);
+        __pyx_t_3 = 0;
+        if (CYTHON_COMPILING_IN_CPYTHON && unlikely(PyMethod_Check(__pyx_t_5))) {
+          __pyx_t_14 = PyMethod_GET_SELF(__pyx_t_5);
           if (likely(__pyx_t_14)) {
-            PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_4);
+            PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_5);
             __Pyx_INCREF(__pyx_t_14);
             __Pyx_INCREF(function);
-            __Pyx_DECREF_SET(__pyx_t_4, function);
-            __pyx_t_5 = 1;
+            __Pyx_DECREF_SET(__pyx_t_5, function);
+            __pyx_t_3 = 1;
           }
         }
-        __pyx_t_3 = PyTuple_New(3+__pyx_t_5); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 334, __pyx_L4_error)
-        __Pyx_GOTREF(__pyx_t_3);
+        __pyx_t_2 = PyTuple_New(3+__pyx_t_3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 335, __pyx_L4_error)
+        __Pyx_GOTREF(__pyx_t_2);
         if (__pyx_t_14) {
-          __Pyx_GIVEREF(__pyx_t_14); PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_t_14); __pyx_t_14 = NULL;
+          __Pyx_GIVEREF(__pyx_t_14); PyTuple_SET_ITEM(__pyx_t_2, 0, __pyx_t_14); __pyx_t_14 = NULL;
         }
-        __Pyx_GIVEREF(__pyx_t_1);
-        PyTuple_SET_ITEM(__pyx_t_3, 0+__pyx_t_5, __pyx_t_1);
+        __Pyx_GIVEREF(__pyx_t_4);
+        PyTuple_SET_ITEM(__pyx_t_2, 0+__pyx_t_3, __pyx_t_4);
         __Pyx_GIVEREF(__pyx_t_11);
-        PyTuple_SET_ITEM(__pyx_t_3, 1+__pyx_t_5, __pyx_t_11);
+        PyTuple_SET_ITEM(__pyx_t_2, 1+__pyx_t_3, __pyx_t_11);
         __Pyx_GIVEREF(__pyx_t_13);
-        PyTuple_SET_ITEM(__pyx_t_3, 2+__pyx_t_5, __pyx_t_13);
-        __pyx_t_1 = 0;
+        PyTuple_SET_ITEM(__pyx_t_2, 2+__pyx_t_3, __pyx_t_13);
+        __pyx_t_4 = 0;
         __pyx_t_11 = 0;
         __pyx_t_13 = 0;
-        __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_3, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 334, __pyx_L4_error)
-        __Pyx_GOTREF(__pyx_t_2);
-        __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-        __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-        if (PyDict_SetItem(__pyx_d, __pyx_n_s_ret, __pyx_t_2) < 0) __PYX_ERR(0, 334, __pyx_L4_error)
+        __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_5, __pyx_t_2, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 335, __pyx_L4_error)
+        __Pyx_GOTREF(__pyx_t_1);
         __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+        __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+        if (PyDict_SetItem(__pyx_d, __pyx_n_s_ret, __pyx_t_1) < 0) __PYX_ERR(0, 335, __pyx_L4_error)
+        __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-        /* "typtops.py":335
+        /* "typtops.py":336
  *         failed, user, pw =  args.check
  *         ret = call_check(failed, user, pw)
  *         sys.stdout.write(str(ret))             # <<<<<<<<<<<<<<
  *         if ret==0:
  *             logger.info("Sending logs ...")
  */
-        __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_sys); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 335, __pyx_L4_error)
-        __Pyx_GOTREF(__pyx_t_4);
-        __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_stdout); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 335, __pyx_L4_error)
-        __Pyx_GOTREF(__pyx_t_3);
-        __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-        __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_write); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 335, __pyx_L4_error)
-        __Pyx_GOTREF(__pyx_t_4);
-        __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-        __pyx_t_3 = __Pyx_GetModuleGlobalName(__pyx_n_s_ret); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 335, __pyx_L4_error)
-        __Pyx_GOTREF(__pyx_t_3);
-        __pyx_t_13 = PyTuple_New(1); if (unlikely(!__pyx_t_13)) __PYX_ERR(0, 335, __pyx_L4_error)
+        __pyx_t_5 = __Pyx_GetModuleGlobalName(__pyx_n_s_sys); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 336, __pyx_L4_error)
+        __Pyx_GOTREF(__pyx_t_5);
+        __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_stdout); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 336, __pyx_L4_error)
+        __Pyx_GOTREF(__pyx_t_2);
+        __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+        __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_write); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 336, __pyx_L4_error)
+        __Pyx_GOTREF(__pyx_t_5);
+        __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+        __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_ret); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 336, __pyx_L4_error)
+        __Pyx_GOTREF(__pyx_t_2);
+        __pyx_t_13 = PyTuple_New(1); if (unlikely(!__pyx_t_13)) __PYX_ERR(0, 336, __pyx_L4_error)
         __Pyx_GOTREF(__pyx_t_13);
-        __Pyx_GIVEREF(__pyx_t_3);
-        PyTuple_SET_ITEM(__pyx_t_13, 0, __pyx_t_3);
-        __pyx_t_3 = 0;
-        __pyx_t_3 = __Pyx_PyObject_Call(((PyObject *)(&PyString_Type)), __pyx_t_13, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 335, __pyx_L4_error)
-        __Pyx_GOTREF(__pyx_t_3);
+        __Pyx_GIVEREF(__pyx_t_2);
+        PyTuple_SET_ITEM(__pyx_t_13, 0, __pyx_t_2);
+        __pyx_t_2 = 0;
+        __pyx_t_2 = __Pyx_PyObject_Call(((PyObject *)(&PyString_Type)), __pyx_t_13, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 336, __pyx_L4_error)
+        __Pyx_GOTREF(__pyx_t_2);
         __Pyx_DECREF(__pyx_t_13); __pyx_t_13 = 0;
         __pyx_t_13 = NULL;
-        if (CYTHON_COMPILING_IN_CPYTHON && likely(PyMethod_Check(__pyx_t_4))) {
-          __pyx_t_13 = PyMethod_GET_SELF(__pyx_t_4);
+        if (CYTHON_COMPILING_IN_CPYTHON && likely(PyMethod_Check(__pyx_t_5))) {
+          __pyx_t_13 = PyMethod_GET_SELF(__pyx_t_5);
           if (likely(__pyx_t_13)) {
-            PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_4);
+            PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_5);
             __Pyx_INCREF(__pyx_t_13);
             __Pyx_INCREF(function);
-            __Pyx_DECREF_SET(__pyx_t_4, function);
+            __Pyx_DECREF_SET(__pyx_t_5, function);
           }
         }
         if (!__pyx_t_13) {
-          __pyx_t_2 = __Pyx_PyObject_CallOneArg(__pyx_t_4, __pyx_t_3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 335, __pyx_L4_error)
-          __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-          __Pyx_GOTREF(__pyx_t_2);
+          __pyx_t_1 = __Pyx_PyObject_CallOneArg(__pyx_t_5, __pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 336, __pyx_L4_error)
+          __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+          __Pyx_GOTREF(__pyx_t_1);
         } else {
-          __pyx_t_11 = PyTuple_New(1+1); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 335, __pyx_L4_error)
+          __pyx_t_11 = PyTuple_New(1+1); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 336, __pyx_L4_error)
           __Pyx_GOTREF(__pyx_t_11);
           __Pyx_GIVEREF(__pyx_t_13); PyTuple_SET_ITEM(__pyx_t_11, 0, __pyx_t_13); __pyx_t_13 = NULL;
-          __Pyx_GIVEREF(__pyx_t_3);
-          PyTuple_SET_ITEM(__pyx_t_11, 0+1, __pyx_t_3);
-          __pyx_t_3 = 0;
-          __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_11, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 335, __pyx_L4_error)
-          __Pyx_GOTREF(__pyx_t_2);
+          __Pyx_GIVEREF(__pyx_t_2);
+          PyTuple_SET_ITEM(__pyx_t_11, 0+1, __pyx_t_2);
+          __pyx_t_2 = 0;
+          __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_5, __pyx_t_11, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 336, __pyx_L4_error)
+          __Pyx_GOTREF(__pyx_t_1);
           __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
         }
-        __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-        __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+        __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+        __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
 
-        /* "typtops.py":336
+        /* "typtops.py":337
  *         ret = call_check(failed, user, pw)
  *         sys.stdout.write(str(ret))
  *         if ret==0:             # <<<<<<<<<<<<<<
  *             logger.info("Sending logs ...")
- *             subprocess.Popen('send_typo_log.py')
+ *             subprocess.Popen('/usr/local/bin/send_typo_log.py')
  */
-        __pyx_t_2 = __Pyx_GetModuleGlobalName(__pyx_n_s_ret); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 336, __pyx_L4_error)
-        __Pyx_GOTREF(__pyx_t_2);
-        __pyx_t_4 = __Pyx_PyInt_EqObjC(__pyx_t_2, __pyx_int_0, 0, 0); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 336, __pyx_L4_error)
-        __Pyx_GOTREF(__pyx_t_4);
-        __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-        __pyx_t_10 = __Pyx_PyObject_IsTrue(__pyx_t_4); if (unlikely(__pyx_t_10 < 0)) __PYX_ERR(0, 336, __pyx_L4_error)
-        __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+        __pyx_t_1 = __Pyx_GetModuleGlobalName(__pyx_n_s_ret); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 337, __pyx_L4_error)
+        __Pyx_GOTREF(__pyx_t_1);
+        __pyx_t_5 = __Pyx_PyInt_EqObjC(__pyx_t_1, __pyx_int_0, 0, 0); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 337, __pyx_L4_error)
+        __Pyx_GOTREF(__pyx_t_5);
+        __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+        __pyx_t_10 = __Pyx_PyObject_IsTrue(__pyx_t_5); if (unlikely(__pyx_t_10 < 0)) __PYX_ERR(0, 337, __pyx_L4_error)
+        __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
         if (__pyx_t_10) {
 
-          /* "typtops.py":337
+          /* "typtops.py":338
  *         sys.stdout.write(str(ret))
  *         if ret==0:
  *             logger.info("Sending logs ...")             # <<<<<<<<<<<<<<
- *             subprocess.Popen('send_typo_log.py')
+ *             subprocess.Popen('/usr/local/bin/send_typo_log.py')
  *             logger.info("... Done")
  */
-          __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_logger); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 337, __pyx_L4_error)
-          __Pyx_GOTREF(__pyx_t_4);
-          __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_info); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 337, __pyx_L4_error)
-          __Pyx_GOTREF(__pyx_t_2);
-          __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-          __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_tuple__48, NULL); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 337, __pyx_L4_error)
-          __Pyx_GOTREF(__pyx_t_4);
-          __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-          __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+          __pyx_t_5 = __Pyx_GetModuleGlobalName(__pyx_n_s_logger); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 338, __pyx_L4_error)
+          __Pyx_GOTREF(__pyx_t_5);
+          __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_info); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 338, __pyx_L4_error)
+          __Pyx_GOTREF(__pyx_t_1);
+          __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+          __pyx_t_5 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_tuple__49, NULL); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 338, __pyx_L4_error)
+          __Pyx_GOTREF(__pyx_t_5);
+          __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+          __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
 
-          /* "typtops.py":338
+          /* "typtops.py":339
  *         if ret==0:
  *             logger.info("Sending logs ...")
- *             subprocess.Popen('send_typo_log.py')             # <<<<<<<<<<<<<<
+ *             subprocess.Popen('/usr/local/bin/send_typo_log.py')             # <<<<<<<<<<<<<<
  *             logger.info("... Done")
  * 
  */
-          __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_subprocess); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 338, __pyx_L4_error)
-          __Pyx_GOTREF(__pyx_t_4);
-          __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_Popen); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 338, __pyx_L4_error)
-          __Pyx_GOTREF(__pyx_t_2);
-          __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-          __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_tuple__49, NULL); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 338, __pyx_L4_error)
-          __Pyx_GOTREF(__pyx_t_4);
-          __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-          __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+          __pyx_t_5 = __Pyx_GetModuleGlobalName(__pyx_n_s_subprocess); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 339, __pyx_L4_error)
+          __Pyx_GOTREF(__pyx_t_5);
+          __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_Popen); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 339, __pyx_L4_error)
+          __Pyx_GOTREF(__pyx_t_1);
+          __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+          __pyx_t_5 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_tuple__50, NULL); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 339, __pyx_L4_error)
+          __Pyx_GOTREF(__pyx_t_5);
+          __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+          __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
 
-          /* "typtops.py":339
+          /* "typtops.py":340
  *             logger.info("Sending logs ...")
- *             subprocess.Popen('send_typo_log.py')
+ *             subprocess.Popen('/usr/local/bin/send_typo_log.py')
  *             logger.info("... Done")             # <<<<<<<<<<<<<<
  * 
  * 
  */
-          __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_logger); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 339, __pyx_L4_error)
-          __Pyx_GOTREF(__pyx_t_4);
-          __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_info); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 339, __pyx_L4_error)
-          __Pyx_GOTREF(__pyx_t_2);
-          __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-          __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_tuple__50, NULL); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 339, __pyx_L4_error)
-          __Pyx_GOTREF(__pyx_t_4);
-          __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-          __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+          __pyx_t_5 = __Pyx_GetModuleGlobalName(__pyx_n_s_logger); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 340, __pyx_L4_error)
+          __Pyx_GOTREF(__pyx_t_5);
+          __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_info); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 340, __pyx_L4_error)
+          __Pyx_GOTREF(__pyx_t_1);
+          __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+          __pyx_t_5 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_tuple__51, NULL); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 340, __pyx_L4_error)
+          __Pyx_GOTREF(__pyx_t_5);
+          __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+          __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
 
-          /* "typtops.py":336
+          /* "typtops.py":337
  *         ret = call_check(failed, user, pw)
  *         sys.stdout.write(str(ret))
  *         if ret==0:             # <<<<<<<<<<<<<<
  *             logger.info("Sending logs ...")
- *             subprocess.Popen('send_typo_log.py')
+ *             subprocess.Popen('/usr/local/bin/send_typo_log.py')
  */
         }
 
-        /* "typtops.py":332
+        /* "typtops.py":331
  *         )
  * 
  *     if args.check:             # <<<<<<<<<<<<<<
- *         failed, user, pw =  args.check
- *         ret = call_check(failed, user, pw)
+ *         # ensure the parent is pam_opendirectory_typo.so
+ *         assert is_valid_parent()
  */
       }
 
-      /* "typtops.py":269
+      /* "typtops.py":268
  * SEND_LOGS = '/usr/local/bin/send_typo_log.py'
  * 
  * try:             # <<<<<<<<<<<<<<
@@ -7013,48 +6911,48 @@ PyMODINIT_FUNC PyInit_typtops(void)
     __pyx_L4_error:;
     __Pyx_PyThreadState_assign
     __Pyx_XDECREF(__pyx_t_14); __pyx_t_14 = 0;
-    __Pyx_XDECREF(__pyx_t_1); __pyx_t_1 = 0;
-    __Pyx_XDECREF(__pyx_t_13); __pyx_t_13 = 0;
-    __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
-    __Pyx_XDECREF(__pyx_t_11); __pyx_t_11 = 0;
-    __Pyx_XDECREF(__pyx_t_2); __pyx_t_2 = 0;
     __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
+    __Pyx_XDECREF(__pyx_t_13); __pyx_t_13 = 0;
+    __Pyx_XDECREF(__pyx_t_2); __pyx_t_2 = 0;
+    __Pyx_XDECREF(__pyx_t_11); __pyx_t_11 = 0;
+    __Pyx_XDECREF(__pyx_t_1); __pyx_t_1 = 0;
+    __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
 
-    /* "typtops.py":342
+    /* "typtops.py":343
  * 
  * 
  * except AbortSettings as abort:             # <<<<<<<<<<<<<<
  *     print("Settings' change had been aborted.")
  */
-    __pyx_t_4 = __Pyx_GetModuleGlobalName(__pyx_n_s_AbortSettings); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 342, __pyx_L6_except_error)
-    __Pyx_GOTREF(__pyx_t_4);
-    __pyx_t_16 = __Pyx_PyErr_ExceptionMatches(__pyx_t_4);
-    __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+    __pyx_t_5 = __Pyx_GetModuleGlobalName(__pyx_n_s_AbortSettings); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 343, __pyx_L6_except_error)
+    __Pyx_GOTREF(__pyx_t_5);
+    __pyx_t_16 = __Pyx_PyErr_ExceptionMatches(__pyx_t_5);
+    __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
     if (__pyx_t_16) {
       __Pyx_AddTraceback("typtops", __pyx_clineno, __pyx_lineno, __pyx_filename);
-      if (__Pyx_GetException(&__pyx_t_4, &__pyx_t_2, &__pyx_t_11) < 0) __PYX_ERR(0, 342, __pyx_L6_except_error)
-      __Pyx_GOTREF(__pyx_t_4);
-      __Pyx_GOTREF(__pyx_t_2);
+      if (__Pyx_GetException(&__pyx_t_5, &__pyx_t_1, &__pyx_t_11) < 0) __PYX_ERR(0, 343, __pyx_L6_except_error)
+      __Pyx_GOTREF(__pyx_t_5);
+      __Pyx_GOTREF(__pyx_t_1);
       __Pyx_GOTREF(__pyx_t_11);
-      if (PyDict_SetItem(__pyx_d, __pyx_n_s_abort, __pyx_t_2) < 0) __PYX_ERR(0, 342, __pyx_L6_except_error)
+      if (PyDict_SetItem(__pyx_d, __pyx_n_s_abort, __pyx_t_1) < 0) __PYX_ERR(0, 343, __pyx_L6_except_error)
 
-      /* "typtops.py":343
+      /* "typtops.py":344
  * 
  * except AbortSettings as abort:
  *     print("Settings' change had been aborted.")             # <<<<<<<<<<<<<<
  */
-      __pyx_t_3 = __Pyx_PyObject_Call(__pyx_builtin_print, __pyx_tuple__51, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 343, __pyx_L6_except_error)
-      __Pyx_GOTREF(__pyx_t_3);
-      __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-      __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+      __pyx_t_2 = __Pyx_PyObject_Call(__pyx_builtin_print, __pyx_tuple__52, NULL); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 344, __pyx_L6_except_error)
+      __Pyx_GOTREF(__pyx_t_2);
       __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+      __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
+      __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
       __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
       goto __pyx_L5_exception_handled;
     }
     goto __pyx_L6_except_error;
     __pyx_L6_except_error:;
 
-    /* "typtops.py":269
+    /* "typtops.py":268
  * SEND_LOGS = '/usr/local/bin/send_typo_log.py'
  * 
  * try:             # <<<<<<<<<<<<<<
@@ -7092,8 +6990,8 @@ PyMODINIT_FUNC PyInit_typtops(void)
   __pyx_L1_error:;
   __Pyx_XDECREF(__pyx_t_1);
   __Pyx_XDECREF(__pyx_t_2);
-  __Pyx_XDECREF(__pyx_t_3);
   __Pyx_XDECREF(__pyx_t_4);
+  __Pyx_XDECREF(__pyx_t_5);
   __Pyx_XDECREF(__pyx_t_11);
   __Pyx_XDECREF(__pyx_t_13);
   __Pyx_XDECREF(__pyx_t_14);
@@ -8040,6 +7938,13 @@ bad:
     Py_XDECREF(empty_dict);
     return module;
 }
+
+/* StringJoin */
+          #if !CYTHON_COMPILING_IN_CPYTHON
+static CYTHON_INLINE PyObject* __Pyx_PyBytes_Join(PyObject* sep, PyObject* values) {
+    return PyObject_CallMethodObjArgs(sep, __pyx_n_s_join, values, NULL);
+}
+#endif
 
 /* ImportFrom */
           static PyObject* __Pyx_ImportFrom(PyObject* module, PyObject* name) {

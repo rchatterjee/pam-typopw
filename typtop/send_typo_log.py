@@ -40,13 +40,14 @@ def send_logs(typo_db, force=False):
             sent_time=get_time(),
             delete_old_logs=True
         )
-        with open('{}/{}.log'.format(LOG_DIR, DB_NAME), 'w') as f:
-            pass
+        # with open('{}/{}.log'.format(LOG_DIR, DB_NAME), 'w') as f:
+        #     pass
 
 if __name__ == '__main__':
-    user =  pwd.getpwuid(os.getuid()).pw_name
+    assert len(sys.argv) > 1
+    user =  sys.argv[1]
     typo_db = UserTypoDB(user)
     force = False
-    if len(sys.argv)>1 and sys.argv[1] == 'force':
+    if len(sys.argv)>2 and sys.argv[2] == 'force':
         force = True
     send_logs(typo_db, force)

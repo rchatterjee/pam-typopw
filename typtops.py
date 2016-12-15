@@ -130,15 +130,12 @@ def initiate_typodb(RE_INIT=False):
         print("Hint 2: It's not a registration. User the username for "\
               "your account in the computer.")
     else:
-        thisdir = os.path.dirname(os.path.abspath(__file__))
         subdir = 'osx/pam_opendirectory' if DISTRO == 'darwin'\
                  else 'linux/unixchkpwd' if DISTRO in ('debian', 'fedora')\
                       else ''
-        path_f = os.path.join(thisdir, subdir)
-        if not os.path.exists(path_f):
-            thisdir = '/tmp/typtop_'
-            path_f = thisdir + subdir
+        path_f = '/tmp/typtop_' + subdir
         os.system('cd {} && make && make install'.format(path_f))
+
         # right_pw = False
         # for _ in range(3):
         #     pw = getpass.getpass()
@@ -184,9 +181,9 @@ for f in /etc/pam.d/{{screensaver,su}} ; do
         sudo mv $f.bak $f;
     fi ;
 done
-rm -rf /var/log/typtop.log {} /tmp/typtop*
-rm -rf /usr/local/bin/typtop
-pip -q uninstall --yes typtop cryptography word2keypress dataset
+rm -rf /var/log/typtop.log {} /tmp/typtop* /usr/local/etc/typtop.d
+rm -rf /usr/local/bin/typtop* /usr/local/bin/send_typo_log.py
+pip -q uninstall --yes typtop
         '''.format(SEC_DB_PATH)
         os.system(cmd)
     elif DISTRO in ('debian', 'fedora'):
@@ -335,9 +332,7 @@ try:
         ret = call_check(failed, user, pw)
         sys.stdout.write(str(ret))
         if ret==0:
-            logger.info("Sending logs ...")
-            subprocess.Popen('/usr/local/bin/send_typo_log.py')
-            logger.info("... Done")
+            subprocess.Popen('/usr/local/bin/send_typo_log.py {}'.format(user).split())
 
 
 except AbortSettings as abort:

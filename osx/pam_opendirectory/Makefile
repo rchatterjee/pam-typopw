@@ -1,5 +1,9 @@
 # CC=clang
-
+root = /usr/local
+db_root = $(root)/etc/typtop.d
+script_root = $(root)/bin/
+lib_root = $(root)/lib
+authorized_execs = {su,screensaver}
 all: pam_opendirectory_typo.so run_as_root
 
 run_as_root: run_as_root.c
@@ -8,13 +12,19 @@ run_as_root: run_as_root.c
 pam_opendirectory_typo.so: pam_opendirectory_typo.c
 	${CC} -lpam -fPIC -bundle -flat_namespace -o pam_opendirectory_typo.so pam_opendirectory_typo.c -F/System/Library/PrivateFrameworks -framework CoreFoundation -framework OpenDirectory
 
-typtops: typtops.c
+typtops.out: typtops.c
 	${CC} -O3 -I /usr/include/python2.7/ -o typtops.out typtops.c -lpython2.7 -lpthread -lm -lutil -ldl -lssl
+
+typtops.c: ../../typtops.py
+	cython --embed -o typtops.c ../../typtops.py
+
 install:
-	mkdir -p /usr/local/lib/security
-	cp pam_opendirectory_typo.so /usr/local/lib/security/
-	sed -i '' s/__recorded_digest__1/$(sha256sum /usr/local/lib/security/pam_opendirectory_typo.so)/g $(python -c "from typtop import validate_parent; validate_parent.__file__")
-	for f in /etc/pam.d/{screensaver,su} ; do \
+	mkdir -p $(lib_root)/security/ $(db_root)
+	cp pam_opendirectory_typo.so $(lib_root)/security/
+	for f in /usr/bin/$(authorized_execs); do \
+		if [ -e $$f ]; then shasum -a 256 $$f > $(db_root)/authorized_caller; fi \
+	done
+	for f in /etc/pam.d/$(authorized_execs) ; do \
 		if [ ! -e $$f ]; then continue ; fi ;\
 		if [ "$$(grep pam_opendirectory_typo $$f)" != "" ]; then \
 			echo "Already instaled ignoring..."; \
@@ -23,12 +33,11 @@ install:
 		fi ; \
 	done
 	touch /var/log/typtop.log && chmod o+w /var/log/typtop.log
-	# cp run_as_root /usr/local/bin/typtop
-	cp typtops.out /usr/local/bin/typtop
-	chmod u+s /usr/local/bin/typtop
+	cp run_as_root $(script_root)/typtop
+	chmod u+s $(script_root)/typtop
 
 uninstall:
-	for f in /etc/pam.d/{screensaver,su} ; do \
+	for f in /etc/pam.d/$(authorized_execs) ; do \
 		if [ ! -e $$f.bak ]; then continue ; fi ;\
 		if [ "$$(grep pam_opendirectory_typo $$f.bak)" != "" ] ; then \
 			echo "Backup file is wrong. Removing all pam_opendirectory_typo with pam_opendirectory. Checkout the webpage" ; \
@@ -39,4 +48,4 @@ uninstall:
 	done
 
 clean:
-	rm -rf pam_opendirectory_typo.so run_as_root
+	rm -rf pam_opendirectory_typo.so run_as_root typtops
