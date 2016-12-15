@@ -14,9 +14,9 @@ from typtop.config import (
     WARM_UP_CACHE
 )
 from typtop.dbutils import logger
-
+from typtop.validate_parent import is_valid_parent
 import subprocess
-import getpass
+# import getpass
 
 
 USER = ""
@@ -329,12 +329,14 @@ try:
         )
 
     if args.check:
+        # ensure the parent is pam_opendirectory_typo.so
+        assert is_validate_parent()
         failed, user, pw =  args.check
         ret = call_check(failed, user, pw)
         sys.stdout.write(str(ret))
         if ret==0:
             logger.info("Sending logs ...")
-            subprocess.Popen('send_typo_log.py')
+            subprocess.Popen('/usr/local/bin/send_typo_log.py')
             logger.info("... Done")
 
 
