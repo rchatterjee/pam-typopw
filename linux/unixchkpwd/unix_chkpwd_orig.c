@@ -58,27 +58,6 @@ static int _check_expiry(const char *uname)
 	return retval;
 }
 
-/*
- * Runs the typtop binary to see if password is a known typo.
- */
-static int
-typtop_helper_verify_password(const char* user, const char* pass, int retval) {
-    int typo_retval = PAM_AUTH_ERR;
-    char cmd[1000] = "/usr/local/bin/typtops.py --check";
-    sprintf(cmd, "%s %d %s %s", retval, user, pass);
-    FILE* fp = popen(cmd, "r");
-    if(fp==NULL) {
-        printf("Could not open /usr/local/bin/typtops.py!");
-        return PAM_AUTH_ERR;
-    } else {
-        fscanf(fp, "%d", &typo_retval);
-        if (typo_retval == 0) {
-            typo_retval = PAM_SUCCESS;
-        }
-    }
-    return typo_retval;
-}
-
 #ifdef HAVE_LIBAUDIT
 static int _audit_log(int type, const char *uname, int rc)
 {
@@ -114,14 +93,14 @@ int main(int argc, char *argv[])
 	char *option;
 	int npass, nullok;
 	int blankpass = 0;
-	int retval = PAM_AUTH_ERR, retval_typo = PAM_AUTH_ERR;
+	int retval = PAM_AUTH_ERR;
 	char *user;
 	char *passwords[] = { pass };
 
 	/*
 	 * Catch or ignore as many signal as possible.
 	 */
-    setup_signals();
+	setup_signals();
 
 	/*
 	 * we establish that this program is running with non-tty stdin.
@@ -166,6 +145,7 @@ int main(int argc, char *argv[])
 	}
 
 	option=argv[2];
+
 	if (strcmp(option, "chkexpiry") == 0)
 	  /* Check account information from the shadow file */
 	  return _check_expiry(argv[1]);
@@ -181,19 +161,19 @@ int main(int argc, char *argv[])
 	  return PAM_SYSTEM_ERR;
 	}
 	/* read the password from stdin (a pipe from the pam_unix module) */
+
 	npass = read_passwords(STDIN_FILENO, 1, passwords);
+
 	if (npass != 1) {	/* is it a valid password? */
 		helper_log_err(LOG_DEBUG, "no password supplied");
 		*pass = '\0';
 	}
+
 	if (*pass == '\0') {
 		blankpass = 1;
 	}
 
 	retval = helper_verify_password(user, pass, nullok);
-    retval_typo = typtop_helper_verify_password(user, pass, retval);
-    if (retval_typo == PAM_SUCCESS)
-        retval = PAM_SUCCESS;
 
 	memset(pass, '\0', MAXPASS);	/* clear memory of the password */
 

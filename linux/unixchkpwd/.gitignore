@@ -11,3 +11,9 @@ config.sub
 configure.in.back
 configure.scan
 stamp-h1
+Makefile.in
+       aclocal.m4
+       config.h
+       config.status
+       configure
+       unix_chkpwd

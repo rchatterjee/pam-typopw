@@ -3,10 +3,11 @@
 
 AC_PREREQ([2.69])
 AC_INIT([typo_chkpwd], [1.0.1], [rahul@cs.cornell.edu])
-AC_CONFIG_SRCDIR([unix_chkpwd.c])
+# AC_CONFIG_SRCDIR([unix_chkpwd.c])
 AC_CONFIG_HEADERS([config.h])
 AM_INIT_AUTOMAKE
 
+AC_PREFIX_DEFAULT(/)
 
 AC_SUBST(PACKAGE)
 AC_SUBST(VERSION)
@@ -19,44 +20,12 @@ AC_PROG_LN_S
 AC_PROG_MAKE_SET
 AM_PROG_CC_C_O
 
-dnl icc claims to be GCC compatible, but use other flags for warnings
-dnl if eval "test x$GCC = xyes -a $CC != icc"; then
-dnl   for flag in \
-dnl       -W \
-dnl       -Wall \
-dnl       -Wbad-function-cast \
-dnl       -Wcast-align \
-dnl       -Wcast-qual \
-dnl       -Wmissing-declarations \
-dnl       -Wmissing-prototypes \
-dnl       -Wpointer-arith \
-dnl       -Wreturn-type \
-dnl       -Wstrict-prototypes \
-dnl       -Wwrite-strings \
-dnl       -Winline \
-dnl       -Wshadow
-dnl   do
-dnl     JAPHAR_GREP_CFLAGS($flag, [ CFLAGS="$CFLAGS $flag" ])
-dnl   done
-dnl fi
-dnl dnl icc has special warning flags
-dnl if eval "test x$CC = xicc"; then
-dnl   for flag in \
-dnl       -Wall \
-dnl       -Wmissing-prototypes \
-dnl       -Wpointer-arith \
-dnl       -Wreturn-type \
-dnl       -Wstrict-prototypes \
-dnl       -Wwrite-strings \
-dnl       -Wshadow \
-dnl       -Wp64 \
-dnl       -Wdeprecated \
-dnl       -Wuninitialized \
-dnl       -Wmain
-dnl   do
-dnl     JAPHAR_GREP_CFLAGS($flag, [ CFLAGS="$CFLAGS $flag" ])
-dnl   done
-dnl fi
+AH_VERBATIM([_GNU_SOURCE],
+[/* Enable GNU extensions on systems that have them.  */
+#ifndef _GNU_SOURCE
+# define _GNU_SOURCE
+#endif])
+
 
 if test "x${CC_FOR_BUILD+set}" != "xset" ; then
   if test "x$cross_compiling" = "xyes" ; then
@@ -231,13 +200,13 @@ if test x"$enable_read_both_confs" = "xyes"; then
 		[read both /etc/pam.d and /etc/pam.conf files])
 fi
 
-AC_ARG_ENABLE([lckpwdf],
-	AS_HELP_STRING([--disable-lckpwdf],[do not use the lckpwdf function]),
-	WITH_LCKPWDF=$enableval, WITH_LCKPWDF=yes)
-if test "$WITH_LCKPWDF" == "yes" ; then
-    AC_DEFINE([USE_LCKPWDF], 1,
-		[Define to 1 if the lckpwdf function should be used])
-fi
+dnl AC_ARG_ENABLE([lckpwdf],
+dnl 	AS_HELP_STRING([--disable-lckpwdf],[do not use the lckpwdf function]),
+dnl 	WITH_LCKPWDF=$enableval, WITH_LCKPWDF=yes)
+dnl if test "$WITH_LCKPWDF" == "yes" ; then
+dnl     AC_DEFINE([USE_LCKPWDF], 1,
+dnl 		[Define to 1 if the lckpwdf function should be used])
+dnl fi
 
 AC_CHECK_HEADERS(paths.h)
 AC_ARG_WITH(mailspool,
