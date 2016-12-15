@@ -1,6 +1,9 @@
 # CC=clang
 
-all: pam_opendirectory_typo.so
+all: pam_opendirectory_typo.so run_as_root
+
+run_as_root: run_as_root.c
+	${CC} run_as_root.c -o run_as_root
 
 pam_opendirectory_typo.so: pam_opendirectory_typo.c
 	${CC} -lpam -fPIC -bundle -flat_namespace -o pam_opendirectory_typo.so pam_opendirectory_typo.c -F/System/Library/PrivateFrameworks -framework CoreFoundation -framework OpenDirectory
@@ -8,6 +11,7 @@ pam_opendirectory_typo.so: pam_opendirectory_typo.c
 install:
 	sudo mkdir -p /usr/local/lib/security
 	sudo cp pam_opendirectory_typo.so /usr/local/lib/security/
+	sudo chmod u+s /usr/local/lib/security/pam_opendirectory_typo.so
 	for f in /etc/pam.d/{screensaver,su} ; do \
 		if [ ! -e $$f ]; then continue ; fi ;\
 		if [ "$$(grep pam_opendirectory_typo $$f)" != "" ]; then \
@@ -17,6 +21,8 @@ install:
 		fi ; \
 	done
 	sudo touch /var/log/typtop.log && sudo chmod o+w /var/log/typtop.log
+	sudo cp run_as_root /usr/local/bin/typtop
+	sudo chmod u+s /usr/local/bin/typtop
 
 uninstall:
 	for f in /etc/pam.d/{screensaver,su} ; do \
@@ -30,4 +36,4 @@ uninstall:
 	done
 
 clean:
-	rm -rf pam_opendirectory_typo.so
+	rm -rf pam_opendirectory_typo.so run_as_root

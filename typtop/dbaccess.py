@@ -1,4 +1,5 @@
-#!/usr/bin/env python
+#!/usr/local/bin/python
+
 import os
 import re
 import time
@@ -13,7 +14,7 @@ from base64 import urlsafe_b64encode, urlsafe_b64decode
 from word2keypress import distance
 from operator import itemgetter
 # Local libraries
-from typtop.dbutils import find_one, logger, setup_logger
+from typtop.dbutils import find_one, logger, setup_logger, isuser
 from typtop.config import *
 from typtop.pw_pkcrypto import (
     encrypt, decrypt, generate_key_pair, compute_id,
@@ -66,6 +67,8 @@ class UserTypoDB(object):
         return "UserTypoDB ({})".format(self._user)
 
     def __init__(self, user, debug_mode=False): # TODO CHANGE to False
+        assert isuser(user), "User {!r} does not exists".format(user)
+
         self._user = user  # this is a real user.
         # homedir = pwd.getpwnam(self._user).pw_dir
         typo_dir = os.path.join(SEC_DB_PATH, user)
@@ -105,11 +108,12 @@ class UserTypoDB(object):
         logger.info("Initiating typtop db with {}".format(
             dict(allow_typo_login=allow_typo_login)
         ))
-        # u_data = pwd.getpwnam(self._user)
-        # u_id, g_id = u_data.pw_uid, u_data.pw_gid
-        # log_path = self._log_path
+        u_data = pwd.getpwnam(self._user)
+        u_id, g_id = u_data.pw_uid, u_data.pw_gid
+        log_path = self._log_path
         # os.chown(log_path, u_id, g_id)  # change owner to user
         # os.chmod(log_path, 0600)  # RW only for owner
+        os.chown(self._db_path, 0, 0) # Only the owner can read it.
         os.chmod(self._db_path, 0600) # Only the owner can read it.
 
         db = self._db
@@ -203,7 +207,6 @@ class UserTypoDB(object):
         self.set_in_auxtdb(ENC_PK, serialize_pk(self._pk))
         # 3 sending logs and deleting tables:
         logger.debug('Sending logs')
-        self.update_last_log_sent_time(get_time(), True)
 
         logger.debug("Deleting tables")
         self._db[logT].delete()
@@ -246,6 +249,9 @@ class UserTypoDB(object):
             )
         return is_on
 
+    def _isreal_pw(self, pw):
+        return self._pw == pw
+
     def allow_login(self, allow=True):
         self.assert_initialized()
         assert allow in (True, False, 0, 1), "Expects a boolean"
@@ -255,8 +261,16 @@ class UserTypoDB(object):
         logger.info("typtop set to {}".format(state))
 
     def _fill_waitlist_w_garbage(self):
+        ts = get_time()
+        install_id = self.get_installation_id()
+        def randomstring(k):
+            return urlsafe_b64encode(os.urandom(16))
         waitlist = [
-            pkencrypt(self._pk, os.urandom(16)) for _ in xrange(WAITLIST_SIZE)
+            pkencrypt(
+                self._pk,
+                json.dumps([install_id+randomstring(5), ts])
+            )
+            for _ in xrange(WAITLIST_SIZE)
         ]
         self.set_in_auxtdb(WAIT_LIST, waitlist)
         self._db.commit()
@@ -290,7 +304,7 @@ class UserTypoDB(object):
         self.assert_initialized()
         return self.get_from_auxtdb(INSTALLATION_ID)
 
-    def get_last_unsent_logs_iter(self):
+    def get_last_unsent_logs_iter(self, force=False):
         """
         Check what was the last time the log has been sent,
         And returns whether the log should be sent
@@ -312,16 +326,19 @@ class UserTypoDB(object):
         update_gap = self.get_from_auxtdb(LOG_SENT_PERIOD, float)
         time_now = time.time()
         passed_enough_time = ((time_now - last_sending) >= update_gap)
-        if not passed_enough_time:
+        if not force and not passed_enough_time:
             logger.debug("Last sent time:{}".format(str(last_sending)))
             logger.debug("Not enought time has passed to send new logs")
             return False, iter([])
         log_t = self._db[logT]
-        new_logs = log_t.find(log_t.table.columns.ts >= last_sending)
-        logger.info("Prepared new logs to be sent, from {} to {}".format(
-            str(last_sending), str(time_now))
-        )
-        return True, new_logs
+        try:
+            new_logs = log_t.find(log_t.table.columns.ts >= last_sending)
+            logger.info("Prepared new logs to be sent, from {} to {}".format(
+                str(last_sending), str(time_now))
+            )
+            return True, new_logs
+        except AttributeError:
+            return False, iter([])
 
     def update_last_log_sent_time(self, sent_time=0, delete_old_logs=True):
         logger.debug("updating log sent time")
@@ -334,9 +351,12 @@ class UserTypoDB(object):
         if delete_old_logs:
             logger.debug("deleting old logs")
             log_t = self._db[logT]
-            log_t.table.delete().where(
-                log_t.table.columns.ts <= float(sent_time)
-            ).execute()
+            try:
+                log_t.table.delete().where(
+                    log_t.table.columns.ts <= float(sent_time)
+                ).execute()
+            except AttributeError:
+                pass
 
     def allow_upload(self, allow):
         if allow in (0, 1):
@@ -396,12 +416,12 @@ class UserTypoDB(object):
         sk = deserialize_sk(self._sk)
         assert self._pwent, "PW is not initialized: {}".format(self._pwent)
         ignore = set()
+        install_id = self.get_installation_id()
         for typo_ctx in self.get_from_auxtdb(WAIT_LIST, yaml.load):
             typo_txt = pkdecrypt(sk, typo_ctx)
-            if re.match(r'\[".*", ".*"\]', typo_txt):
-                typo, ts = yaml.safe_load(typo_txt)
-            else:
-                # print("Did not match: {!r}".format(typo_txt))
+            typo, ts = yaml.safe_load(typo_txt)
+            # starts with installation id, then must be garbage
+            if typo.startswith(install_id):
                 continue
             self.update_log(typo, incache=False, ts=ts)
             if typo in ignore: continue
@@ -503,10 +523,13 @@ class UserTypoDB(object):
             assert isinstance(value, int)
         self._aux_tab_cache[key] = value
         val_str = json.dumps(value) if isinstance(value, (list, dict)) else str(value)
-        self._db[auxT].upsert(
-            dict(desc=key, data=val_str),
-            ['desc']
-        )
+        if not self._db[auxT]:
+            self._db[auxT].insert(dict(desc=key, data=val_str))
+        else:
+            self._db[auxT].upsert(
+                dict(desc=key, data=val_str),
+                ['desc']
+            )
 
     def validate(self, orig_pw, typo):
         editDist = distance(str(orig_pw), str(typo))
@@ -588,12 +611,13 @@ def on_correct_password(typo_db, password):
             # the initialization is now part of the installation process
         check_system_status(typo_db)
         # correct password but db fails to see it
-        if not typo_db.check(password):
+        ismatch = typo_db.check(password)
+        if not ismatch:
             logger.debug("Changing system status to {}.".format(
                 SYSTEM_STATUS_PW_CHANGED
             ))
             typo_db.set_status(SYSTEM_STATUS_PW_CHANGED)
-        return True
+        return ismatch
     except (ValueError, KeyError) as e:
         # most probably - an error of decryption as a result of pw change
         typo_db.set_status(SYSTEM_STATUS_PW_CHANGED)
@@ -615,7 +639,12 @@ def on_wrong_password(typo_db, password):
             # typo_db.init_typtop(password)
             return False
         check_system_status(typo_db)
-        return typo_db.check(password)
+        ret = typo_db.check(password)
+        if ret and typo_db._isreal_pw(password):  # password has changed this is old password
+            logger.info("Password changed, old password entered. Re-initializing..")
+            typo_db.reinit_typtop(urlsafe_b64encode(os.urandom(16)))
+            return False
+        return ret
     except (ValueError, KeyError) as e:
         # probably  failure in decryption
         logger.exception("Error!! Probably failure in decryption. Re-initializing...")
@@ -627,20 +656,22 @@ def on_wrong_password(typo_db, password):
     return False
 
 
-if __name__ == "__main__":
-    import getpass
+import getpass, subprocess
+def call_check(wascorrect, user, password):
     ret = -1
     usage = '{} <1 or 0> <username> <password'.format(sys.argv[0])
-    if len(sys.argv)==4: # 0/1 username, password
-        typo_db = UserTypoDB(sys.argv[2])
-        # f = open('/tmp/typtop.out', 'w')
-        if sys.argv[1] == '0':
-            ret = int(not on_correct_password(typo_db, sys.argv[3]))
-        elif sys.argv[1] == '1':
-            ret = int(not on_wrong_password(typo_db, sys.argv[3]))
+    if not isuser(user):
+        ret = 1
+    else:
+        typo_db = UserTypoDB(user)
+        wascorrect = str(wascorrect)
+        if wascorrect == '0':
+            ret = int(not on_correct_password(typo_db, password))
+        elif wascorrect == '1':
+            ret = int(not on_wrong_password(typo_db, password))
         else:
             sys.stderr.write(usage)
-    else:
-        sys.stderr.write(usage)
-    sys.stdout.write("{}".format(ret))
-    # f.write("{}\n".format(ret))
+    return ret
+
+if __name__ == "__main__":
+    sys.stdout.write("{}".format(call_check(*sys.argv[1:])))

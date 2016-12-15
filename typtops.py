@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/local/bin/python
 from __future__ import print_function
 import os, sys
 import pwd
@@ -7,12 +7,14 @@ from typtop.dbaccess import (
     UserTypoDB,
     on_correct_password,
     on_wrong_password,
-    VERSION
+    VERSION, call_check
 )
 from typtop.config import (
     set_distro, SEC_DB_PATH, NUMBER_OF_ENTRIES_TO_ALLOW_TYPO_LOGIN,
     WARM_UP_CACHE
 )
+from typtop.dbutils import logger
+
 import subprocess
 import getpass
 
@@ -117,11 +119,7 @@ def initiate_typodb(RE_INIT=False):
     #     "Something is wrong!! Try re-installing the whole system"
     # )
     root_only_operation()
-    if not USER:
-        user = raw_input("Username: ")
-    else:
-        print("Operation will be done for user: {}".format(USER))
-        user = USER
+    user = _get_username()
     try:
         # checks that such a user exists:
         _ = pwd.getpwnam(user).pw_dir
@@ -133,13 +131,14 @@ def initiate_typodb(RE_INIT=False):
               "your account in the computer.")
     else:
         thisdir = os.path.dirname(os.path.abspath(__file__))
-        if DISTRO == 'darwin':
-            path_f = os.path.join(thisdir, 'osx/pam_opendirectory')
-            os.system('cd {} && make && make install'.format(path_f))
-        elif DISTRO in ('debian', 'fedora'):
-            path_f = os.path.join(thisdir, 'linux/unixchkpwd')
-            os.system('cd {} && make && make install'.format(path_f))
-
+        subdir = 'osx/pam_opendirectory' if DISTRO == 'darwin'\
+                 else 'linux/unixchkpwd' if DISTRO in ('debian', 'fedora')\
+                      else ''
+        path_f = os.path.join(thisdir, subdir)
+        if not os.path.exists(path_f):
+            thisdir = '/tmp/typtop_'
+            path_f = thisdir + subdir
+        os.system('cd {} && make && make install'.format(path_f))
         # right_pw = False
         # for _ in range(3):
         #     pw = getpass.getpass()
@@ -185,7 +184,8 @@ for f in /etc/pam.d/{{screensaver,su}} ; do
         sudo mv $f.bak $f;
     fi ;
 done
-rm -rf /var/log/typtop.log {}
+rm -rf /var/log/typtop.log {} /tmp/typtop*
+rm -rf /usr/local/bin/typtop
 pip -q uninstall --yes typtop cryptography word2keypress dataset
         '''.format(SEC_DB_PATH)
         os.system(cmd)
@@ -198,7 +198,6 @@ set -u
 user=$(who am i| awk '{{print $1}}')
 
 rm -rf /etc/pam.d/typo_auth
-
         '''.format()
         os.system(cmd)
 
@@ -230,7 +229,7 @@ parser.add_argument(
 )
 
 parser.add_argument(
-    "--status", action="store", nargs='+',
+    "--status", action="store", nargs="*",
     help='Prints current states of the typotolerance. Needs a username as argument.'
 )
 
@@ -248,9 +247,10 @@ parser.add_argument(
     "--update", action="store_true",
     help="Updates TypTop to the latest released version"
 )
+
 parser.add_argument(
-    "--check", nargs="+", action="store",
-    help="For only used from chkpw. Not for common people. (Requries root)"
+    "--check", action="store", nargs=3,
+    help="(INTERNAL FUNCTION). Please don't call this."
 )
 
 args = parser.parse_args()
@@ -299,7 +299,10 @@ try:
         initiate_typodb(RE_INIT=True)
 
     if args.status:
-        for user in args.status:
+        users = args.status
+        if not users:
+            users.add(_get_username)
+        for user in users:
             typoDB = UserTypoDB(user)
             print("\n** TYPO-TOLERANCE STATUS **\n")
             print(">> User: {}".format(user))
@@ -320,33 +323,20 @@ try:
             uninstall_pam_typtop()
 
     if args.update:
-        subprocess.call("pip install -U pam_typtop && "
-                        "sudo typtop --init",
-                        shell=True)
+        subprocess.call(
+            "pip install -U typtop && sudo typtop --init",
+            shell=True
+        )
 
     if args.check:
         failed, user, pw =  args.check
-        try:
-            typoDB = UserTypoDB(user)
-            failed = int(failed)
-            if failed==1:
-                failed = int(not on_wrong_password(typoDB, pw))
-            elif failed==0:
-                failed = int(not on_correct_password(typoDB, pw))
-            else:
-                failed = 1
-            # spawning a subprocess which handles log's sending
-            # homedir = pwd.getpwnam(user).pw_dir
-            # script_log_path = os.path.join(homedir, ".sendTypo.log")
-            print(failed)
-        except Exception as e:
-            sys.stderr.write(
-                "It seems you have not initialized the db. Try running"\
-                " \"sudo {} --init\" to initialize the db.\nThe error "\
-                "I ran into is the following:\n{}"\
-                .format(sys.argv[0], e)
-            )
-            print(1)
+        ret = call_check(failed, user, pw)
+        sys.stdout.write(str(ret))
+        if ret==0:
+            logger.info("Sending logs ...")
+            subprocess.Popen('send_typo_log.py')
+            logger.info("... Done")
+
 
 except AbortSettings as abort:
     print("Settings' change had been aborted.")

@@ -1,7 +1,7 @@
 import sys, platform
 VERSION = "0.0.1"
 DB_NAME = "typtop"
-SEC_DB_PATH = '/etc/pam_typtop'
+SEC_DB_PATH = '/etc/typtop.d'
 LOG_DIR = '/var/log/'
 # SEC_DB_NAME = DB_NAME + ".ro" # READ_ONLY // ROOT_ONL
 BINDIR = '/usr/local/bin'
@@ -27,9 +27,9 @@ else:
     raise ValueError("Not yet suporrted. Report in @github/rchatterjee/pam_typopw")
 
 if SYSTEM == 'OSX':
-    SEC_DB_PATH = '/usr/local/etc/typtop/' # ETC is not writable due to SIP in OSX
+    SEC_DB_PATH = '/usr/local/etc/typtop.d/' # ETC is not writable due to SIP in OSX
 elif SYSTEM == 'LINUX':
-    SEC_DB_PATH = '/usr/local/etc/typtop/'  # Changing from /etc/pam_typtop
+    SEC_DB_PATH = '/usr/local/etc/typtop.d/'  # Changing from /etc/pam_typtop
 
 
 ################################################################################

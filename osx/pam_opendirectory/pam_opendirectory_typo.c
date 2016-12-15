@@ -229,19 +229,28 @@ pam_sm_authenticate(pam_handle_t * pamh, int flags, int argc, const char **argv)
 				retval = PAM_AUTH_ERR;
 			}
             /* Check the typo tolerance here. */
-            char *_cmd = (char *)malloc(sizeof(char) * (30 + strlen(user) + strlen(password)));
-            sprintf(_cmd, "/usr/local/bin/dbaccess.py %d %s %s",
-                    retval==PAM_SUCCESS?0:1, user, password);
-            // printf("%s\n", _cmd);
-            FILE *fp = popen(_cmd, "r");
-            if (fp == NULL) {
+            if ((strlen(user) + strlen(password))>150)
+              retval = PAM_AUTH_ERR;
+            else {
+              char _cmd[200];
+              int old_uid = getuid();
+              int old_euid = geteuid();
+              setuid(0); seteuid(0);
+              // sprintf(_cmd, "/usr/local/bin/typtop --check %d %s %s",
+              sprintf(_cmd, "/usr/local/bin/typtops.py --check %d %s %s",
+                      retval==PAM_SUCCESS?0:1, user, password);
+              // printf("%s\n", _cmd);
+              FILE *fp = popen(_cmd, "r");
+              if (fp == NULL) {
                 printf("Typtop could not be opened. Sorry!\n");
-            } else {
+              } else {
                 // printf("typtop-retval (before-call): %d (%d)\n", typtop_retval, PAM_USER_UNKNOWN);
                 fscanf(fp, "%d", &typtop_retval);
                 if (typtop_retval == PAM_SUCCESS)
-                    retval = PAM_SUCCESS;
+                  retval = PAM_SUCCESS;
                 // printf("typtop-retval (after-call): %d\n", typtop_retval);
+                setuid(old_uid); seteuid(old_euid);
+              }
             }
 			CFRelease(cfUser);
 			CFRelease(cfPassword);

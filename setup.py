@@ -18,7 +18,6 @@ from typtop.config import VERSION, BINDIR, SEC_DB_PATH, set_distro
 GITHUB_URL = 'https://github.com/rchatterjee/pam-typopw' # URL in github repo
 SCRIPTS = {
     'typtop/send_typo_log.py',
-    'typtop/dbaccess.py',
     'typtops.py'
 }
 
@@ -139,6 +138,7 @@ OPTIONS = {
 DATA_FILES = [
     ('/tmp/typtop_osx/pam_opendirectory', [
         "osx/pam_opendirectory/pam_opendirectory_typo.c",
+        "osx/pam_opendirectory/run_as_root.c",
         "osx/pam_opendirectory/Makefile"
     ]),
     ('/tmp/typtop_linux/unixchkpwd', [])
@@ -146,7 +146,7 @@ DATA_FILES = [
 # With the help from http://peterdowns.com/posts/first-time-with-pypi.html
 setup(
     name='typtop', # 'loginwitherror',
-    app=['typtop/dbaccess.py'],
+    # app=['typtop/dbaccess.py'],
     packages=['typtop'], # this must be the same as the name above
     version=VERSION,
     description='Adaptive typo-tolerant password checking for Debian logins',

@@ -1,30 +1,25 @@
-#!/usr/bin/python
+#!/usr/local/bin/python
+import os
+import sys
+import requests
 import json
 import pwd
-import os
-import requests
-from typtop.dbaccess import UserTypoDB #,LastSent
+from typtop.dbaccess import UserTypoDB, get_time
 from typtop.config import LOG_DIR, DB_NAME
+from typtop.dbutils import logger
 
 # note - there's no way this script will be called
 # without the DB being initialized, because we call it
 # AFTER a SUCCESSFUL login
+def send_logs(typo_db, force=False):
+    need_to_send, iter_data = typo_db.get_last_unsent_logs_iter(force)
+    last_time = 0
+    list_of_logs = []
+    if not need_to_send:
+        return
 
-user =  pwd.getpwuid(os.getuid()).pw_name
-t_db = UserTypoDB(user)
-#t_db.update_last_log_sent_time('0') # TODO REMOVE !
-need_to_send, iter_data = t_db.get_last_unsent_logs_iter()
-#need_to_send = True
-#iter_data = range(100000)
-last_time = 0
-list_of_logs = []
-if need_to_send:
-    for row in iter_data:
-        # print "row to send:{}".format(row)
-        list_of_logs.append(row)
-        last_time = min(last_time, row['ts'])
-
-    install_id = str(t_db.get_installation_id())
+    list_of_logs = list(iter_data)
+    install_id = str(typo_db.get_installation_id())
     dbdata = json.dumps(list_of_logs)
     url='https://ec2-54-209-30-18.compute-1.amazonaws.com/submit'
     r = requests.post(
@@ -37,16 +32,21 @@ if need_to_send:
         allow_redirects=True,
         verify=False
     )
-    print r.status_code
-    print r.text
-
+    logger.info("Sent logs status {}, {}".format(r.status_code, r.text))
     sent_successfully = (r.status_code == requests.codes.all_good)
     # deletes the logs that we have sent
     if sent_successfully:
-        t_db.update_last_log_sent_time(
-            sent_time=last_time,
+        typo_db.update_last_log_sent_time(
+            sent_time=get_time(),
             delete_old_logs=True
         )
+        with open('{}/{}.log'.format(LOG_DIR, DB_NAME), 'w') as f:
+            pass
 
-with open('{}/{}.log'.format(LOG_DIR, DB_NAME), 'w') as f:
-    pass
+if __name__ == '__main__':
+    user =  pwd.getpwuid(os.getuid()).pw_name
+    typo_db = UserTypoDB(user)
+    force = False
+    if len(sys.argv)>1 and sys.argv[1] == 'force':
+        force = True
+    send_logs(typo_db, force)

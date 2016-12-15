@@ -3,7 +3,15 @@ import struct
 from typtop.pw_pkcrypto import decrypt
 import logging
 from config import DB_NAME
+import pwd
 
+
+def isuser(u):
+    try:
+        pwd.getpwnam(u)
+        return True
+    except KeyError:
+        return False
 
 logger = logging.getLogger(DB_NAME)
 def setup_logger(logfile_path, debug_mode, user):
