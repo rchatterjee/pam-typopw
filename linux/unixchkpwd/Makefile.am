@@ -15,7 +15,6 @@ AM_LDFLAGS = $(extra_libs)
 # endif
 
 sbin_PROGRAMS = unix_chkpwd unix_chkpwd_orig
-bin_PROGRAMS = typtop
 
 unix_chkpwd_SOURCES = unix_chkpwd.c md5_good.c md5_broken.c bigcrypt.c \
 	passverify.c
@@ -30,10 +29,11 @@ unix_chkpwd_orig_LDFLAGS =
 unix_chkpwd_orig_LDADD = @LIBCRYPT@ @LIBAUDIT@
 
 
-typtop_SOURCES = typtops.c
-typtop_CFLAGS = $(extra_cflags) 
-typtop_LDFLAGS = $(extra_libs)
-typtop_LDADD = 
+# bin_PROGRAMS = typtop
+# typtop_SOURCES = typtops.c
+# typtop_CFLAGS = $(extra_cflags) 
+# typtop_LDFLAGS = $(extra_libs)
+# typtop_LDADD = 
 
 
 install-exec-hook:

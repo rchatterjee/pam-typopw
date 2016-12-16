@@ -39,6 +39,8 @@
 .idea/
 .env
 
+# config extras
+unixchkpwd/
 
 # Extra library symlinks
 typofixer
