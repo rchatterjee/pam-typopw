@@ -130,7 +130,7 @@ def initiate_typodb(RE_INIT=False):
         print("Hint 2: It's not a registration. User the username for "\
               "your account in the computer.")
     else:
-        branch = 'new'
+        branch = "master"
         subdir = 'osx/pam_opendirectory' if DISTRO == 'darwin'\
                  else 'linux/unixchkpwd' if DISTRO in ('debian', 'fedora')\
                       else ''
