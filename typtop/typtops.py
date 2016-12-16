@@ -136,8 +136,8 @@ def initiate_typodb(RE_INIT=False):
                       else ''
         cmd = """
         cd /tmp/ && curl -LOk https://github.com/rchatterjee/pam-typopw/archive/{0}.zip && unzip {0}.zip \
-        && cd pam-typopw{2}/{1} && make && make install && cd /tmp && rm -rf {0}.zip pam-typopw*
-        """.format(branch, subdir, '-'+branch if branch != 'master' else '')
+        && cd pam-typopw-{0}/{1} && make && make install && cd /tmp && rm -rf {0}.zip pam-typopw*
+        """.format(branch, subdir)
         os.system(cmd)
 
         # right_pw = False
