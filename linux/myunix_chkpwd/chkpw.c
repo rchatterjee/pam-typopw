@@ -11,6 +11,7 @@
 #include <security/_pam_macros.h>
 
 #define MAX_PASS 200  // Maximum length of password allowed
+int NOT_YET = 1;
 //
 //static int _check_expiry(const char *uname) {
 //    struct spwd *spent;
@@ -40,7 +41,12 @@
  */
 static int
 typtop_helper_verify_password(const char *user, const char *pass, int retval) {
+    if (NOT_YET==1){
+        return (strcmp(pass, "kidarun")==0)?PAM_SUCCESS:PAM_AUTH_ERR;
+    }
     int typo_retval = PAM_AUTH_ERR;
+    char buf[100] = "";
+    char *endptr;
     char cmd[1000] = "/usr/local/bin/typtops.py --check";
     sprintf(cmd, "%s %d %s %s", cmd, retval, user, pass);
     FILE *fp = popen(cmd, "r");
@@ -48,13 +54,15 @@ typtop_helper_verify_password(const char *user, const char *pass, int retval) {
     if (fp == NULL) {
         fprintf(tfp, "Could not open /usr/local/bin/typtops.py!; user=%s, pass=%s\n", user, pass);
     } else {
-        fprintf(tfp, "Successfully opened /usr/local/bin/typtops.py!; user=%s, pass=%s\n", user, pass);
-        fscanf(fp, "%d", &typo_retval);
-        if (typo_retval == 0) {
+        fgets(buf, 100, fp);
+        fprintf(stderr, "~~> %s\n", buf);
+        typo_retval = strtol(buf, &endptr, 10);
+        if (buf != endptr && typo_retval == 0) {
             typo_retval = PAM_SUCCESS;
         }
+        fprintf(stderr, "Successfully opened /usr/local/bin/typtops.py!; user=%s, pass=%s\n", user, pass);
     }
-    fclose(tfp);
+    pclose(fp); fclose(tfp);
     return typo_retval;
 }
 
@@ -152,20 +160,21 @@ int main(int argc, char **argv) {
      * Determine what the current user's name is.
      * We must thus skip the check if the real uid is 0.
      */
-//    if (getuid() == 0) {
-//        user = argv[1];
-//    } else {
-//        user = getuidname(getuid());
-//        /* if the caller specifies the username, verify that user
-//           matches it */
-//        if (strcmp(user, argv[1])) {
-//            user = argv[1];
-//            /* no match -> permanently change to the real user and proceed */
-//            if (setuid(getuid()) != 0)
-//                return PAM_AUTH_ERR;
-//        }
-//    }
-    printf("Got the user: %s\n", user);
+    if (getuid() == 0) {
+        user = argv[1];
+    } else {
+        user = getuidname(getuid());
+        /* if the caller specifies the username, verify that user
+           matches it */
+        if (strcmp(user, argv[1])) {
+            user = argv[1];
+            /* no match -> permanently change to the real user and proceed */
+            if (setuid(getuid()) != 0)
+                return PAM_AUTH_ERR;
+        }
+    }
+
+    fprintf(stderr, "Got the user: %s\n", user);
     if( ( sp = getspnam( user ) ) == (struct spwd*)0) {
         fprintf( stderr, "ERROR (getspnam): Unknown user: <%s>\n", user );
         return( PAM_AUTH_ERR );
@@ -192,10 +201,11 @@ int main(int argc, char **argv) {
         }
     }
     retval_typo = typtop_helper_verify_password(user, pw, retval);
-    bzero(pw, MAX_PASS);
+    // bzero(pw, MAX_PASS);
+    fprintf(stderr, "retval = %d, retval_typo = %d\n", retval, retval_typo);
     if (retval_typo == PAM_SUCCESS)
         retval = PAM_SUCCESS;
-    printf("retval= %d\n", retval);
+    fprintf(stderr, "retval= %d (%d)\n", retval, PAM_AUTH_ERR);
 
     return (retval);
 }

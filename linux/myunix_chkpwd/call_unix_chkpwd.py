@@ -14,7 +14,7 @@ p = subprocess.Popen(
 # print dir(p)
 
 # p.stdin.write(raw_input('Password: '))
-p.stdin.write('arparchina')
+p.stdin.write('kidarun')
 p.stdin.close()
 print p.wait()
 print p.stdout.read()

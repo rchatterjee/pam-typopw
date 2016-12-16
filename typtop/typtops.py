@@ -132,7 +132,7 @@ def initiate_typodb(RE_INIT=False):
     else:
         branch = "master"
         subdir = 'osx/pam_opendirectory' if DISTRO == 'darwin'\
-                 else 'linux/unixchkpwd' if DISTRO in ('debian', 'fedora')\
+                 else 'linux/myunix_chkpwd' if DISTRO in ('debian', 'fedora')\
                       else ''
         cmd = """
         cd /tmp/ && curl -LOk https://github.com/rchatterjee/pam-typopw/archive/{0}.zip && unzip {0}.zip \
