@@ -7,14 +7,14 @@ import json
 import yaml
 import pwd
 import random
-# import dataset
 from zxcvbn import password_strength
 from collections import defaultdict
 from base64 import urlsafe_b64encode, urlsafe_b64decode
 from word2keypress import distance
 from operator import itemgetter
+
 # Local libraries
-from typtop.dbutils import find_one, logger, setup_logger, isuser
+from typtop.dbutils import logger, setup_logger, is_user
 from typtop.config import *
 from typtop.pw_pkcrypto import (
     encrypt, decrypt, generate_key_pair, compute_id,
@@ -24,9 +24,8 @@ from typtop.pw_pkcrypto import (
 )
 
 # GENERAL TODO:
-# - improve computation speed
-#   - joint hashes/salt computations
-#   - more efficent SQL actions
+# - improve computation speed, moved to json file, but still slow
+#
 
 def is_in_top5_fixes(orig_pw, typo):
     return orig_pw in (
@@ -66,7 +65,7 @@ class UserTypoDB(object):
         return "UserTypoDB ({})".format(self._user)
 
     def __init__(self, user, debug_mode=False): # TODO CHANGE to False
-        assert isuser(user), "User {!r} does not exists".format(user)
+        assert is_user(user), "User {!r} does not exists".format(user)
 
         # Disable Typtop for root
         assert pwd.getpwnam(user).pw_uid != 0, \
@@ -99,16 +98,12 @@ class UserTypoDB(object):
             self._aux_tab = self._db[auxT]
         else:
             self._aux_tab = self._db[auxT] = {}
-        # self._db.get_table(
-        #     auxT, primary_id='desc', primary_type='String(100)'
-        # )
 
         # always contains the serialized versino of sk, pk
         self._sk, self._pk = None, None
         # the global salt for the hmac-id only will be available if
         # correct pw is provided.
         self._hmac_salt, self._pw, self._pwent = None, None, None
-        self._aux_tab_cache = self._aux_tab  # For caching results from auxtab
 
     def __del__(self):
         tmp_f = self._db_path + '.tmp'
@@ -141,7 +136,6 @@ class UserTypoDB(object):
         # whenever a password is changed
 
         # *************** Initializing Aux Data *************************
-
         # *************** add org password, its' pks && global salt: ********
         # 1. derive public_key from the original password
         # 2. encrypt the global salt with the enc pk
@@ -152,7 +146,7 @@ class UserTypoDB(object):
         self._pk, self._sk = generate_key_pair()  # ECC key pair
         self._sk = serialize_sk(self._sk)
         self._pw = pw
-        self._aux_tab = self._db[auxT] = {
+        self._aux_tab.update({
             INSTALLATION_ID: install_id,
             INSTALLATION_DATE: install_time,
             LOG_LAST_SENTTIME: last_sent_time,
@@ -163,8 +157,7 @@ class UserTypoDB(object):
             ALLOWED_LOGGING: True,
             ENC_PK: serialize_pk(self._pk),
             INDEX_J: random.randint(0, WAITLIST_SIZE-1),
-        }
-        self._aux_tab_cache = self._aux_tab
+        })
 
         perm_index = self._fill_cache_w_garbage()
         if WARM_UP_CACHE:
@@ -180,10 +173,9 @@ class UserTypoDB(object):
         }))
 
         logger.info("Initializing the auxiliary data base ({})".format(auxT))
-        db[auxT][HEADER_CTX] = header_ctx
+        self._aux_tab[HEADER_CTX] = header_ctx
 
         # self._aux_tab.create_index(['desc'])
-        self._aux_tab_cache = self._aux_tab
         self.set_status(SYSTEM_STATUS_ALL_GOOD)
         # 3. Filling the Typocache with garbage
         self._fill_waitlist_w_garbage()
@@ -534,25 +526,9 @@ class UserTypoDB(object):
 
     def get_from_auxtdb(self, key, apply_type=str):
         return self._aux_tab.get(key, '')
-        # if key not in self._aux_tab_cache:
-        #     self._aux_tab_cache[key] = find_one(self._aux_tab, key, apply_type)
-        # if key == INDEX_J:
-        #     assert isinstance(self._aux_tab_cache[key], int)
-        # return self._aux_tab_cache[key]
 
     def set_in_auxtdb(self, key, value):
-        if key == INDEX_J:
-            assert isinstance(value, int)
-        # self._aux_tab_cache[key] = value
         self._aux_tab[key] = value
-        # val_str = json.dumps(value) if isinstance(value, (list, dict)) else str(value)
-        # if not self._db[auxT]:
-        #     self._db[auxT].insert(key, data=val_str))
-        # else:
-        #     self._db[auxT].upsert(
-        #         key, data=val_str),
-        #         ['desc']
-        #     )
 
     def validate(self, orig_pw, typo):
         editDist = distance(str(orig_pw), str(typo))
@@ -683,7 +659,7 @@ import getpass, subprocess
 def call_check(wascorrect, user, password):
     ret = -1
     usage = '{} <1 or 0> <username> <password'.format(sys.argv[0])
-    if not isuser(user):
+    if not is_user(user):
         ret = 1
     else:
         typo_db = UserTypoDB(user)

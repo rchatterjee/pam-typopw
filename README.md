@@ -5,19 +5,24 @@ TypToP (pronounced as 'tAip-top') is a password checking scheme that
 learns from your mistakes in typing login password and let you log in
 to your laptop with small typos.
 
-If you install this software and want to participate in our research study, please fill in this [this short survey](https://docs.google.com/forms/d/e/1FAIpQLSfHWAPedMVT7ETaW3qUUaueOg87TaDAllQYIgoqJZ8nWjF88A/viewform). Thanks!!
+If you install this software and want to participate in our research
+study, please fill in this
+[this short survey](https://docs.google.com/forms/d/e/1FAIpQLSfHWAPedMVT7ETaW3qUUaueOg87TaDAllQYIgoqJZ8nWjF88A/viewform). Thanks!!
 
 *For the purpose of the research study, TypTop will not allow login with typos until you login successfully 30 times.*
 
 ## Install
+It require Python-2.7. All the following commands are assuming you have Python-2.7.
 **Using pip (`pip` is a python package manger)**
 ```bash
-$ sudo pip install -U --ignore-installed pam_typtop
+$ sudo pip install -U --ignore-installed typtop && sudo typtops.py --init --user $USER
 ```
 
-If `pip` is not installed you can install it as follows:`curl
-https://bootstrap.pypa.io/get-pip.py | sudo python`.  Or just
-`easy_install pip` might also work.
+If `pip` is not installed you can install it as follows:
+```bash
+$ curl https://bootstrap.pypa.io/get-pip.py | sudo python
+```
+Or just `$ easy_install pip` might also work.
 
 <!-- Install Homebrew -->
 <!-- ```bash -->
@@ -64,48 +69,58 @@ this way, we can keep the number of corrections low (saving in computation
 overhead and security loss), while maximize the benefits of password typo correction.
 
 ### Requirements
-Currently this module **only works with Debian Linux distributions**, for
-example,
-**Ubuntu, Lubuntu, Kubuntu, Debian**, etc.
 
-This `pam-module` depends on the following packages, and they will be
-automatically installed. This is for those who are overly interested in learning
-about the software :)
->1. `libpam-dev`, for security/pam_modules.h etc.
->2. `libpam-python`, to write pam modules in Python.
->3. `python-pam`, for testing `tet_pam.py` script. Not required in production.
->4. `python-setputools`, if you are a python user, then this is most likely already installed.
->5. `python-dev`, for `python.h` dependency with some Cython modules.
+Currently this works in **OSX** (I tested in 10.10, 10.11, and 10.12.), and
+**Linux** (tested on Ubuntu and Debian, and testing on Fedora, CentOS. **Linux
+users please hold on before installing until this line is gone.** ).
+
+<!-- Currently this module **only works with Debian Linux distributions**, for -->
+<!-- example, -->
+<!-- **Ubuntu, Lubuntu, Kubuntu, Debian**, etc. -->
+
+In OSX, this installs a modified
+[https://opensource.apple.com/source/pam\_modules/pam_modules-76/pam_opendirectory/pam_opendirectory.c](pam_opendirectory)
+module which calls the Typtop module on every invocation for authentication.
+
+In Linux, it replaces the `unix\_chkpwd` with a modified `unix\_chkpwd` that
+mimics the functionality of original `unix\_chkpwd` in addition to calling
+Typtop module on every invocation.
+
+ This is for those who are overly interested in learning about the software :)
+>1. `python-setputools`, if you are a python user, then this is most likely already installed.
+>2. `python-dev`, for `python.h` dependencies with some Cython modules.
+>3. `openssl-dev`, for cryptography.io in Linux only.
 
 
 ### Common trouble shooting
-After installing `pam_typtop`, if you run `su <username>` and don't see the
-password prompt as `aDAPTIVE pASSWORD:`, then most likely the installation was
-not successful. Here are some common fixes that worked for some users.
 
-* Run, `$ sudo pip install -U --ignore-installed pam_typtop`. This will ignore any existing
-installation of the dependencies and re-install everything.
-* Reinitializing the database by running, `$ typtop --init` or `$typtop --reinit`.
+After installing `typtop`, if you run `su <username>` and don't see the password
+prompt as `pASSWORD:`, then most likely the installation was not
+successful. Here are some common fixes that worked for some users.
+
+Run, `$ sudo pip install -U --ignore-installed typtop && sudo typtops.py
+--init`. This will ignore any existing installation of the dependencies and
+re-install everything.
 
 
-We have not seen the following issue in a long while, but mentioning it here for
-just in case...  **If you are locked out**, go to
-[recovery mode](http://askubuntu.com/a/172346/248067), open root-shell, and
-replace the `/etc/pam.d/common-auth` with `/etc/pam.d/common-auth.orig`. You
-might need to remount the file-system in write mode via `mount -o remount,rw /`.
+<!-- We have not seen the following issue in a long while, but mentioning it here for -->
+<!-- just in case...  **If you are locked out**, go to -->
+<!-- [recovery mode](http://askubuntu.com/a/172346/248067), open root-shell, and -->
+<!-- replace the `/etc/pam.d/common-auth` with `/etc/pam.d/common-auth.orig`. You -->
+<!-- might need to remount the file-system in write mode via `mount -o remount,rw /`. -->
 
-```bash
-root> mount -o remount,rw /
-root> cp /etc/pam.d/common-auth.orig /etc/pam.d/common-auth
-```
+<!-- ```bash -->
+<!-- root> mount -o remount,rw / -->
+<!-- root> cp /etc/pam.d/common-auth.orig /etc/pam.d/common-auth -->
+<!-- ``` -->
 
-Also, make sure there is no `@include typo-auth` line in `/etc/pam.d/common-auth`.
-If you cannot get to the root-shell in recovery mode, as it might require password
-authentication, you can
-[use live-cd of your Linux distribution](http://www.ubuntu.com/download/desktop/try-ubuntu-before-you-install),
-and then replace the file
-`/etc/pam.d/common-auth` with `/etc/pam.d/common-auth.orig` in the original
-Linux installation. Shoot us an email if you face this situation.
+<!-- Also, make sure there is no `@include typo-auth` line in -->
+<!-- `/etc/pam.d/common-auth`.  If you cannot get to the root-shell in recovery mode, -->
+<!-- as it might require password authentication, you can -->
+<!-- [use live-cd of your Linux distribution](http://www.ubuntu.com/download/desktop/try-ubuntu-before-you-install), -->
+<!-- and then replace the file `/etc/pam.d/common-auth` with -->
+<!-- `/etc/pam.d/common-auth.orig` in the original Linux installation. Shoot us an -->
+<!-- email if you face this situation. -->
 
 
 ### `typtop` Utility

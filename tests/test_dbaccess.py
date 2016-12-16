@@ -4,7 +4,7 @@ import pwd
 from typtop.dbaccess import (
     UserTypoDB, DB_NAME, get_time,
     on_wrong_password, on_correct_password, logT, logT_cols, auxT,
-    find_one, FREQ_COUNTS, INDEX_J, WAITLIST_SIZE, WAIT_LIST,
+    FREQ_COUNTS, INDEX_J, WAITLIST_SIZE, WAIT_LIST,
     compute_id, WARM_UP_CACHE, pkdecrypt, pkencrypt,
     NUMBER_OF_ENTRIES_TO_ALLOW_TYPO_LOGIN, logT, auxT
 )

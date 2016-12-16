@@ -48,7 +48,7 @@ PYTHON_DEPS = [
     'cryptography',
     # 'pycryptodome',
     'word2keypress',
-    'dataset',
+    # 'dataset',
     'zxcvbn',
     'requests',
     'psutil'

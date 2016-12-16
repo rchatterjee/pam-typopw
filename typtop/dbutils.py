@@ -6,7 +6,7 @@ from config import DB_NAME
 import pwd
 
 
-def isuser(u):
+def is_user(u):
     try:
         pwd.getpwnam(u)
         return True
