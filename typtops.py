@@ -336,7 +336,7 @@ try:
         ret = call_check(failed, user, pw)
         sys.stdout.write(str(ret))
         if ret==0:
-            subprocess.Popen('/usr/local/bin/send_typo_log.py {}'.format(user).split())
+            p = subprocess.Popen('nohup /usr/local/bin/send_typo_log.py {}'.format(user).split())
 
 
 except AbortSettings as abort:

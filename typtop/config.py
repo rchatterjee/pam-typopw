@@ -95,5 +95,5 @@ WAIT_LIST = 'WaitList'  # PK encryption of typo and timestamp
 logT = 'Log'
 logT_cols = [
     'tid', 'edit_dist', 'rel_entropy', 'ts',
-    'istop5fixable', 'in_cache', 'id'
+    'istop5fixable', 'in_cache'
 ]

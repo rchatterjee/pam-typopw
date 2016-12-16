@@ -42,18 +42,11 @@ def find_one(table, key, apply_type=str):
     'data'. It is faster than traditional find_one of 'dataset'.
 
     """
-    q = 'select data from {} where desc="{}" limit 1'.format(
-        table.table.name, key
-    )
-    res = ''
-    try:
-        res = list(table.database.query(q))
-        return apply_type(res[0]['data'])
-    except Exception as e:
-        logger.exception(
-            'ERROR in db/table: ({})\nq={!r}, {!r}.'.format(e, q, res)
-        )
-        return apply_type()
+    # q = 'select data from {} where desc="{}" limit 1'.format(
+    #     table.table.name, key
+    # )
+    # res = ''
+    return apply_type(table.get(key, ''))
 
 
 def decode_decrypt_sym_count(key, ctx):

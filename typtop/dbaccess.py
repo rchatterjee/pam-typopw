@@ -7,7 +7,7 @@ import json
 import yaml
 import pwd
 import random
-import dataset
+# import dataset
 from zxcvbn import password_strength
 from collections import defaultdict
 from base64 import urlsafe_b64encode, urlsafe_b64decode
@@ -44,7 +44,7 @@ def get_time():
     which works in linux and can be stored in the DB
     (unlike datetime.datetime, for example)
     """
-    return str(time.time())
+    return time.time()
 
 _entropy_cache = {}
 def entropy(typo):
@@ -62,7 +62,6 @@ class UserTypoDB(object):
         pass
     class CorruptedDB(TypoDBError):
         pass
-
     def __str__(self):
         return "UserTypoDB ({})".format(self._user)
 
@@ -76,7 +75,7 @@ class UserTypoDB(object):
         self._user = user  # this is a real user.
         # homedir = pwd.getpwnam(self._user).pw_dir
         typo_dir = os.path.join(SEC_DB_PATH, user)
-        self._db_path = os.path.join(typo_dir, DB_NAME + '.db')
+        self._db_path = os.path.join(typo_dir, DB_NAME + '.json')
         self._log_path = os.path.join(LOG_DIR, DB_NAME + '.log')
         # First thing first -- setting the logger object
         setup_logger(self._log_path, debug_mode, user)
@@ -89,18 +88,34 @@ class UserTypoDB(object):
                 logger.error("Trying to create: {}, but seems like the database"
                              " is not initialized.".format(typo_dir))
                 raise UserTypoDB.NoneInitiatedDB(error)
+        if not os.path.exists(self._db_path):
+            json.dump({}, open(self._db_path, 'w'))
 
-        self._db = dataset.connect('sqlite:///{}'.format(self._db_path))
-        self._aux_tab = self._db.get_table(
-            auxT, primary_id='desc', primary_type='String(100)'
-        )
+        try:
+            self._db = json.load(open(self._db_path, 'rw'))
+        except (ValueError, IOError) as e:
+            self._db = {}
+        if auxT in self._db:
+            self._aux_tab = self._db[auxT]
+        else:
+            self._aux_tab = self._db[auxT] = {}
+        # self._db.get_table(
+        #     auxT, primary_id='desc', primary_type='String(100)'
+        # )
 
         # always contains the serialized versino of sk, pk
         self._sk, self._pk = None, None
         # the global salt for the hmac-id only will be available if
         # correct pw is provided.
         self._hmac_salt, self._pw, self._pwent = None, None, None
-        self._aux_tab_cache = {}  # For caching results from auxtab
+        self._aux_tab_cache = self._aux_tab  # For caching results from auxtab
+
+    def __del__(self):
+        tmp_f = self._db_path + '.tmp'
+        with open(tmp_f, 'wb') as f:
+            json.dump(self._db, f, indent=2)
+            f.flush(); os.fsync(f.fileno())
+        os.rename(tmp_f, self._db_path)
 
     def init_typtop(self, pw, allow_typo_login=False):
         """Create the 'typtop' database in user's home-directory.  Changes
@@ -121,15 +136,11 @@ class UserTypoDB(object):
         os.chmod(self._db_path, 0600) # Only the owner can read it.
 
         db = self._db
-        db[auxT].delete()         # make sure there's no old unrelevent data
+        # db[auxT].delete()         # make sure there's no old unrelevent data
         # doesn't delete log because it will also be used
         # whenever a password is changed
 
         # *************** Initializing Aux Data *************************
-        self._aux_tab = self._db.get_table(
-            auxT, primary_id='desc', primary_type='String(100)'
-        )
-        self._aux_tab_cache = {}
 
         # *************** add org password, its' pks && global salt: ********
         # 1. derive public_key from the original password
@@ -141,6 +152,20 @@ class UserTypoDB(object):
         self._pk, self._sk = generate_key_pair()  # ECC key pair
         self._sk = serialize_sk(self._sk)
         self._pw = pw
+        self._aux_tab = self._db[auxT] = {
+            INSTALLATION_ID: install_id,
+            INSTALLATION_DATE: install_time,
+            LOG_LAST_SENTTIME: last_sent_time,
+            LOG_SENT_PERIOD: UPDATE_GAPS,
+            SYSTEM_STATUS: SYSTEM_STATUS_NOT_INITIALIZED,
+            LOGIN_COUNT: 0,
+            ALLOWED_TYPO_LOGIN: allow_typo_login,
+            ALLOWED_LOGGING: True,
+            ENC_PK: serialize_pk(self._pk),
+            INDEX_J: random.randint(0, WAITLIST_SIZE-1),
+        }
+        self._aux_tab_cache = self._aux_tab
+
         perm_index = self._fill_cache_w_garbage()
         if WARM_UP_CACHE:
             freq_counts = range(CACHE_SIZE, 0, -1)
@@ -155,23 +180,10 @@ class UserTypoDB(object):
         }))
 
         logger.info("Initializing the auxiliary data base ({})".format(auxT))
-        db[auxT].insert_many([
-            dict(desc=INSTALLATION_ID, data=install_id),
-            dict(desc=INSTALLATION_DATE, data=install_time),
-            dict(desc=LOG_LAST_SENTTIME, data=str(last_sent_time)),
-            dict(desc=LOG_SENT_PERIOD, data=str(UPDATE_GAPS)),
-            dict(desc=SYSTEM_STATUS, data=SYSTEM_STATUS_NOT_INITIALIZED),
-            dict(desc=LOGIN_COUNT, data=str(0)),
-            dict(desc=ALLOWED_TYPO_LOGIN, data=str(allow_typo_login)),
-            dict(desc=ALLOWED_LOGGING, data='True'),
+        db[auxT][HEADER_CTX] = header_ctx
 
-            dict(desc=ENC_PK, data=serialize_pk(self._pk)),
-            dict(desc=INDEX_J, data=str(random.randint(0, WAITLIST_SIZE-1))),
-
-            dict(desc=HEADER_CTX, data=str(header_ctx))
-        ])
-        self._aux_tab.create_index(['desc'])
-        self._aux_tab_cache = {}
+        # self._aux_tab.create_index(['desc'])
+        self._aux_tab_cache = self._aux_tab
         self.set_status(SYSTEM_STATUS_ALL_GOOD)
         # 3. Filling the Typocache with garbage
         self._fill_waitlist_w_garbage()
@@ -210,11 +222,11 @@ class UserTypoDB(object):
         self.set_in_auxtdb(HEADER_CTX, header_ctx)
         self.set_in_auxtdb(ENC_PK, serialize_pk(self._pk))
         # 3 sending logs and deleting tables:
-        logger.debug('Sending logs')
+        logger.debug("Sending logs, deleting tables")
 
-        logger.debug("Deleting tables")
-        self._db[logT].delete()
-        self._db.commit()
+        self._logt = self._db[logT] = []
+
+        # self._db.commit()
         # Filling the Typocache with garbage
         self._fill_waitlist_w_garbage()
         self.set_status(SYSTEM_STATUS_ALL_GOOD)
@@ -232,8 +244,12 @@ class UserTypoDB(object):
         else:
             return False
 
-    def getdb(self):
-        return self._db
+    def getdb(self, tabname):
+        if tabname in self._db:
+            return self._db[tabname]
+        else:
+            self._db[tabname] = []
+            return self._db[tabname]
 
     def get_db_path(self):
         return self._db_path
@@ -277,7 +293,6 @@ class UserTypoDB(object):
             for _ in xrange(WAITLIST_SIZE)
         ]
         self.set_in_auxtdb(WAIT_LIST, waitlist)
-        self._db.commit()
 
     def _fill_cache_w_garbage(self):
         logger.debug("Filling Typocache with garbage")
@@ -322,7 +337,7 @@ class UserTypoDB(object):
             raise UserTypoDB.CorruptedDB(
                 "Missing {} in {}".format(ALLOWED_LOGGING, auxT)
             )
-        if upload_status != 'True':
+        if not upload_status:
             logger.info("Not sending logs because send status set to {}".format(
                 upload_status))
             return False, iter([])
@@ -336,7 +351,7 @@ class UserTypoDB(object):
             return False, iter([])
         log_t = self._db[logT]
         try:
-            new_logs = log_t.find(log_t.table.columns.ts >= last_sending)
+            new_logs = iter(log_t) # .find(log_t.table.columns.ts >= last_sending)
             logger.info("Prepared new logs to be sent, from {} to {}".format(
                 str(last_sending), str(time_now))
             )
@@ -349,18 +364,17 @@ class UserTypoDB(object):
         if not sent_time:
             sent_time = get_time()
             logger.debug("generating new timestamp={} ".format(sent_time))
-        self._db[auxT].update(dict(
-            desc=LOG_LAST_SENTTIME, data=float(sent_time)), ['desc']
-        )
+        self._db[auxT][LOG_LAST_SENTTIME] = float(sent_time)
         if delete_old_logs:
             logger.debug("deleting old logs")
-            log_t = self._db[logT]
-            try:
-                log_t.table.delete().where(
-                    log_t.table.columns.ts <= float(sent_time)
-                ).execute()
-            except AttributeError:
-                pass
+            while self._db[logT]:
+                self._db[logT].pop()
+            # try:
+            #     log_t.table.delete().where(
+            #         log_t.table.columns.ts <= float(sent_time)
+            #     ).execute()
+            # except AttributeError:
+            #     pass
 
     def allow_upload(self, allow):
         if allow in (0, 1):
@@ -390,7 +404,10 @@ class UserTypoDB(object):
             'istop5fixable': is_in_top5_fixes(self._pw, typo),
             'in_cache': incache
         }
-        self._db[logT].insert(log_info)
+        try:
+            self._db[logT].append(log_info)
+        except KeyError:
+            self._db[logT] = [log_info]
 
     def _add_typo_to_waitlist(self, typo):
         """Adds the typo to the waitlist.
@@ -516,24 +533,26 @@ class UserTypoDB(object):
             return False
 
     def get_from_auxtdb(self, key, apply_type=str):
-        if key not in self._aux_tab_cache:
-            self._aux_tab_cache[key] = find_one(self._aux_tab, key, apply_type)
-        if key == INDEX_J:
-            assert isinstance(self._aux_tab_cache[key], int)
-        return self._aux_tab_cache[key]
+        return self._aux_tab.get(key, '')
+        # if key not in self._aux_tab_cache:
+        #     self._aux_tab_cache[key] = find_one(self._aux_tab, key, apply_type)
+        # if key == INDEX_J:
+        #     assert isinstance(self._aux_tab_cache[key], int)
+        # return self._aux_tab_cache[key]
 
     def set_in_auxtdb(self, key, value):
         if key == INDEX_J:
             assert isinstance(value, int)
-        self._aux_tab_cache[key] = value
-        val_str = json.dumps(value) if isinstance(value, (list, dict)) else str(value)
-        if not self._db[auxT]:
-            self._db[auxT].insert(dict(desc=key, data=val_str))
-        else:
-            self._db[auxT].upsert(
-                dict(desc=key, data=val_str),
-                ['desc']
-            )
+        # self._aux_tab_cache[key] = value
+        self._aux_tab[key] = value
+        # val_str = json.dumps(value) if isinstance(value, (list, dict)) else str(value)
+        # if not self._db[auxT]:
+        #     self._db[auxT].insert(key, data=val_str))
+        # else:
+        #     self._db[auxT].upsert(
+        #         key, data=val_str),
+        #         ['desc']
+        #     )
 
     def validate(self, orig_pw, typo):
         editDist = distance(str(orig_pw), str(typo))

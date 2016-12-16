@@ -6,7 +6,7 @@ from typtop.dbaccess import (
     on_wrong_password, on_correct_password, logT, logT_cols, auxT,
     find_one, FREQ_COUNTS, INDEX_J, WAITLIST_SIZE, WAIT_LIST,
     compute_id, WARM_UP_CACHE, pkdecrypt, pkencrypt,
-    NUMBER_OF_ENTRIES_TO_ALLOW_TYPO_LOGIN
+    NUMBER_OF_ENTRIES_TO_ALLOW_TYPO_LOGIN, logT, auxT
 )
 import typtop.config as config
 import typtop.dbaccess as dbaccess
@@ -124,7 +124,7 @@ def test_many_entries(isStandAlone = True):
     print "TEST MANY ENTRIES"
     BIG = 60
     typoDB = start_DB()
-    log_t = typoDB.getdb()['Log']
+    log_t = typoDB.getdb('Log')
     print "start log:{}".format(len(log_t))
     for typ in listOfOneDist(BIG):
         typoDB.check(typ)
@@ -145,7 +145,7 @@ def test_deleting_logs(isStandAlone = True):
     for i in range(10):
         typoDB.check(pws[i%len(pws)])
     typoDB.check(get_pw())
-    log_t = typoDB.getdb()['Log']
+    log_t = typoDB.getdb('Log')
     assert len(log_t) == 11 # because that's the length of the log so far
     to_send, log_iter = typoDB.get_last_unsent_logs_iter()
     assert not to_send
@@ -163,11 +163,11 @@ def test_deleting_logs(isStandAlone = True):
 
 def test_pw_change(isStandAlone = True):
     typoDB = test_alt_typo(isStandAlone = False)
-    db = typoDB.getdb()
+    db = typoDB._db
     typoDB.reinit_typtop(new_pw())
     # assert count_real_typos_in_cache(typoDB,True)[0] == 1
-    assert len(db['Log']) == 0
-    assert len(db['Waitlist']) == 0
+    assert len(db[logT]) == 0
+    assert len(db[auxT][WAIT_LIST]) == WAITLIST_SIZE
     for newTypo in listOfOneDist(5):
         typoDB.check(newTypo)
     typoDB.check(new_pw())
@@ -193,7 +193,8 @@ def test_logT(is_stand_alone=True):
         assert typoDB.check(get_pw())
         # on_correct_password(typoDB, get_pw())
     assert on_wrong_password(typoDB, pws[0]) # now it should work
-    assert set(typoDB._db[logT].columns) == set(logT_cols)
+
+    assert set(typoDB._db[logT][0].keys()) == set(logT_cols)
     if is_stand_alone:
         remove_DB()
     else:
