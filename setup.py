@@ -19,7 +19,7 @@ from typtop.config import VERSION, BINDIR, SEC_DB_PATH, set_distro
 GITHUB_URL = 'https://github.com/rchatterjee/pam-typopw' # URL in github repo
 SCRIPTS = {
     'typtop/send_typo_log.py',
-    'typtops.py'
+    'typtop/typtops.py'
 }
 
 DISTRO = set_distro()

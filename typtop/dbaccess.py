@@ -531,7 +531,7 @@ class UserTypoDB(object):
         self._aux_tab[key] = value
 
     def validate(self, orig_pw, typo):
-        editDist = distance(str(orig_pw), str(typo))
+        editDist = distance(str(orig_pw), str(typo))/float(len(orig_pw))
         typo_ent = entropy(typo)
         # rel_bound = self.get_from_auxtdb(REL_ENT_CUTOFF, int)
         # strict_bound = self.get_from_auxtdb(LOWER_ENT_CUTOFF, int)

@@ -1,5 +1,5 @@
 import sys, platform
-VERSION = "0.0.3"
+VERSION = "0.0.4"
 DB_NAME = "typtop"
 SEC_DB_PATH = '/etc/typtop.d'
 LOG_DIR = '/var/log/'
@@ -39,7 +39,9 @@ elif SYSTEM == 'LINUX':
 CACHE_SIZE = 5  # Size of the typo cache
 WAITLIST_SIZE = 10   # Size of the waitlist
 PADDED_PW_SIZE = 64  # length of the padded passwords
-EDIT_DIST_CUTOFF = 1  # distance between the real password and the typo
+EDIT_DIST_CUTOFF = 1.0/10  # fractional distance between the real
+                           # password and the typo, 1 typo per 10
+                           # characters
 REL_ENT_CUTOFF = 3 # Typo cannot be less than 3 bits in stregth
                    # compared to the real password
 LOWER_ENT_CUTOFF = 10
