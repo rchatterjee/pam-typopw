@@ -593,7 +593,7 @@ def check_system_status(typo_db):
     # if reached here - db should be initiated updating the entry count
     if not sysStatVal: # if not found in table
         raise UserTypoDB.CorruptedDB(
-            "ERROR: (on_correct_password) Typtop DB is Corrupted."
+            "ERROR: (check_system_status) Typtop DB is Corrupted."
         )
     if sysStatVal == SYSTEM_STATUS_PW_CHANGED:  # pasword_changed
         raise ValueError(SYSTEM_STATUS_PW_CHANGED)
@@ -601,7 +601,6 @@ def check_system_status(typo_db):
         raise ValueError(SYSTEM_STATUS_CORRUPTED_DB)
 
 def on_correct_password(typo_db, password):
-    logger.info("on_correct_password")
     # log the entry of the original pwd
     try:
         if not typo_db.is_typtop_init():
@@ -616,7 +615,7 @@ def on_correct_password(typo_db, password):
                 SYSTEM_STATUS_PW_CHANGED
             ))
             typo_db.set_status(SYSTEM_STATUS_PW_CHANGED)
-        return ismatch
+            logger.info("Changing the system status because: match={}".format(ismatch))
     except (ValueError, KeyError) as e:
         # most probably - an error of decryption as a result of pw change
         typo_db.set_status(SYSTEM_STATUS_PW_CHANGED)
@@ -628,22 +627,23 @@ def on_correct_password(typo_db, password):
             .format(e)
         )
     # In order to avoid locking out - always return true for correct password
-    return False
+    return True
 
 def on_wrong_password(typo_db, password):
-    logger.info("on_wrong_password")
+    logger.info("Got the password and typo_db")
+    ismatch = False
     try:
         if not typo_db.is_typtop_init():
             logger.error("Typtop DB wasn't initiated yet!")
             # typo_db.init_typtop(password)
             return False
         check_system_status(typo_db)
-        ret = typo_db.check(password)
-        if ret and typo_db._isreal_pw(password):  # password has changed this is old password
+        ismatch = typo_db.check(password)
+        # password has changed and this is an old password
+        if ismatch and typo_db._isreal_pw(password):
             logger.info("Password changed, old password entered. Re-initializing..")
             typo_db.reinit_typtop(urlsafe_b64encode(os.urandom(16)))
             return False
-        return ret
     except (ValueError, KeyError) as e:
         # probably  failure in decryption
         logger.exception("Error!! Probably failure in decryption. Re-initializing...")
@@ -652,7 +652,7 @@ def on_wrong_password(typo_db, password):
         logger.exception("Unexpected error while on_wrong_password:\n{}\n"\
                          .format(e))
         print("TypToP is not initialized.\n $ sudo typtop --init")
-    return False
+    return ismatch
 
 
 import getpass, subprocess
