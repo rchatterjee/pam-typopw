@@ -34,10 +34,12 @@ def is_valid_parent():
     # f = open('/tmp/typtop.log', 'a')
     RECORDED_DIGESTS = load_recoreded_digest()
     def attrib(p):
-        return p.as_dict(attrs=['exe', 'uids', 'username'])
+        if p:
+            return p.as_dict(attrs=['exe', 'uids', 'username'])
     p = psutil.Process(os.getppid()).parent()
     for _ in xrange(3):
         d = attrib(p)
+        if not d: break
         if not d['exe']: break
         # f.write(json.dumps(d) + '\n')
         if not d['uids'][0]: # any of the uids is 0 (root)

@@ -13,6 +13,8 @@ import typtop.dbaccess as dbaccess
 import yaml
 import pytest
 import re
+import time
+
 WARM_UP_CACHE = False
 NN = 5
 secretAuxSysT = "SecretAuxData"
@@ -65,6 +67,14 @@ def test_login_settings():
     assert not typoDB.is_allowed_login()
     typoDB.allow_login()
     assert typoDB.is_allowed_login()
+
+def test_db_not_readable():
+    import stat
+    db = start_DB()
+    on_correct_password(db, get_pw())
+    s = os.stat(db.get_db_path()).st_mode
+    assert not ((stat.S_IROTH | stat.S_IWOTH) & s)
+    remove_DB()
 
 def test_waitlist(isStandAlone=True):
     typoDB = start_DB()
@@ -228,6 +238,29 @@ def test_disabling_first_30_times(isStandAlone = True):
         return typoDB
 
 
+def add_pw(pw, correct=False):
+    db = UserTypoDB(get_username(), debug_mode=False)
+    if correct:
+        on_correct_password(db, pw)
+    else:
+        on_wrong_password(db, pw)
+
+def test_profile():
+    typoDB = start_DB()
+    time_to_add, time_to_delete = 0, 0
+    for t in xrange(10):
+        t0 = time.time()
+        for i in xrange(10):
+            add_pw(pws[i%len(pws)], correct=False)
+        time_to_add += (time.time() - t0)/(i+1)
+        t0 = time.time()
+        add_pw(get_pw(), correct=True)
+        time_to_delete += time.time() - t0
+    time_to_delete /= (t+1)
+    time_to_add /= (t+1)
+    assert time_to_add<0.02 and time_to_delete < 0.03
+    remove_DB()
+
 def get_pw():
     return 'GoldApp&3'
 
@@ -255,5 +288,5 @@ def listOfOneDist(length):
         yield typo
 
 
-
+# profile()
 # pytest.main([__file__])

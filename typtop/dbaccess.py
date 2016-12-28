@@ -1,4 +1,4 @@
-#!/usr/local/bin/python
+#!/usr/bin/env python2.7
 
 import os
 import re
@@ -79,12 +79,16 @@ class UserTypoDB(object):
         # First thing first -- setting the logger object
         setup_logger(self._log_path, debug_mode, user)
 
+        group = 'shadow' if DISTRO in ('debian', 'fedora') else \
+                'wheel' if DISTRO in ('darwin') \
+                else ''
+
         # creating dir only if it doesn't exist
         if not os.path.exists(typo_dir):
             try:
                 os.makedirs(typo_dir)
                 os.system(
-                    "chgrp shadow {0} && chmod -R g+w {0}".format(typo_dir)
+                    "chgrp {1} {0} && chmod -R g+w {0}".format(typo_dir, group)
                 )
             except OSError as error:
                 logger.error("Trying to create: {}, but seems like the database"
@@ -92,7 +96,9 @@ class UserTypoDB(object):
                 raise UserTypoDB.NoneInitiatedDB(error)
         if not os.path.exists(self._db_path):
             json.dump({}, open(self._db_path, 'w'))
-
+            cmd = 'chown root:{1} {0} && chmod o-rw {0};'.format(self._db_path, group)
+            print(cmd)
+            os.system(cmd)
         try:
             self._db = json.load(open(self._db_path, 'rw'))
         except (ValueError, IOError) as e:
@@ -192,6 +198,8 @@ class UserTypoDB(object):
         generates a new hmac salt,
         and encrypts the new pw, pw_ent, and the hmac salt
         """
+        if not self.is_typtop_init():
+            self.init_typtop(newPw)
         # Mostly a simple copy-paste of steps 1 to 2.5
         logger.info("Re-intializing after a pw change")
         # 1. derive public_key from the original password
@@ -393,7 +401,7 @@ class UserTypoDB(object):
         log_info = {
             'tid': compute_id(self._hmac_salt, typo),
             'edit_dist': distance(str(self._pw), str(typo)),
-            'rel_entropy': entropy(typo) - self._pwent,
+            'rel_entropy': (entropy(typo)/self._pwent - 1)*100,
             'ts': ts if ts else get_time(),
             'istop5fixable': is_in_top5_fixes(self._pw, typo),
             'in_cache': incache

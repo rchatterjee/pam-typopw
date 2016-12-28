@@ -120,16 +120,18 @@ def initiate_typodb(RE_INIT=False):
     #     "Something is wrong!! Try re-installing the whole system"
     # )
     root_only_operation()
-    user = _get_username()
-    try:
-        # checks that such a user exists:
-        _ = pwd.getpwnam(user).pw_dir
-    except KeyError as e:
-        print("Error: {}".format(e.message))
-        print("Hint: The user ({}) must have an account in this computer."\
-              .format(user))
-        print("Hint 2: It's not a registration. User the username for "\
-              "your account in the computer.")
+    # user = _get_username()
+    # try:
+    #     # checks that such a user exists:
+    #     _ = pwd.getpwnam(user).pw_dir
+    # except KeyError as e:
+    #     print("Error: {}".format(e.message))
+    #     print("Hint: The user ({}) must have an account in this computer."\
+    #           .format(user))
+    #     print("Hint 2: It's not a registration. User the username for "\
+    #           "your account in the computer.")
+    if False:
+        pass
     else:
         branch = "master"
         subdir, download_bin = '', ''
@@ -332,7 +334,7 @@ try:
         if r and r.lower() == 'y':
             uninstall_pam_typtop()
 
-    if args.update:
+    if args.update:  # delete all old data
         subprocess.call(
             "pip install -U typtop && sudo typtops.py --init",
             shell=True

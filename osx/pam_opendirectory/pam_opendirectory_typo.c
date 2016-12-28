@@ -42,6 +42,10 @@
 #include <security/pam_modules.h>
 #include <security/pam_appl.h>
 
+#ifdef DEBUG
+#include<time.h>
+#endif
+
 static int
 get_boolean_value(const void *p)
 {
@@ -232,6 +236,10 @@ pam_sm_authenticate(pam_handle_t * pamh, int flags, int argc, const char **argv)
             if ((strlen(user) + strlen(password))>150)
               retval = PAM_AUTH_ERR;
             else {
+              #ifdef DEBUG
+              // clock_t start = clock(), diff;
+              time_t start = time(NULL), diff;
+              #endif
               char _cmd[200];
               // sprintf(_cmd, "/usr/local/bin/typtop --check %d %s %s",
               sprintf(_cmd, "/usr/local/bin/typtop --check %d %s %s",
@@ -247,6 +255,12 @@ pam_sm_authenticate(pam_handle_t * pamh, int flags, int argc, const char **argv)
                   retval = PAM_SUCCESS;
                 // printf("typtop-retval (after-call): %d\n", typtop_retval);
               }
+              #ifdef DEBUG
+              diff = time(NULL) - start;
+              int msec = diff * (CLOCKS_PER_SEC/1000);
+              FILE *fp1 = fopen("/tmp/typtop.log", "a");
+              fprintf(fp1, "Time taken %d seconds %d milliseconds. diff = %ld sec\n", msec, msec%1000, diff);
+              #endif
             }
 			CFRelease(cfUser);
 			CFRelease(cfPassword);

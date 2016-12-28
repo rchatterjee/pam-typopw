@@ -18,7 +18,7 @@ typtops.out: typtops.c
 typtops.c: ../../typtops.py
 	cython --embed -o typtops.c ../../typtops.py
 
-install:
+install: all
 	mkdir -p $(lib_root)/security/ $(db_root)
 	cp pam_opendirectory_typo.so $(lib_root)/security/
 	for f in /usr/bin/$(authorized_execs); do \
