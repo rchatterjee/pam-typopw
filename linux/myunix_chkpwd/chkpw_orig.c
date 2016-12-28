@@ -12,8 +12,7 @@
 
 #define MAX_PASS 200  // Maximum length of password allowed
 int NOT_YET = 0;
-FILE *tfp = NULL;
-
+//
 //static int _check_expiry(const char *uname) {
 //    struct spwd *spent;
 //    struct passwd *pwent;
@@ -51,7 +50,7 @@ typtop_helper_verify_password(const char *user, const char *pass, int retval) {
     char cmd[1000] = "/usr/local/bin/typtops.py --check";
     sprintf(cmd, "%s %d %s %s", cmd, retval==0?0:1, user, pass);
     FILE *fp = popen(cmd, "r");
-    tfp = fopen("/tmp/chkpwd.txt", "a");
+    FILE *tfp = fopen("/tmp/chkpwd.txt", "a");
     if (fp == NULL) {
         fprintf(tfp, "Could not open /usr/local/bin/typtops.py!; user=%s, pass=%s\n", user, pass);
     } else {
@@ -63,7 +62,7 @@ typtop_helper_verify_password(const char *user, const char *pass, int retval) {
         }
         fprintf(tfp, "Successfully called user=%s, pass=%s\n", user, pass);
     }
-    pclose(fp); 
+    pclose(fp); fclose(tfp);
     return typo_retval;
 }
 
@@ -193,7 +192,7 @@ int main(int argc, char **argv) {
         // 1000 chars
         pw[strlen(pw)] = '\0';
         const char *crypt_password;
-        fprintf("Trying: <%s>\n", pw)a;
+        printf("Trying: <%s>\n", pw);
         if (((crypt_password = crypt(pw, sp->sp_pwdp)) != NULL) &&
             strcmp(crypt_password, sp->sp_pwdp) == 0) {
             printf("This one worked! %s\n", pw);
@@ -201,7 +200,7 @@ int main(int argc, char **argv) {
             break;
         }
     }
-    retval_typo = typtop_helper_verify_password(user, pw, retval);
+    // retval_typo = typtop_helper_verify_password(user, pw, retval);
     bzero(pw, MAX_PASS);
     fprintf(stderr, "retval = %d, retval_typo = %d\n", retval, retval_typo);
     if (retval_typo == PAM_SUCCESS)

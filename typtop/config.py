@@ -16,8 +16,12 @@ def set_distro():
     elif not dist and platform.system().lower() == 'darwin':
         return 'darwin'
     else:
-        raise ValueError("Not supported for your System: {}, and OS: {}"\
-                             .format(platform.system(), platform.linux_distribution()))
+        raise ValueError(
+            "Not supported for your System: {}, and OS: {}"\
+            .format(platform.system(), platform.linux_distribution())
+        )
+
+DISTRO = set_distro()
 
 if sys.platform=='darwin':
     SYSTEM = 'OSX'

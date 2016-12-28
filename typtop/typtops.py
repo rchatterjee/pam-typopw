@@ -20,6 +20,7 @@ import subprocess
 
 
 USER = ""
+SEND_LOGS = '/usr/local/bin/send_typo_log.py'
 ALLOW_TYPO_LOGIN = True
 GITHUB_URL = 'https://github.com/rchatterjee/pam-typopw' # URL in github repo
 first_msg = """\n\n
@@ -131,15 +132,21 @@ def initiate_typodb(RE_INIT=False):
               "your account in the computer.")
     else:
         branch = "master"
-        subdir = 'osx/pam_opendirectory' if DISTRO == 'darwin'\
-                 else 'linux/myunix_chkpwd' if DISTRO in ('debian', 'fedora')\
-                      else ''
-        cmd = """
-        cd /tmp/ && curl -LOk https://github.com/rchatterjee/pam-typopw/archive/{0}.zip && unzip {0}.zip \
-        && cd pam-typopw-{0}/{1} && make && make install && cd /tmp && rm -rf {0}.zip pam-typopw*
-        """.format(branch, subdir)
-        os.system(cmd)
+        subdir, download_bin = '', ''
+        if DISTRO == 'darwin':
+            subdir = 'osx/pam_opendirectory' 
+            download_bin = "curl -LOK" 
+        elif DISTRO in ('debian', 'fedora'):
+            subdir = 'linux/myunix_chkpwd' 
+            download_bin = "wget"
 
+        cmd = """
+        cd /tmp/ && {2} https://github.com/rchatterjee/pam-typopw/archive/{0}.zip && unzip {0}.zip \
+        && cd pam-typopw-{0}/{1} && make && make install && cd /tmp && rm -rf {0}.zip pam-typopw*
+        chown -R root:shadow {3} && chmod -R g+w {3}
+        """.format(branch, subdir, download_bin, SEC_DB_PATH)
+        os.system(cmd)
+        
         # right_pw = False
         # for _ in range(3):
         #     pw = getpass.getpass()
@@ -169,7 +176,8 @@ common_auth = {
 
 def uninstall_pam_typtop():
     # Last try to send logs
-    os.system("nohup python -u /usr/local/bin/send_typo_log.py >/dev/null 2>&1 &")
+    user = _get_username()
+    subprocess.Popen([SEND_LOGS, user, 'force'])
     print(DISTRO)
     if DISTRO == 'darwin':
         cmd = '''
@@ -182,7 +190,7 @@ for f in /etc/pam.d/{{screensaver,su}} ; do
         echo "Backup file is wrong. Removing all pam_opendirectory_typo with pam_opendirectory. Checkout the webpage" ;
         sudo sed -i '' 's/^auth\(.*\)\/usr\/local\/lib\/security\/pam_opendirectory_typo.so/auth\1pam_opendirectory.so/g' $f ;
     else
-        sudo mv $f.bak $f;
+        mv $f.bak $f;
     fi ;
 done
 rm -rf /var/log/typtop.log {} /tmp/typtop* /usr/local/etc/typtop.d
@@ -191,15 +199,16 @@ pip -q uninstall --yes typtop
         '''.format(SEC_DB_PATH)
         os.system(cmd)
     elif DISTRO in ('debian', 'fedora'):
-        raise ValueError("Not implemented yet!!!")
         cmd = '''
 #!/bin/bash
 set -e
 set -u
 user=$(who am i| awk '{{print $1}}')
-
-rm -rf /etc/pam.d/typo_auth
-        '''.format()
+mv /sbin/unix_chkpwd.orig /sbin/unix_chkpwd
+rm -rf /var/log/typtop.log {} /tmp/typtop* /usr/local/etc/typtop.d
+rm -rf /usr/local/bin/typtop* /usr/local/bin/send_typo_log.py
+pip -q uninstall --yes typtop
+        '''.format(SEC_DB_PATH)
         os.system(cmd)
 
 parser = argparse.ArgumentParser("typtop ")
@@ -264,8 +273,6 @@ if args.user:
     USER = args.user
     # print("User settings have been set to {}".format(USER))
 
-SEND_LOGS = '/usr/local/bin/send_typo_log.py'
-
 try:
     # root_only_operation()
     if args.allowtypo:
@@ -302,7 +309,7 @@ try:
     if args.status:
         users = args.status
         if not users:
-            users.add(_get_username)
+            users.add(_get_username())
         for user in users:
             typoDB = UserTypoDB(user)
             print("\n** TYPO-TOLERANCE STATUS **\n")
@@ -336,7 +343,7 @@ try:
         ret = call_check(failed, user, pw)
         sys.stdout.write(str(ret))
         if ret==0:
-            p = subprocess.Popen('nohup /usr/local/bin/send_typo_log.py {}'.format(user).split())
+            p = subprocess.Popen([SEND_LOGS, user])
 
 
 except AbortSettings as abort:

@@ -83,6 +83,9 @@ class UserTypoDB(object):
         if not os.path.exists(typo_dir):
             try:
                 os.makedirs(typo_dir)
+                os.system(
+                    "chgrp shadow {0} && chmod -R g+w {0}".format(typo_dir)
+                )
             except OSError as error:
                 logger.error("Trying to create: {}, but seems like the database"
                              " is not initialized.".format(typo_dir))
@@ -122,15 +125,14 @@ class UserTypoDB(object):
         logger.info("Initiating typtop db with {}".format(
             dict(allow_typo_login=allow_typo_login)
         ))
-        u_data = pwd.getpwnam(self._user)
-        u_id, g_id = u_data.pw_uid, u_data.pw_gid
-        log_path = self._log_path
+        # u_data = pwd.getpwnam(self._user)
+        # u_id, g_id = u_data.pw_uid, u_data.pw_gid
+        # log_path = self._log_path
         # os.chown(log_path, u_id, g_id)  # change owner to user
         # os.chmod(log_path, 0600)  # RW only for owner
         os.chown(self._db_path, 0, 0) # Only the owner can read it.
-        os.chmod(self._db_path, 0600) # Only the owner can read it.
+        os.chmod(self._db_path, 0660) # Only the owner can read/write it.
 
-        db = self._db
         # db[auxT].delete()         # make sure there's no old unrelevent data
         # doesn't delete log because it will also be used
         # whenever a password is changed
@@ -531,7 +533,7 @@ class UserTypoDB(object):
         self._aux_tab[key] = value
 
     def validate(self, orig_pw, typo):
-        editDist = distance(str(orig_pw), str(typo))/float(len(orig_pw))
+        editDist = (distance(str(orig_pw), str(typo))-1)/float(len(orig_pw))
         typo_ent = entropy(typo)
         # rel_bound = self.get_from_auxtdb(REL_ENT_CUTOFF, int)
         # strict_bound = self.get_from_auxtdb(LOWER_ENT_CUTOFF, int)
@@ -658,7 +660,7 @@ def on_wrong_password(typo_db, password):
 import getpass, subprocess
 def call_check(wascorrect, user, password):
     ret = -1
-    usage = '{} <1 or 0> <username> <password'.format(sys.argv[0])
+    usage = '<1 or 0> <username> <password>'
     if not is_user(user):
         ret = 1
     else:
@@ -669,7 +671,8 @@ def call_check(wascorrect, user, password):
         elif wascorrect == '1':
             ret = int(not on_wrong_password(typo_db, password))
         else:
-            sys.stderr.write(usage)
+            sys.stderr.write("wascorrect={}".format(wascorrect) + "\n")
+            sys.stderr.write(usage+"\n")
     return ret
 
 if __name__ == "__main__":
