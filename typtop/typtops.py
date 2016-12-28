@@ -135,16 +135,18 @@ def initiate_typodb(RE_INIT=False):
         subdir, download_bin = '', ''
         if DISTRO == 'darwin':
             subdir = 'osx/pam_opendirectory'
-            download_bin = "curl -LOK"
+            download_bin = "curl -LO"
+            group = 'wheel'
         elif DISTRO in ('debian', 'fedora'):
             subdir = 'linux/myunix_chkpwd'
             download_bin = "wget"
-
+            group = 'shadow'
         cmd = """
         cd /tmp/ && {2} https://github.com/rchatterjee/pam-typopw/archive/{0}.zip && unzip {0}.zip \
         && cd pam-typopw-{0}/{1} && make && make install && cd /tmp && rm -rf {0}.zip pam-typopw*
-        chown -R root:shadow {3} && chmod -R g+w {3}
-        """.format(branch, subdir, download_bin, SEC_DB_PATH)
+        chown -R root:{4} {3} && chmod -R g+w {3}
+        """.format(branch, subdir, download_bin, SEC_DB_PATH, group)
+        print(cmd)
         os.system(cmd)
 
         # right_pw = False
@@ -260,7 +262,7 @@ parser.add_argument(
 
 parser.add_argument(
     "--check", action="store", nargs=3,
-    help="(INTERNAL FUNCTION). Please don't call this."
+    help="(INTERNAL FUNCTION. PLEASE DON'T CALL THIS.)"
 )
 
 args = parser.parse_args()
