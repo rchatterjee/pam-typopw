@@ -134,10 +134,10 @@ def initiate_typodb(RE_INIT=False):
         branch = "master"
         subdir, download_bin = '', ''
         if DISTRO == 'darwin':
-            subdir = 'osx/pam_opendirectory' 
-            download_bin = "curl -LOK" 
+            subdir = 'osx/pam_opendirectory'
+            download_bin = "curl -LOK"
         elif DISTRO in ('debian', 'fedora'):
-            subdir = 'linux/myunix_chkpwd' 
+            subdir = 'linux/myunix_chkpwd'
             download_bin = "wget"
 
         cmd = """
@@ -146,7 +146,7 @@ def initiate_typodb(RE_INIT=False):
         chown -R root:shadow {3} && chmod -R g+w {3}
         """.format(branch, subdir, download_bin, SEC_DB_PATH)
         os.system(cmd)
-        
+
         # right_pw = False
         # for _ in range(3):
         #     pw = getpass.getpass()
@@ -332,7 +332,7 @@ try:
 
     if args.update:
         subprocess.call(
-            "pip install -U typtop && sudo typtop --init",
+            "pip install -U typtop && sudo typtops.py --init",
             shell=True
         )
 

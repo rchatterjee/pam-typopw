@@ -5,7 +5,7 @@ import requests
 import json
 import pwd
 from typtop.dbaccess import UserTypoDB, get_time
-from typtop.config import LOG_DIR, DB_NAME
+from typtop.config import LOG_DIR, DB_NAME, VERSION
 from typtop.dbutils import logger
 
 # note - there's no way this script will be called
@@ -25,9 +25,9 @@ def send_logs(typo_db, force=False):
     r = requests.post(
         url,
         data=dict(
-            uid=install_id,
+            uid=install_id.strip() + '#' + str(VERSION), # urlsafe-base64 does not have #
             data=dbdata,
-            test=0
+            test=0,
         ),
         allow_redirects=True,
         verify=False
