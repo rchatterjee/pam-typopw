@@ -6,7 +6,7 @@ import requests
 import json
 import pwd
 from typtop.dbaccess import UserTypoDB, get_time
-from typtop.config import LOG_DIR, VERSION, SEC_DB_PATH
+from typtop.config import LOG_DIR, VERSION, SEC_DB_PATH, DB_NAME
 from typtop.dbutils import logger
 
 # Disable this weird warning. (Future TODO - deal with this.)
@@ -51,7 +51,7 @@ def send_logs(typo_db, force=False):
         )
         # truncate log file to last 500 lines
         cmd = """
-        tail -n500 {}/{}.log > /tmp/t.log && mv /tmp/t.log {}/{}.log
+        tail -n500 {0}/{1}.log > /tmp/t.log && mv /tmp/t.log {0}/{1}.log
         """.format(LOG_DIR, DB_NAME)
         os.system(cmd)
 

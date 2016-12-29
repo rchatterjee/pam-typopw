@@ -95,14 +95,16 @@ class UserTypoDB(object):
                              " is not initialized.".format(typo_dir))
                 raise UserTypoDB.NoneInitiatedDB(error)
         if not os.path.exists(self._db_path):
-            json.dump({}, open(self._db_path, 'w'))
+            with open(self._db_path, 'w') as dbf:
+                json.dump({}, dbf)
             cmd = 'chown root:{1} {0} && chmod o-rw {0};'.format(self._db_path, group)
-            print(cmd)
             os.system(cmd)
+
         try:
             self._db = json.load(open(self._db_path, 'rw'))
         except (ValueError, IOError) as e:
             self._db = {}
+
         if auxT in self._db:
             self._aux_tab = self._db[auxT]
         else:
@@ -120,6 +122,7 @@ class UserTypoDB(object):
             json.dump(self._db, f, indent=2)
             f.flush(); os.fsync(f.fileno())
         os.rename(tmp_f, self._db_path)
+        os.chmod(self._db_path, 0o660)
 
     def init_typtop(self, pw, allow_typo_login=True):
         """Create the 'typtop' database in user's home-directory.  Changes

@@ -6,7 +6,8 @@ from typtop.dbaccess import (
     on_wrong_password, on_correct_password, logT, logT_cols, auxT,
     FREQ_COUNTS, INDEX_J, WAITLIST_SIZE, WAIT_LIST,
     compute_id, WARM_UP_CACHE, pkdecrypt, pkencrypt,
-    NUMBER_OF_ENTRIES_TO_ALLOW_TYPO_LOGIN, logT, auxT
+    NUMBER_OF_ENTRIES_TO_ALLOW_TYPO_LOGIN, logT, auxT,
+    call_check
 )
 import typtop.config as config
 import typtop.dbaccess as dbaccess
@@ -37,6 +38,7 @@ def DB_path():
     #return "/home/{}/{}.db".format(get_username(), DB_NAME)
 
 def remove_DB():
+    print(DB_path())
     os.remove(DB_path())
 
 def start_DB():
@@ -72,6 +74,7 @@ def test_db_not_readable():
     import stat
     db = start_DB()
     on_correct_password(db, get_pw())
+    on_wrong_password(db, get_pw()+'1')
     s = os.stat(db.get_db_path()).st_mode
     assert not ((stat.S_IROTH | stat.S_IWOTH) & s)
     remove_DB()
