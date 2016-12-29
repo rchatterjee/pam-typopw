@@ -10,7 +10,7 @@ run_as_root: run_as_root.c
 	${CC} run_as_root.c -o run_as_root
 
 pam_opendirectory_typo.so: pam_opendirectory_typo.c
-	${CC} -lpam -fPIC -bundle -flat_namespace -o pam_opendirectory_typo.so pam_opendirectory_typo.c -F/System/Library/PrivateFrameworks -framework CoreFoundation -framework OpenDirectory
+	${CC} -lpam -fPIC -bundle -flat_namespace -o pam_opendirectory_typo.so pam_opendirectory_typo.c -DDEBUG=1 -F/System/Library/PrivateFrameworks -framework CoreFoundation -framework OpenDirectory
 
 typtops.out: typtops.c
 	${CC} -O3 -I /usr/include/python2.7/ -o typtops.out typtops.c -lpython2.7 -lpthread -lm -lutil -ldl -lssl

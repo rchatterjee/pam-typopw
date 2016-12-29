@@ -259,7 +259,11 @@ pam_sm_authenticate(pam_handle_t * pamh, int flags, int argc, const char **argv)
               diff = time(NULL) - start;
               // int msec = diff * (CLOCKS_PER_SEC/1000);
               FILE *fp1 = fopen("/var/log/typtop_time.log", "a");
-              fprintf(fp1, "Time taken %ld seconds\n", diff);
+              if (!fp1) {
+                printf("File could be opened. Try the following command..\n\n$ chmod og+rw /var/log/typtop_time.log\n\n");
+              } else {
+                fprintf(fp1, "Time taken %ld seconds\n", diff);
+              }
               #endif
             }
 			CFRelease(cfUser);

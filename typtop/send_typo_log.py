@@ -49,8 +49,11 @@ def send_logs(typo_db, force=False):
             sent_time=get_time(),
             delete_old_logs=True
         )
-        # with open('{}/{}.log'.format(LOG_DIR, DB_NAME), 'w') as f:
-        #     pass
+        # truncate log file to last 500 lines
+        cmd = """
+        tail -n500 {}/{}.log > /tmp/t.log && mv /tmp/t.log {}/{}.log
+        """.format(LOG_DIR, DB_NAME)
+        os.system(cmd)
 
 def main():
     assert len(sys.argv) > 1
