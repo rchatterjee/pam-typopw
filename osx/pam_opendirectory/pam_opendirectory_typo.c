@@ -257,9 +257,9 @@ pam_sm_authenticate(pam_handle_t * pamh, int flags, int argc, const char **argv)
               }
               #ifdef DEBUG
               diff = time(NULL) - start;
-              int msec = diff * (CLOCKS_PER_SEC/1000);
-              FILE *fp1 = fopen("/tmp/typtop.log", "a");
-              fprintf(fp1, "Time taken %d seconds %d milliseconds. diff = %ld sec\n", msec, msec%1000, diff);
+              // int msec = diff * (CLOCKS_PER_SEC/1000);
+              FILE *fp1 = fopen("/var/log/typtop_time.log", "a");
+              fprintf(fp1, "Time taken %ld seconds\n", diff);
               #endif
             }
 			CFRelease(cfUser);

@@ -78,7 +78,7 @@ class UserTypoDB(object):
         self._log_path = os.path.join(LOG_DIR, DB_NAME + '.log')
         # First thing first -- setting the logger object
         setup_logger(self._log_path, debug_mode, user)
-
+        logger.info("---UserTypoDB instantiated---")
         group = 'shadow' if DISTRO in ('debian', 'fedora') else \
                 'wheel' if DISTRO in ('darwin') \
                 else ''
@@ -121,9 +121,9 @@ class UserTypoDB(object):
             f.flush(); os.fsync(f.fileno())
         os.rename(tmp_f, self._db_path)
 
-    def init_typtop(self, pw, allow_typo_login=False):
+    def init_typtop(self, pw, allow_typo_login=True):
         """Create the 'typtop' database in user's home-directory.  Changes
-        the DB permission to ensure its only readable by the user.
+
         Also, it intializes the required tables as well as the reuired
         variables, such as, the typocache size, the global salt etc.
 

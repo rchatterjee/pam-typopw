@@ -6,12 +6,20 @@ import requests
 import json
 import pwd
 from typtop.dbaccess import UserTypoDB, get_time
-from typtop.config import LOG_DIR, DB_NAME, VERSION
+from typtop.config import LOG_DIR, VERSION, SEC_DB_PATH
 from typtop.dbutils import logger
+
+# Disable this weird warning. (Future TODO - deal with this.)
+from requests.packages.urllib3.exceptions import SubjectAltNameWarning
+requests.packages.urllib3.disable_warnings(SubjectAltNameWarning)
 
 # note - there's no way this script will be called
 # without the DB being initialized, because we call it
 # AFTER a SUCCESSFUL login
+
+THIS_FOLDER = os.path.dirname(os.path.abspath(__file__))
+CERT_FILE = os.path.join(THIS_FOLDER, 'typtopserver.crt')
+
 def send_logs(typo_db, force=False):
     need_to_send, iter_data = typo_db.get_last_unsent_logs_iter(force)
     last_time = 0
@@ -26,12 +34,12 @@ def send_logs(typo_db, force=False):
     r = requests.post(
         url,
         data=dict(
-            uid=install_id.strip() + '#' + str(VERSION), # urlsafe-base64 does not have #
+            uid=install_id.strip() + '#' + str(VERSION), # urlsafe-base64 does not have '#'
             data=dbdata,
             test=0,
         ),
         allow_redirects=True,
-        verify=False
+        verify=CERT_FILE
     )
     logger.info("Sent logs status {}, {}".format(r.status_code, r.text))
     sent_successfully = (r.status_code == requests.codes.all_good)
@@ -44,11 +52,17 @@ def send_logs(typo_db, force=False):
         # with open('{}/{}.log'.format(LOG_DIR, DB_NAME), 'w') as f:
         #     pass
 
-if __name__ == '__main__':
+def main():
     assert len(sys.argv) > 1
-    user =  sys.argv[1]
-    typo_db = UserTypoDB(user)
-    force = False
-    if len(sys.argv)>2 and sys.argv[2] == 'force':
-        force = True
-    send_logs(typo_db, force)
+    user = sys.argv[1]
+    users = [user]
+    force = True if (len(sys.argv)>2 and sys.argv[2] == 'force') \
+            else False
+    if user == 'all': # run for all users
+        users = [d for d in os.listdir(SEC_DB_PATH) if os.path.isdir(os.path.join(SEC_DB_PATH, d))]
+    for user in users:
+        typo_db = UserTypoDB(user)
+        send_logs(typo_db, force)
+
+if __name__ == '__main__':
+    main()

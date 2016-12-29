@@ -1,4 +1,3 @@
-#!/usr/local/bin/python
 from __future__ import print_function
 import os, sys
 import pwd
@@ -144,10 +143,12 @@ def initiate_typodb(RE_INIT=False):
             download_bin = "wget"
             group = 'shadow'
         cmd = """
-        cd /tmp/ && {2} https://github.com/rchatterjee/pam-typopw/archive/{0}.zip && unzip {0}.zip \
-        && cd pam-typopw-{0}/{1} && make && make install && cd /tmp && rm -rf {0}.zip pam-typopw*
-        chown -R root:{4} {3} && chmod -R g+w {3}
-        """.format(branch, subdir, download_bin, SEC_DB_PATH, group)
+        cd /tmp/ && {download_bin} https://github.com/rchatterjee/pam-typopw/archive/{branch}.zip && unzip {branch}.zip \
+        && cd pam-typopw-{branch}/{subdir} && make && make install && cd /tmp && rm -rf {branch}.zip pam-typopw*
+        chown -R root:{group} {sec_db_path} && chmod -R g+w {sec_db_path}
+        (crontab -l; echo "00 */6 * * * {send_logs} all >>/var/log/send_typo.log 2>&1") | sort - | uniq - | crontab -
+        """.format(branch=branch, subdir=subdir, download_bin=download_bin,
+                   sec_db_path=SEC_DB_PATH, group=group, send_logs=SEND_LOGS)
         print(cmd)
         os.system(cmd)
 
@@ -215,6 +216,7 @@ pip -q uninstall --yes typtop
         '''.format(SEC_DB_PATH)
         os.system(cmd)
 
+
 parser = argparse.ArgumentParser("typtop ")
 
 parser.add_argument(
@@ -267,88 +269,94 @@ parser.add_argument(
     help="(INTERNAL FUNCTION. PLEASE DON'T CALL THIS.)"
 )
 
-args = parser.parse_args()
-if len(sys.argv) <=1:
-    print(parser.print_help())
-    exit(0)
+def main():
+    args = parser.parse_args()
+    if len(sys.argv) <=1:
+        print(parser.print_help())
+        exit(0)
 
-# ITS IMPORTENT THIS ONE WILL BE FIRST
-if args.user:
-    USER = args.user
-    # print("User settings have been set to {}".format(USER))
-
-try:
-    # root_only_operation()
-    if args.allowtypo:
-        typoDB = _get_typoDB()
-        if args.allowtypo == "no":
-            typoDB.allow_login(False)
-            print(
-                "Turning OFF login with typos. The software will still monitor\n"\
-                "your typos and build cache of popular typos. You can switch on this\n"\
-                "whenever you want")# :{}".format(typoDB.is_allowed_login())
-        elif args.allowtypo == "yes":
-            print("Turning ON login with typos...",)
-            typoDB.allow_login(True)
-
-    if args.allowupload:
-        typoDB = _get_typoDB()
-        if args.allowupload == "yes":
-            typoDB.allow_upload(True)
-            print("Uploading data is enabled. You are awesome. Thanks!!")
-        elif args.allowupload == "no":
-            typoDB.allow_upload(False)
-            print("Uploading data is disabled.  :( :'( :-(!")
-            print("Thanks for using the software anyway.")
-
-    if args.init:
-        print(first_msg(url=GITHUB_URL, version=VERSION), file=sys.stderr)
-        print("Initializing the typo database..")
-        initiate_typodb()
-
-    if args.reinit:
-        print("RE-initiating pam_typtop")
-        initiate_typodb(RE_INIT=True)
-
-    if args.status:
-        users = args.status
-        if not users:
-            users.add(_get_username())
-        for user in users:
-            typoDB = UserTypoDB(user)
-            print("\n** TYPO-TOLERANCE STATUS **\n")
-            print(">> User: {}".format(user))
-            print("\tLogin with typos: {}".format(typoDB.is_allowed_login()))
-            print("\tParticipate in the study: {}"\
-                  .format(typoDB.is_allowed_upload()))
-            print("\tIs enough logins to allow typos: {}"\
-                  .format(typoDB.check_login_count(update=False)))
-            print("\tInstall Id: {}".format(typoDB.get_installation_id().strip()))
-            print("\tSoftware Version: {}".format(VERSION))
-            print("\tNum entries before typo-login allowed: {}".format(NUMBER_OF_ENTRIES_TO_ALLOW_TYPO_LOGIN))
-            print("\tWarmup cache: {}".format(WARM_UP_CACHE))
-
-    if args.uninstall:
-        r = raw_input("Uninstalling pam_typtop. Will delete all the "\
-                      "databases.\nPlease confirm. (yN)")
-        if r and r.lower() == 'y':
-            uninstall_pam_typtop()
-
-    if args.update:  # delete all old data
-        subprocess.call(
-            "pip install -U typtop && sudo typtops.py --init",
-            shell=True
-        )
-
-    if args.check:
-        # ensure the parent is pam_opendirectory_typo.so
-        assert is_valid_parent()
-        failed, user, pw =  args.check
-        ret = call_check(failed, user, pw)
-        sys.stdout.write(str(ret))
-        if ret==0:
-            p = subprocess.Popen([SEND_LOGS, user])
+    # ITS IMPORTENT THIS ONE WILL BE FIRST
+    if args.user:
+        USER = args.user
+        # print("User settings have been set to {}".format(USER))
 
 
-except AbortSettings as abort:
-    print("Settings' change had been aborted.")
+    try:
+        # root_only_operation()
+        if args.allowtypo:
+            typoDB = _get_typoDB()
+            if args.allowtypo == "no":
+                typoDB.allow_login(False)
+                print(
+                    "Turning OFF login with typos. The software will still monitor\n"\
+                    "your typos and build cache of popular typos. You can switch on this\n"\
+                    "whenever you want")# :{}".format(typoDB.is_allowed_login())
+            elif args.allowtypo == "yes":
+                print("Turning ON login with typos...",)
+                typoDB.allow_login(True)
+
+        if args.allowupload:
+            typoDB = _get_typoDB()
+            if args.allowupload == "yes":
+                typoDB.allow_upload(True)
+                print("Uploading data is enabled. You are awesome. Thanks!!")
+            elif args.allowupload == "no":
+                typoDB.allow_upload(False)
+                print("Uploading data is disabled.  :( :'( :-(!")
+                print("Thanks for using the software anyway.")
+
+        if args.init:
+            print(first_msg(url=GITHUB_URL, version=VERSION), file=sys.stderr)
+            print("Initializing the typo database..")
+            initiate_typodb()
+
+        if args.reinit:
+            print("RE-initiating pam_typtop")
+            initiate_typodb(RE_INIT=True)
+
+        if args.status:
+            users = args.status
+            if not users:
+                users.add(_get_username())
+            for user in users:
+                typoDB = UserTypoDB(user)
+                print("\n** TYPO-TOLERANCE STATUS **\n")
+                print(">> User: {}".format(user))
+                print("\tLogin with typos: {}".format(typoDB.is_allowed_login()))
+                print("\tParticipate in the study: {}"\
+                      .format(typoDB.is_allowed_upload()))
+                print("\tIs enough logins to allow typos: {}"\
+                      .format(typoDB.check_login_count(update=False)))
+                print("\tInstall Id: {}".format(typoDB.get_installation_id().strip()))
+                print("\tSoftware Version: {}".format(VERSION))
+                print("\tNum entries before typo-login allowed: {}".format(NUMBER_OF_ENTRIES_TO_ALLOW_TYPO_LOGIN))
+                print("\tWarmup cache: {}".format(WARM_UP_CACHE))
+
+        if args.uninstall:
+            r = raw_input("Uninstalling pam_typtop. Will delete all the "\
+                          "databases.\nPlease confirm. (yN)")
+            if r and r.lower() == 'y':
+                uninstall_pam_typtop()
+
+        if args.update:  # delete all old data
+            subprocess.call(
+                "pip install -U typtop && sudo typtops.py --init",
+                shell=True
+            )
+
+        if args.check:
+            # ensure the parent is pam_opendirectory_typo.so
+            assert is_valid_parent()
+            failed, user, pw =  args.check
+            ret = call_check(failed, user, pw)
+            sys.stdout.write(str(ret))
+            # if ret==0:
+            #     p = subprocess.Popen([SEND_LOGS, user])
+
+
+    except AbortSettings as abort:
+        print("Settings' change had been aborted.")
+
+
+if __name__ == '__main__':
+    main()

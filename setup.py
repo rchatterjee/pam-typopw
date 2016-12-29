@@ -50,7 +50,7 @@ PYTHON_DEPS = [
     'word2keypress',
     # 'dataset',
     'zxcvbn',
-    'requests',
+    'requests==2.11.1', # 2.12 has issue with x509 cetificate
     'psutil'
 ]
 
@@ -162,11 +162,16 @@ setup(
         'Password', 'typo-tolerance',
         'login-with-errors', 'Login'
     ],
-    scripts=SCRIPTS,
+    # scripts=SCRIPTS,
+    entry_points = {
+        'console_scripts': [
+            'typtops.py = typtop.typtops:main',
+            'send_typo_log.py = typtop.send_typo_log:main']
+    },
     license='MIT',
     package_dir={'typtop': 'typtop/'},
     package_data={
-        'typtop': ['LICENSE', 'README.md'],
+        'typtop': ['../LICENSE', '../README.md', 'typtopserver.crt'],
     },
     data_files=[], # DATA_FILES,
     include_package_data=True,
