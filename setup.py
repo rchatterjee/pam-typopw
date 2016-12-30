@@ -2,7 +2,7 @@
 from __future__ import print_function
 import os
 from subprocess import Popen, call, PIPE
-from glob import glob
+# from glob import glob
 # try:
 from setuptools import setup
 from setuptools.command.install import install
@@ -13,8 +13,7 @@ from setuptools.command.install import install
 #     from distutils.core import setup
 #     from distutils.command.install import install
 
-import typtop
-from typtop.config import VERSION, BINDIR, SEC_DB_PATH, set_distro
+from typtop.config import VERSION, BINDIR, set_distro
 
 GITHUB_URL = 'https://github.com/rchatterjee/pam-typopw' # URL in github repo
 SCRIPTS = {
@@ -51,7 +50,8 @@ PYTHON_DEPS = [
     # 'dataset',
     'zxcvbn',
     'requests==2.11.1', # 2.12 has issue with x509 cetificate
-    'psutil'
+    'psutil',
+    'pyyaml'
 ]
 
 
