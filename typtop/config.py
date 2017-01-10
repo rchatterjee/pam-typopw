@@ -11,7 +11,7 @@ def set_distro():
     dist = platform.linux_distribution()[0].lower()
     if dist in ('ubuntu', 'debian', 'lubuntu', 'kubuntu'):
         return 'debian'
-    elif dist in ('fedora', 'red-hat', 'centos'):
+    elif dist in ('fedora', 'red-hat', 'centos', 'centos linux', 'red-hat linux'):
         return 'fedora'
     elif not dist and platform.system().lower() == 'darwin':
         return 'darwin'
@@ -22,6 +22,12 @@ def set_distro():
         )
 
 DISTRO = set_distro()
+
+# The group
+GROUP = 'shadow' if DISTRO in ('debian') else \
+    'root' if DISTRO in ('fedora') else \
+    'wheel' if DISTRO in ('darwin') \
+    else ''
 
 if sys.platform=='darwin':
     SYSTEM = 'OSX'

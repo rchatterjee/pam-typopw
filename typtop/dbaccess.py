@@ -15,7 +15,7 @@ from operator import itemgetter
 
 # Local libraries
 from typtop.dbutils import (
-    logger, setup_logger, is_user, get_machine_id
+    logger, setup_logger, is_user, get_machine_id, is_in_top5_fixes
 )
 from typtop.config import (
     DISTRO, DB_NAME, auxT, INSTALLATION_ID, INSTALLATION_DATE, LOG_LAST_SENTTIME,
@@ -24,7 +24,7 @@ from typtop.config import (
     CACHE_SIZE, REAL_PW, HMAC_SALT, FREQ_COUNTS, HEADER_CTX, SYSTEM_STATUS_ALL_GOOD,
     LOWER_ENT_CUTOFF, EDIT_DIST_CUTOFF, WAIT_LIST, TYPO_CACHE, SEC_DB_PATH,
     NUMBER_OF_ENTRIES_TO_ALLOW_TYPO_LOGIN, REL_ENT_CUTOFF, SYSTEM_STATUS_PW_CHANGED,
-    SYSTEM_STATUS_CORRUPTED_DB, LOG_DIR, logT, VERSION
+    SYSTEM_STATUS_CORRUPTED_DB, LOG_DIR, logT, GROUP
 )
 from typtop.pw_pkcrypto import (
     generate_key_pair, compute_id,
@@ -37,18 +37,7 @@ from typtop.pw_pkcrypto import (
 # - improve computation speed, moved to json file, but still slow
 #
 
-# The group
-GROUP = 'shadow' if DISTRO in ('debian', 'fedora') else \
-        'wheel' if DISTRO in ('darwin') \
-        else ''
 _entropy_cache = {}
-
-
-def is_in_top5_fixes(orig_pw, typo):
-    return orig_pw in (
-        typo.capitalize(), typo.swapcase(), typo.lower(),
-        typo.upper(), typo[1:], typo[:-1]
-    )
 
 
 def get_logging_path(username):
@@ -138,28 +127,29 @@ class UserTypoDB(object):
             json.dump(self._db, f, indent=2)
             f.flush(); os.fsync(f.fileno())
         os.rename(tmp_f, self._db_path)
-        g_id = grp.getgrnam(GROUP).gr_gid
-        os.chown(self._db_path, 0, g_id)
+        try:
+            g_id = grp.getgrnam(GROUP).gr_gid
+            os.chown(self._db_path, 0, g_id)
+        except KeyError as e:
+            logger.exception(e)
         os.chmod(self._db_path, 0o660)
 
     def init_typtop(self, pw, allow_typo_login=True):
         """Create the 'typtop' database in user's home-directory.  Changes
 
-        Also, it intializes the required tables as well as the reuired
-        variables, such as, the typocache size, the global salt etc.
+        Also, it initializes the required tables as well as the reuired
+        variables, such as, the typo-cache size, the global salt etc.
 
         """
         logger.info("Initiating typtop db with {}".format(
             dict(allow_typo_login=allow_typo_login)
         ))
-
-        g_id = grp.getgrnam(GROUP).gr_gid
-        # log_path = self._log_path
-        # os.chown(log_path, u_id, g_id)  # change owner to user
-        # os.chmod(log_path, 0600)  # RW only for owner
-
-        os.chown(self._db_path, 0, g_id) # Only the owner can read it.
-        os.chmod(self._db_path, 0o660) # Only the owner can read/write it.
+        try:
+            g_id = grp.getgrnam(GROUP).gr_gid
+            os.chown(self._db_path, 0, g_id)  # Only the owner can read it.
+        except KeyError as e:
+            logger.info(e)
+        os.chmod(self._db_path, 0o660)  # Only the owner can read/write it.
 
         # db[auxT].delete()         # make sure there's no old unrelevent data
         # doesn't delete log because it will also be used
@@ -212,7 +202,6 @@ class UserTypoDB(object):
         logger.debug("Initialization Complete")
         isON = self.get_from_auxtdb(ALLOWED_TYPO_LOGIN, bool)
         logger.info("typtop is ON? {}".format(isON))
-
 
     def reinit_typtop(self, newPw):
         """
@@ -621,6 +610,7 @@ class UserTypoDB(object):
     def set_status(self, status):
         self.set_in_auxtdb(key=SYSTEM_STATUS, value=status)
 
+
 def check_system_status(typo_db):
     sysStatVal = typo_db.get_from_auxtdb(SYSTEM_STATUS)
     # if reached here - db should be initiated updating the entry count
@@ -632,6 +622,7 @@ def check_system_status(typo_db):
         raise ValueError(SYSTEM_STATUS_PW_CHANGED)
     if sysStatVal == SYSTEM_STATUS_CORRUPTED_DB:  # corrupted_db
         raise ValueError(SYSTEM_STATUS_CORRUPTED_DB)
+
 
 def on_correct_password(typo_db, password):
     # log the entry of the original pwd

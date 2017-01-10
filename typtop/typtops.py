@@ -1,25 +1,20 @@
 from __future__ import print_function
 import os, sys
-import pwd
 import argparse
 from typtop.dbaccess import (
     UserTypoDB,
-    on_correct_password,
-    on_wrong_password,
-    VERSION, call_check
+    call_check
 )
 from typtop.config import (
-    set_distro, SEC_DB_PATH, NUMBER_OF_ENTRIES_TO_ALLOW_TYPO_LOGIN,
-    WARM_UP_CACHE
+    SEC_DB_PATH, NUMBER_OF_ENTRIES_TO_ALLOW_TYPO_LOGIN,
+    WARM_UP_CACHE, VERSION, GROUP, DISTRO
 )
-from typtop.dbutils import logger
 from typtop.validate_parent import is_valid_parent
 import subprocess
-# import getpass
 
 
 USER = ""
-SEND_LOGS = '/usr/local/bin/send_typo_log.py'
+SEND_LOGS = 'send_typo_log.py'
 ALLOW_TYPO_LOGIN = True
 GITHUB_URL = 'https://github.com/rchatterjee/pam-typopw' # URL in github repo
 first_msg = """\n\n
@@ -53,7 +48,7 @@ and you can opt out at any time while still keep using the software.
 Checkout other options (such as opting out of the study) of the
 utility script typtop by running:
 
-$ typtop --help
+$ typtops.py --help
 
 Note, You have to initiate this for each user who intend to use the
 benefit of adaptive typo-tolerant password login.
@@ -101,17 +96,19 @@ def _get_typoDB():
             .format(sys.argv[0], e)
         )
         return None
-    if not typoDB.is_typotoler_init():
+    if not typoDB.is_typtop_init():
         raise Exception("{}:{} not initiated".format(
             str(typoDB),
             typoDB.get_db_path())
         )
     return typoDB
 
+
 def root_only_operation():
     if os.getuid() != 0:
         print("ERROR!! You need root priviledge to run this operation")
         raise AbortSettings
+
 
 def initiate_typodb(RE_INIT=False):
     # ValueError(
@@ -133,7 +130,7 @@ def initiate_typodb(RE_INIT=False):
         pass
     else:
         branch = "master"
-        subdir, download_bin = '', ''
+        subdir, download_bin, makecmd = '', '', ''
         if DISTRO == 'darwin':
             subdir = 'osx/pam_opendirectory'
             download_bin = "curl -LO"
@@ -142,25 +139,30 @@ def initiate_typodb(RE_INIT=False):
         elif DISTRO in ('debian', 'fedora'):
             subdir = 'linux/Linux-PAM-1.2.1-typtop/'
             download_bin = "wget"
-            group = "shadow"
-            makecmd = "./configure && cd modules/pam_unix/ && make unix_chkpwd"\
-                      " && cp unix_chkpwd /sbin/unix_chkpwd && "\
-                      "chown root:shadow /sbin/unix_chkpwd && "\
-                      "chmod g+s /sbin/unix_chkpwd"
+            binary = '/sbin/unix_chkpwd'
+            group = "shadow" if DISTRO == 'debian' else 'root'
+            makecmd = "./configure && cd modules/pam_unix/ && make unix_chkpwd &&"\
+                      "if [ ! -e {binary}.orig ]; then cp {binary} {binary}.orig ; fi &&"\
+                      "cp unix_chkpwd {binary} && "\
+                      "chown root:{group} {binary} && "\
+                      "chmod g+s {binary}".format(binary=binary, group=GROUP)
         cmd = """
         cd /tmp/ && {download_bin} https://github.com/rchatterjee/pam-typopw/archive/{branch}.zip && unzip {branch}.zip \
-        && cd pam-typopw-{branch}/{subdir} && {makecmd} && cd /tmp && rm -rf {branch}.zip pam-typopw*
-        chown -R root:{group} {sec_db_path} && chmod -R g+w {sec_db_path} && chmod -R o-rw {sec_db_path};
+        && cd pam-typopw-{branch}/{subdir} && {makecmd};
+        cd /tmp && rm -rf {branch}.zip pam-typopw*
+
+        mkdir -p {sec_db_path} && chown -R root:{group} {sec_db_path} && \
+        chmod -R g+w {sec_db_path} && chmod -R o-rw {sec_db_path};
+        touch /var/log/typtop.log && chmod o+w /var/log/typtop.logq
+
         (crontab -l; echo "00 */6 * * * {send_logs} all >>/var/log/send_typo.log 2>&1") | sort - | uniq - | crontab -
         """.format(branch=branch, subdir=subdir,
                    download_bin=download_bin, sec_db_path=SEC_DB_PATH,
-                   group=group, send_logs=SEND_LOGS, makecmd=makecmd)
+                   group=GROUP, send_logs=SEND_LOGS, makecmd=makecmd)
         print(cmd)
         os.system(cmd)
 
-
-DISTRO = set_distro()
-common_auth = {
+common_auth = { # Not used
     'debian': '/etc/pam.d/common-auth',
     'fedora': '/etc/pam.d/system-auth',
     'darwin': ''
@@ -185,22 +187,24 @@ for f in /etc/pam.d/{{screensaver,su}} ; do
         mv $f.bak $f;
     fi ;
 done
-rm -rf /var/log/typtop.log {} /tmp/typtop* /usr/local/etc/typtop.d
+rm -rf /var/log/typtop.log /tmp/typtop* {sec_db_path}
 rm -rf /usr/local/bin/typtop* /usr/local/bin/send_typo_log.py
 pip -q uninstall --yes typtop
-        '''.format(SEC_DB_PATH)
+        '''.format(sec_db_path=SEC_DB_PATH)
         os.system(cmd)
     elif DISTRO in ('debian', 'fedora'):
+        binary = '/sbin/unix_chkpwd'
         cmd = '''
 #!/bin/bash
 set -e
 set -u
 user=$(who am i| awk '{{print $1}}')
-mv /sbin/unix_chkpwd.orig /sbin/unix_chkpwd
-rm -rf /var/log/typtop.log {} /tmp/typtop* /usr/local/etc/typtop.d
-rm -rf /usr/local/bin/typtop* /usr/local/bin/send_typo_log.py
+if [ -e {binary}.orig ]; then
+   mv {binary}.orig {binary}
+fi
+rm -rf /var/log/typtop.log {sec_db_path} /tmp/typtop* /usr/local/etc/typtop.d
 pip -q uninstall --yes typtop
-        '''.format(SEC_DB_PATH)
+        '''.format(sec_db_path=SEC_DB_PATH, binary=binary)
         os.system(cmd)
 
 
@@ -275,9 +279,9 @@ def main():
             if args.allowtypo == "no":
                 typoDB.allow_login(False)
                 print(
-                    "Turning OFF login with typos. The software will still monitor\n"\
-                    "your typos and build cache of popular typos. You can switch on this\n"\
-                    "whenever you want")# :{}".format(typoDB.is_allowed_login())
+                    "Turning OFF login with typos. The software will still monitor\n"
+                    "your typos and build cache of popular typos. You can switch on this\n"
+                    "whenever you want")  # :{}".format(typoDB.is_allowed_login())
             elif args.allowtypo == "yes":
                 print("Turning ON login with typos...",)
                 typoDB.allow_login(True)
@@ -320,7 +324,7 @@ def main():
                 print("\tWarmup cache: {}".format(WARM_UP_CACHE))
 
         if args.uninstall:
-            r = raw_input("Uninstalling pam_typtop. Will delete all the "\
+            r = raw_input("Uninstalling pam_typtop. Will delete all the "
                           "databases.\nPlease confirm. (yN)")
             if r and r.lower() == 'y':
                 uninstall_pam_typtop()

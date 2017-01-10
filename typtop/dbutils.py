@@ -27,6 +27,14 @@ def setup_logger(logfile_path, debug_mode, user):
         handler.setFormatter(formatter)
         logger.addHandler(handler)
 
+
+def is_in_top5_fixes(orig_pw, typo):
+    return orig_pw in (
+        typo.capitalize(), typo.swapcase(), typo.lower(),
+        typo.upper(), typo[1:], typo[:-1]
+    )
+
+
 def increament_val(dbh, tabname, key, keyf='desc', valuef='data'):
     """
     Increaments the value of the key in tabname purely using sql query.

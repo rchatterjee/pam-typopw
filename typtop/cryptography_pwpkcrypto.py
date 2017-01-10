@@ -67,6 +67,7 @@ def _slow_hash(pw, sa):
     key = kdf.derive(pw)
     return key
 
+
 def verify_pk_sk(pk, sk):
     try:
         if isinstance(sk, (bytes, basestring)):
@@ -80,6 +81,7 @@ def verify_pk_sk(pk, sk):
         print("sk: {}\npk:{}".format(sk, pk))
         raise(e)
 
+
 def verify(pw, sa, h):
     """Verifies if h(pw, sa) == h
     returns k in case it matches, otherwise None.
@@ -92,11 +94,13 @@ def verify(pw, sa, h):
     else:
         return None
 
+
 def harden_pw(pw):
     sa = os.urandom(SALT_LENGTH)
     k = _slow_hash(pw, sa)
     h = hash256(k)
     return (urlsafe_b64encode(sa), k, urlsafe_b64encode(h))
+
 
 def serialize_pk(pk):
     if isinstance(pk, (basestring, bytes)):
