@@ -331,7 +331,7 @@ def main():
 
         if args.update:  # delete all old data
             subprocess.call(
-                "pip install -U typtop && sudo typtops.py --init",
+                "pip install -U typtop && typtops.py --init",
                 shell=True
             )
 

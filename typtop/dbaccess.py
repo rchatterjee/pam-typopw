@@ -5,7 +5,7 @@ import time
 import json
 import yaml
 import sys
-import pwd, grp
+import pwd
 import random
 from zxcvbn import password_strength
 from collections import defaultdict
@@ -175,10 +175,12 @@ class UserTypoDB(object):
             INDEX_J: random.randint(0, WAITLIST_SIZE-1),
         })
 
+        # Just get the ids of all possible typo candidates for warming
+        # up the cache.
         perm_index = self._fill_cache_w_garbage()
         if WARM_UP_CACHE:
             freq_counts = range(CACHE_SIZE, 0, -1)
-            for i, f in enumerate(range(CACHE_SIZE)):
+            for i in range(CACHE_SIZE):
                 freq_counts[perm_index[i]] = freq_counts[i]
         else:
             freq_counts = [0 for _ in xrange(CACHE_SIZE)]
@@ -234,10 +236,7 @@ class UserTypoDB(object):
         # 3 sending logs and deleting tables:
         logger.debug("Sending logs, deleting tables")
 
-        self._logt = self._db[logT] = []
-
-        # self._db.commit()
-        # Filling the Typocache with garbage
+        # 4. Filling the Typocache with garbage
         self._fill_waitlist_w_garbage()
         self.set_status(SYSTEM_STATUS_ALL_GOOD)
         logger.info("RE-Initialization Complete")
@@ -310,6 +309,7 @@ class UserTypoDB(object):
         random.shuffle(perm_index)
         pw = self._pw
         popular_typos = [os.urandom(16) for _ in xrange(CACHE_SIZE)]
+        self._pwent = entropy(self._pw)        
         if WARM_UP_CACHE:
             i = 0
             for tpw in [
@@ -319,8 +319,11 @@ class UserTypoDB(object):
             ]:
                 if i>=CACHE_SIZE: break
                 if (pw != tpw and tpw not in popular_typos):
+                    self.insert_log(typo=tpw, incache=True)
                     popular_typos[perm_index[i]] = tpw
                     i += 1
+                elif tpw in popular_typos:
+                    self.insert_log(typo=tpw, incache=False)
             # print(WARM_UP_CACHE, popular_typos)
         popular_typos = [pw] + popular_typos
         garbage_list = [
@@ -396,7 +399,7 @@ class UserTypoDB(object):
         send_stat_row = self.get_from_auxtdb(ALLOWED_LOGGING, bool)
         return send_stat_row
 
-    def update_log(self, typo, incache, ts=None):
+    def insert_log(self, typo, incache, ts=None):
         """Updates the log with information about typo. Remember, if sk_dict is
         not provided it will insert @typo as typo_id and 0 as relative_entropy.
         Note the default values used in other_info, which is basically what
@@ -454,7 +457,7 @@ class UserTypoDB(object):
             # starts with installation id, then must be garbage
             if typo.startswith(install_id):
                 continue
-            self.update_log(typo, incache=False, ts=ts)
+            self.insert_log(typo, incache=False, ts=ts)
             if typo in ignore: continue
             if self.validate(self._pw, typo):
                 filtered_typos[typo] += 1
@@ -510,7 +513,7 @@ class UserTypoDB(object):
         for i, sk_ctx in enumerate(typo_cache):
             try:
                 sk = pwdecrypt(pw, sk_ctx)
-                if not verify_pk_sk(pk, bytes(sk)):  #  Somehow the hash matched !!
+                if not verify_pk_sk(pk, bytes(sk)):  # Somehow the hash matched !!
                     logger.error("pk-sk Verification failed!!")
                     continue
                 self._sk = sk
@@ -526,7 +529,7 @@ class UserTypoDB(object):
             if i > 0: freq_counts[i-1] += 1
             self._pw = header[REAL_PW]
             self._pwent = entropy(self._pw)
-            self.update_log(pw, incache=True, ts=get_time())
+            self.insert_log(pw, incache=True, ts=get_time())
             match_found = True
             break
         if match_found:

@@ -180,7 +180,7 @@ def test_pw_change(isStandAlone = True):
     db = typoDB._db
     typoDB.reinit_typtop(new_pw())
     # assert count_real_typos_in_cache(typoDB,True)[0] == 1
-    assert len(db[logT]) == 0
+    # assert len(db[logT]) == 0
     assert len(db[auxT][WAIT_LIST]) == WAITLIST_SIZE
     for newTypo in listOfOneDist(5):
         typoDB.check(newTypo)
