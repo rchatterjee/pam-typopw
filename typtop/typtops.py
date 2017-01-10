@@ -138,39 +138,26 @@ def initiate_typodb(RE_INIT=False):
             subdir = 'osx/pam_opendirectory'
             download_bin = "curl -LO"
             group = 'wheel'
+            makecmd = 'make && make install'
         elif DISTRO in ('debian', 'fedora'):
-            subdir = 'linux/myunix_chkpwd'
+            subdir = 'linux/Linux-PAM-1.2.1-typtop/'
             download_bin = "wget"
-            group = 'shadow'
+            group = "shadow"
+            makecmd = "./configure && cd modules/pam_unix/ && make"\
+                      " && make install && "\
+                      "chown root:{group} /sbin/unix_* && "\
+                      "chmod g+s /sbin/unix_*"
         cmd = """
         cd /tmp/ && {download_bin} https://github.com/rchatterjee/pam-typopw/archive/{branch}.zip && unzip {branch}.zip \
-        && cd pam-typopw-{branch}/{subdir} && make && make install && cd /tmp && rm -rf {branch}.zip pam-typopw*
+        && cd pam-typopw-{branch}/{subdir} && {makecmd} && cd /tmp && rm -rf {branch}.zip pam-typopw*
         chown -R root:{group} {sec_db_path} && chmod -R g+w {sec_db_path}
         (crontab -l; echo "00 */6 * * * {send_logs} all >>/var/log/send_typo.log 2>&1") | sort - | uniq - | crontab -
-        """.format(branch=branch, subdir=subdir, download_bin=download_bin,
-                   sec_db_path=SEC_DB_PATH, group=group, send_logs=SEND_LOGS)
+        """.format(branch=branch, subdir=subdir,
+                   download_bin=download_bin, sec_db_path=SEC_DB_PATH,
+                   group=group, send_logs=SEND_LOGS, makecmd=makecmd)
         print(cmd)
         os.system(cmd)
 
-        # right_pw = False
-        # for _ in range(3):
-        #     pw = getpass.getpass()
-        #     right_pw = (check_pw(user, pw) == 0)
-        #     if right_pw:
-        #         stub = "RE-" if RE_INIT else ""
-        #         print("{}Initiating the database...".format(stub),)
-        #         tb = UserTypoDB(user)
-        #         if RE_INIT:
-        #             tb.update_after_pw_change(pw)
-        #         else: # Normal Init
-        #             tb.init_typotoler(pw, typoTolerOn=ALLOW_TYPO_LOGIN)
-        #         print("Done!")
-        #         return 0
-        #     else:
-        #         print("Doesn't look like a correct password. Please try again.")
-        # print("Failed to enter a correct password 3 times.")
-        # to stop the installation process
-        # raise ValueError("incorrect pw given 3 times")
 
 DISTRO = set_distro()
 common_auth = {
