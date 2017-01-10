@@ -143,14 +143,14 @@ def initiate_typodb(RE_INIT=False):
             subdir = 'linux/Linux-PAM-1.2.1-typtop/'
             download_bin = "wget"
             group = "shadow"
-            makecmd = "./configure && cd modules/pam_unix/ && make"\
-                      " && make install && "\
-                      "chown root:{group} /sbin/unix_* && "\
-                      "chmod g+s /sbin/unix_*"
+            makecmd = "./configure && cd modules/pam_unix/ && make unix_chkpwd"\
+                      " && cp unix_chkpwd /sbin/unix_chkpwd && "\
+                      "chown root:shadow /sbin/unix_chkpwd && "\
+                      "chmod g+s /sbin/unix_chkpwd"
         cmd = """
         cd /tmp/ && {download_bin} https://github.com/rchatterjee/pam-typopw/archive/{branch}.zip && unzip {branch}.zip \
         && cd pam-typopw-{branch}/{subdir} && {makecmd} && cd /tmp && rm -rf {branch}.zip pam-typopw*
-        chown -R root:{group} {sec_db_path} && chmod -R g+w {sec_db_path}
+        chown -R root:{group} {sec_db_path} && chmod -R g+w {sec_db_path} && chmod -R o-rw {sec_db_path};
         (crontab -l; echo "00 */6 * * * {send_logs} all >>/var/log/send_typo.log 2>&1") | sort - | uniq - | crontab -
         """.format(branch=branch, subdir=subdir,
                    download_bin=download_bin, sec_db_path=SEC_DB_PATH,
