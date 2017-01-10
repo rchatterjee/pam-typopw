@@ -2,10 +2,10 @@
 import struct
 from typtop.pw_pkcrypto import decrypt, hash256, urlsafe_b64encode
 import logging
-from config import DB_NAME
-import pwd
+from typtop.config import DB_NAME, GROUP
+import pwd, grp
 import uuid
-
+import os
 
 def is_user(u):
     try:
@@ -15,6 +15,17 @@ def is_user(u):
         return False
 
 logger = logging.getLogger(DB_NAME)
+
+def change_db_ownership(fl):
+    try:
+        g_id = grp.getgrnam(GROUP).gr_gid
+        f_stat = os.stat(fl)
+        f_uid, f_gid = f_stat.st_uid, f_stat.st_gid
+        if f_uid != 0 or f_gid != g_id:
+            os.chown(fl, 0, g_id)
+    except (KeyError, OSError) as e:
+        logger.exception(e)
+
 def setup_logger(logfile_path, debug_mode, user):
     log_level = logging.DEBUG if debug_mode else logging.INFO
     logger.setLevel(log_level)

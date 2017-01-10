@@ -153,7 +153,7 @@ def initiate_typodb(RE_INIT=False):
 
         mkdir -p {sec_db_path} && chown -R root:{group} {sec_db_path} && \
         chmod -R g+w {sec_db_path} && chmod -R o-rw {sec_db_path};
-        touch /var/log/typtop.log && chmod o+w /var/log/typtop.logq
+        touch /var/log/typtop.log && chmod o+w /var/log/typtop.log
 
         (crontab -l; echo "00 */6 * * * {send_logs} all >>/var/log/send_typo.log 2>&1") | sort - | uniq - | crontab -
         """.format(branch=branch, subdir=subdir,

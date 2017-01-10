@@ -15,16 +15,20 @@ from operator import itemgetter
 
 # Local libraries
 from typtop.dbutils import (
-    logger, setup_logger, is_user, get_machine_id, is_in_top5_fixes
+    logger, setup_logger, is_user, get_machine_id, is_in_top5_fixes,
+    change_db_ownership
 )
-from typtop.config import (
-    DISTRO, DB_NAME, auxT, INSTALLATION_ID, INSTALLATION_DATE, LOG_LAST_SENTTIME,
-    LOG_SENT_PERIOD, UPDATE_GAPS, SYSTEM_STATUS, SYSTEM_STATUS_NOT_INITIALIZED, LOGIN_COUNT,
-    ALLOWED_TYPO_LOGIN, ALLOWED_LOGGING, ENC_PK, INDEX_J, WAITLIST_SIZE, WARM_UP_CACHE,
-    CACHE_SIZE, REAL_PW, HMAC_SALT, FREQ_COUNTS, HEADER_CTX, SYSTEM_STATUS_ALL_GOOD,
-    LOWER_ENT_CUTOFF, EDIT_DIST_CUTOFF, WAIT_LIST, TYPO_CACHE, SEC_DB_PATH,
-    NUMBER_OF_ENTRIES_TO_ALLOW_TYPO_LOGIN, REL_ENT_CUTOFF, SYSTEM_STATUS_PW_CHANGED,
-    SYSTEM_STATUS_CORRUPTED_DB, LOG_DIR, logT, GROUP
+from typtop.config import (    
+    DISTRO, DB_NAME, auxT, INSTALLATION_ID,
+    INSTALLATION_DATE, LOG_LAST_SENTTIME, LOG_SENT_PERIOD,
+    UPDATE_GAPS, SYSTEM_STATUS, SYSTEM_STATUS_NOT_INITIALIZED,
+    LOGIN_COUNT, ALLOWED_TYPO_LOGIN, ALLOWED_LOGGING, ENC_PK, INDEX_J,
+    WAITLIST_SIZE, WARM_UP_CACHE, CACHE_SIZE, REAL_PW, HMAC_SALT,
+    FREQ_COUNTS, HEADER_CTX, SYSTEM_STATUS_ALL_GOOD, LOWER_ENT_CUTOFF,
+    EDIT_DIST_CUTOFF, WAIT_LIST, TYPO_CACHE, SEC_DB_PATH,
+    NUMBER_OF_ENTRIES_TO_ALLOW_TYPO_LOGIN, REL_ENT_CUTOFF,
+    SYSTEM_STATUS_PW_CHANGED, SYSTEM_STATUS_CORRUPTED_DB, LOG_DIR,
+    logT, GROUP 
 )
 from typtop.pw_pkcrypto import (
     generate_key_pair, compute_id,
@@ -127,11 +131,7 @@ class UserTypoDB(object):
             json.dump(self._db, f, indent=2)
             f.flush(); os.fsync(f.fileno())
         os.rename(tmp_f, self._db_path)
-        try:
-            g_id = grp.getgrnam(GROUP).gr_gid
-            os.chown(self._db_path, 0, g_id)
-        except KeyError as e:
-            logger.exception(e)
+        change_db_ownership(self._db_path)
         os.chmod(self._db_path, 0o660)
 
     def init_typtop(self, pw, allow_typo_login=True):
@@ -144,11 +144,7 @@ class UserTypoDB(object):
         logger.info("Initiating typtop db with {}".format(
             dict(allow_typo_login=allow_typo_login)
         ))
-        try:
-            g_id = grp.getgrnam(GROUP).gr_gid
-            os.chown(self._db_path, 0, g_id)  # Only the owner can read it.
-        except KeyError as e:
-            logger.info(e)
+        change_db_ownership(self._db_path)
         os.chmod(self._db_path, 0o660)  # Only the owner can read/write it.
 
         # db[auxT].delete()         # make sure there's no old unrelevent data
