@@ -1,9 +1,10 @@
 
 import struct
-from typtop.pw_pkcrypto import decrypt
+from typtop.pw_pkcrypto import decrypt, hash256, urlsafe_b64encode
 import logging
 from config import DB_NAME
 import pwd
+import uuid
 
 
 def is_user(u):
@@ -36,6 +37,12 @@ def increament_val(dbh, tabname, key, keyf='desc', valuef='data'):
             tabname=tabname, keyf=keyf, key=key, valuef=valuef
         )
     dbh.query(q)
+
+
+def get_machine_id():
+    """Unique machine id tied to the machine, does not change easily"""
+    return urlsafe_b64encode(hash256(bytes(uuid.getnode()))[:6])
+
 
 def find_one(table, key, apply_type=str):
     """Finds a key from the table with column name 'desc', and value in

@@ -112,7 +112,7 @@ class CustomInstaller(install):
         os.system('cd ./osx/pam_opendirectory/ && make && make install && cd -')
 
     def run(self):
-        print("Running instal for {}".format(DISTRO))
+        print("Running install for {}".format(DISTRO))
         # try to see if cryptography can be installed. It's more efficient
         #  Popen('easy_install pip'.split()).wait()
         # p = Popen('pip install cryptography'.split())

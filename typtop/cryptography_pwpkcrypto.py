@@ -27,6 +27,7 @@ HASH_ALGO = 'sha256' # For PBKDF HMAC
 IV_LENGTH = 12 # Length of GCM IV
 TAG_LENGTH = 16 # Length of the GCM tag, truncate if larger than this
 
+
 def hash256(*args):
     """short function for Hashing the arguments with SHA-256"""
     assert len(args)>0, "Should give at least 1 message"
@@ -40,10 +41,12 @@ def hash256(*args):
     h.update(bytes(len(args)))
     return h.finalize()
 
+
 def hmac256(secret, m):
     h = hmac.HMAC(bytes(secret), hashes.SHA256(), backend=default_backend())
     h.update(bytes(m))
     return h.finalize()
+
 
 def generate_key_pair():
     private_key = ec.generate_private_key(
@@ -51,6 +54,7 @@ def generate_key_pair():
     )
     public_key = private_key.public_key()
     return public_key, private_key
+
 
 def _slow_hash(pw, sa):
     kdf = PBKDF2HMAC(
@@ -104,6 +108,7 @@ def serialize_pk(pk):
         format=serialization.PublicFormat.SubjectPublicKeyInfo
     )
 
+
 def serialize_sk(sk):
     if isinstance(sk, (basestring, bytes)):
         return sk
@@ -114,6 +119,7 @@ def serialize_sk(sk):
             encryption_algorithm=serialization.NoEncryption()
         )
 
+
 def deserialize_sk(sk_s):
     if isinstance(sk_s, (bytes, basestring, unicode)):
         return serialization.load_pem_private_key(
@@ -122,6 +128,7 @@ def deserialize_sk(sk_s):
     else:
         return sk_s
 
+
 def deserialize_pk(pk_s):
     if isinstance(pk_s, (bytes, basestring, unicode)):
         return serialization.load_pem_public_key(
@@ -129,6 +136,7 @@ def deserialize_pk(pk_s):
         )
     else:
         return pk_s
+
 
 def pad_pw(pw, pad_length):
     """Pad pw to a pad_length, so that it hides the length of the password in bytes."""
@@ -144,6 +152,7 @@ def pad_pw(pw, pad_length):
     # padder = padding.PKCS7(pad_length*8).padder()
     # return padder.update(bytes(pw)) + padder.finalize()
 
+
 def unpad_pw(padded_pw, pad_length):
     """Unpad pw"""
     padded_pw = bytes(padded_pw)
@@ -155,6 +164,7 @@ def unpad_pw(padded_pw, pad_length):
 
     # unpadder = padding.PKCS7(pad_length*8).unpadder()
     # unpadder.update(bytes(pw)) + unpadder.finalize()
+
 
 def pwencrypt(pw, m):
     """Encrypt the message m under pw using AES-GCM method (AEAD scheme).
@@ -184,6 +194,7 @@ def pwencrypt(pw, m):
     ctx_b64 = urlsafe_b64encode(sa + iv + tag + ctx)
     return header_txt + '.' + ctx_b64
 
+
 def pwdecrypt(pw, full_ctx_b64):
     """
     Decrypt a ciphertext using pw,
@@ -210,6 +221,7 @@ def pwdecrypt(pw, full_ctx_b64):
     except Exception as e:
         raise ValueError(e)
 
+
 def _encrypt(key, plaintext, associated_data=''):
     # Generate a random 96-bit IV.
     iv = os.urandom(IV_LENGTH)
@@ -233,6 +245,7 @@ def _encrypt(key, plaintext, associated_data=''):
 
     return (iv, ciphertext, encryptor.tag)
 
+
 def _decrypt(key, iv, ciphertext, tag, associated_data=''):
     # Construct a Cipher object, with the key, iv, and additionally the
     # GCM tag used for authenticating the message.
@@ -253,6 +266,7 @@ def _decrypt(key, iv, ciphertext, tag, associated_data=''):
     # If the tag does not match an InvalidTag exception will be raised.
     return decryptor.update(ciphertext) + decryptor.finalize()
 
+
 def encrypt(k, m):
     """Symmetric encrpyt.
     """
@@ -260,6 +274,7 @@ def encrypt(k, m):
         m = bytes(m)
     iv, ctx, tag = _encrypt(k, m)
     return urlsafe_b64encode(iv + ctx + tag)
+
 
 def decrypt(k, ctx):
     """Symmetric decrpyt.
@@ -274,6 +289,7 @@ def decrypt(k, ctx):
         print(e)
         raise(ValueError(e))
 
+
 def pkencrypt(pk, m):
     """Public key encrypt"""
     if not isinstance(pk, ec.EllipticCurvePublicKey):
@@ -284,6 +300,7 @@ def pkencrypt(pk, m):
     rpk_s = serialize_pk(rpk)
     return '||'.join((rpk_s, c))
 
+
 def pkdecrypt(sk, ctx):
     """Public key decrypt"""
     if isinstance(sk, (bytes, basestring)):
@@ -293,6 +310,7 @@ def pkdecrypt(sk, ctx):
     common_key = sk.exchange(ec.ECDH(), rpk)
     m = decrypt(common_key, c)
     return m
+
 
 def compute_id(salt, pwtypo):
     """
@@ -306,6 +324,7 @@ def compute_id(salt, pwtypo):
         .format(len(salt), SALT_LENGTH)
     h = hmac256(salt, bytes(pwtypo))
     return struct.unpack('<I', h[:4])[0]
+
 
 def encrpyt_sk(key, sk):
     if not isinstance(sk, (bytes, basestring)):

@@ -37,11 +37,11 @@ $$$$$$/   $$ |  $$ |/$$$$$$  |$$$$$$/   /$$$$$$  |/$$$$$$  |
 Hello!
 
 Thanks for installing TypToP (version: {version}).  This software
-attaches a new pluggable authentication module (PAM) to almost all of
-your common authentication processes, and observes your password
-typing mistakes. It records your frequent typing mistakes, and enable
-logging in with frequent but slight vairations of your actual login
-password that are safe to do so.
+attaches a new pluggable authentication module (PAM) to some of your
+common authentication processes, such as su, login, screensaver etc.,
+and observes for password typing mistakes. It records your frequent
+typing mistakes, and enable logging in with slight vairations of your
+actual login password that are frequent and safe to do so.
 
 This is a research prototype, and we are collecting some anonymous
 non-sensitive data about your password typing patterns to verify our

@@ -3,7 +3,7 @@ import json
 import pwd
 from typtop.dbaccess import (
     UserTypoDB, DB_NAME, get_time,
-    on_wrong_password, on_correct_password, logT, logT_cols, auxT,
+    on_wrong_password, on_correct_password, logT, auxT,
     FREQ_COUNTS, INDEX_J, WAITLIST_SIZE, WAIT_LIST,
     compute_id, WARM_UP_CACHE, pkdecrypt, pkencrypt,
     NUMBER_OF_ENTRIES_TO_ALLOW_TYPO_LOGIN, logT, auxT,
@@ -208,7 +208,7 @@ def test_logT(is_stand_alone=True):
         # on_correct_password(typoDB, get_pw())
     assert on_wrong_password(typoDB, pws[0]) # now it should work
 
-    assert set(typoDB._db[logT][0].keys()) == set(logT_cols)
+    assert set(typoDB._db[logT][0].keys()) == set(config.logT_cols)
     if is_stand_alone:
         remove_DB()
     else:

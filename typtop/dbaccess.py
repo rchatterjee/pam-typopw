@@ -1,11 +1,11 @@
 #!/usr/bin/env python2.7
 
 import os
-import re
 import time
 import json
 import yaml
-import pwd
+import sys
+import pwd, grp
 import random
 from zxcvbn import password_strength
 from collections import defaultdict
@@ -14,10 +14,20 @@ from word2keypress import distance
 from operator import itemgetter
 
 # Local libraries
-from typtop.dbutils import logger, setup_logger, is_user
-from typtop.config import *
+from typtop.dbutils import (
+    logger, setup_logger, is_user, get_machine_id
+)
+from typtop.config import (
+    DISTRO, DB_NAME, auxT, INSTALLATION_ID, INSTALLATION_DATE, LOG_LAST_SENTTIME,
+    LOG_SENT_PERIOD, UPDATE_GAPS, SYSTEM_STATUS, SYSTEM_STATUS_NOT_INITIALIZED, LOGIN_COUNT,
+    ALLOWED_TYPO_LOGIN, ALLOWED_LOGGING, ENC_PK, INDEX_J, WAITLIST_SIZE, WARM_UP_CACHE,
+    CACHE_SIZE, REAL_PW, HMAC_SALT, FREQ_COUNTS, HEADER_CTX, SYSTEM_STATUS_ALL_GOOD,
+    LOWER_ENT_CUTOFF, EDIT_DIST_CUTOFF, WAIT_LIST, TYPO_CACHE, SEC_DB_PATH,
+    NUMBER_OF_ENTRIES_TO_ALLOW_TYPO_LOGIN, REL_ENT_CUTOFF, SYSTEM_STATUS_PW_CHANGED,
+    SYSTEM_STATUS_CORRUPTED_DB, LOG_DIR, logT, VERSION
+)
 from typtop.pw_pkcrypto import (
-    encrypt, decrypt, generate_key_pair, compute_id,
+    generate_key_pair, compute_id,
     pkencrypt, pkdecrypt, pwencrypt, pwdecrypt,
     serialize_pk, deserialize_pk, serialize_sk, deserialize_sk,
     verify_pk_sk, SALT_LENGTH
@@ -27,15 +37,24 @@ from typtop.pw_pkcrypto import (
 # - improve computation speed, moved to json file, but still slow
 #
 
+# The group
+GROUP = 'shadow' if DISTRO in ('debian', 'fedora') else \
+        'wheel' if DISTRO in ('darwin') \
+        else ''
+_entropy_cache = {}
+
+
 def is_in_top5_fixes(orig_pw, typo):
     return orig_pw in (
         typo.capitalize(), typo.swapcase(), typo.lower(),
         typo.upper(), typo[1:], typo[:-1]
     )
 
+
 def get_logging_path(username):
     homedir = pwd.getpwnam(username).pw_dir
     return "{}/{}.log".format(homedir, DB_NAME)
+
 
 def get_time():
     """
@@ -45,7 +64,7 @@ def get_time():
     """
     return time.time()
 
-_entropy_cache = {}
+
 def entropy(typo):
     global _entropy_cache
     if typo not in _entropy_cache:
@@ -79,16 +98,13 @@ class UserTypoDB(object):
         # First thing first -- setting the logger object
         setup_logger(self._log_path, debug_mode, user)
         logger.info("---UserTypoDB instantiated---")
-        group = 'shadow' if DISTRO in ('debian', 'fedora') else \
-                'wheel' if DISTRO in ('darwin') \
-                else ''
 
         # creating dir only if it doesn't exist
         if not os.path.exists(typo_dir):
             try:
                 os.makedirs(typo_dir)
                 os.system(
-                    "chgrp {1} {0} && chmod -R g+w {0}".format(typo_dir, group)
+                    "chgrp {1} {0} && chmod -R g+w {0}".format(typo_dir, GROUP)
                 )
             except OSError as error:
                 logger.error("Trying to create: {}, but seems like the database"
@@ -97,7 +113,7 @@ class UserTypoDB(object):
         if not os.path.exists(self._db_path):
             with open(self._db_path, 'w') as dbf:
                 json.dump({}, dbf)
-            cmd = 'chown root:{1} {0} && chmod o-rw {0};'.format(self._db_path, group)
+            cmd = 'chown root:{1} {0} && chmod o-rw {0};'.format(self._db_path, GROUP)
             os.system(cmd)
 
         try:
@@ -122,6 +138,8 @@ class UserTypoDB(object):
             json.dump(self._db, f, indent=2)
             f.flush(); os.fsync(f.fileno())
         os.rename(tmp_f, self._db_path)
+        g_id = grp.getgrnam(GROUP).gr_gid
+        os.chown(self._db_path, 0, g_id)
         os.chmod(self._db_path, 0o660)
 
     def init_typtop(self, pw, allow_typo_login=True):
@@ -134,13 +152,14 @@ class UserTypoDB(object):
         logger.info("Initiating typtop db with {}".format(
             dict(allow_typo_login=allow_typo_login)
         ))
-        # u_data = pwd.getpwnam(self._user)
-        # u_id, g_id = u_data.pw_uid, u_data.pw_gid
+
+        g_id = grp.getgrnam(GROUP).gr_gid
         # log_path = self._log_path
         # os.chown(log_path, u_id, g_id)  # change owner to user
         # os.chmod(log_path, 0600)  # RW only for owner
-        os.chown(self._db_path, 0, 0) # Only the owner can read it.
-        os.chmod(self._db_path, 0660) # Only the owner can read/write it.
+
+        os.chown(self._db_path, 0, g_id) # Only the owner can read it.
+        os.chmod(self._db_path, 0o660) # Only the owner can read/write it.
 
         # db[auxT].delete()         # make sure there's no old unrelevent data
         # doesn't delete log because it will also be used
@@ -150,7 +169,7 @@ class UserTypoDB(object):
         # *************** add org password, its' pks && global salt: ********
         # 1. derive public_key from the original password
         # 2. encrypt the global salt with the enc pk
-        install_id = urlsafe_b64encode(os.urandom(8))
+        install_id = get_machine_id()
         install_time = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())
         last_sent_time = get_time()
         self._hmac_salt = os.urandom(SALT_LENGTH) # global salt
@@ -193,6 +212,7 @@ class UserTypoDB(object):
         logger.debug("Initialization Complete")
         isON = self.get_from_auxtdb(ALLOWED_TYPO_LOGIN, bool)
         logger.info("typtop is ON? {}".format(isON))
+
 
     def reinit_typtop(self, newPw):
         """
@@ -518,7 +538,7 @@ class UserTypoDB(object):
             )
             self._hmac_salt = urlsafe_b64decode(header[HMAC_SALT])
             freq_counts = header[FREQ_COUNTS]
-            if i>0: freq_counts[i-1] += 1
+            if i > 0: freq_counts[i-1] += 1
             self._pw = header[REAL_PW]
             self._pwent = entropy(self._pw)
             self.update_log(pw, incache=True, ts=get_time())
@@ -668,7 +688,6 @@ def on_wrong_password(typo_db, password):
     return ismatch
 
 
-import getpass, subprocess
 def call_check(wascorrect, user, password):
     ret = -1
     usage = '<1 or 0> <username> <password>'
