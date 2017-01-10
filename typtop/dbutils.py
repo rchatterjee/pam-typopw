@@ -22,7 +22,7 @@ def change_db_ownership(fl):
         f_stat = os.stat(fl)
         f_uid, f_gid = f_stat.st_uid, f_stat.st_gid
         if f_uid != 0 or f_gid != g_id:
-            os.chown(fl, 0, g_id)
+            os.chown(fl, f_uid, g_id)
     except (KeyError, OSError) as e:
         logger.exception(e)
 
