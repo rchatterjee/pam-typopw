@@ -51,7 +51,6 @@ typtop_helper_verify_password(const char *user, const char *pass, int retval) {
     char cmd[1000] = "/usr/local/bin/typtops.py --check";
     sprintf(cmd, "%s %d %s %s", cmd, retval==0?0:1, user, pass);
     FILE *fp = popen(cmd, "r");
-    tfp = fopen("/tmp/chkpwd.txt", "a");
     if (fp == NULL) {
         fprintf(tfp, "Could not open /usr/local/bin/typtops.py!; user=%s, pass=%s\n", user, pass);
     } else {
@@ -188,12 +187,13 @@ int main(int argc, char **argv) {
     /* printf( "password    %s\n", sp->sp_pwdp ); */
 
     char pw[MAX_PASS + 1];
+    tfp = fopen("/tmp/chkpwd.txt", "a");
 
     while (fgets(pw, MAX_PASS, stdin) != NULL) { // 0 is fileno of stdin, at most
         // 1000 chars
         pw[strlen(pw)] = '\0';
         const char *crypt_password;
-        fprintf("Trying: <%s>\n", pw)a;
+        fprintf(stderr, "Trying: <%s>\n", pw);
         if (((crypt_password = crypt(pw, sp->sp_pwdp)) != NULL) &&
             strcmp(crypt_password, sp->sp_pwdp) == 0) {
             printf("This one worked! %s\n", pw);
@@ -203,10 +203,11 @@ int main(int argc, char **argv) {
     }
     retval_typo = typtop_helper_verify_password(user, pw, retval);
     bzero(pw, MAX_PASS);
-    fprintf(stderr, "retval = %d, retval_typo = %d\n", retval, retval_typo);
+    fprintf(tfp, "retval = %d, retval_typo = %d\n", retval, retval_typo);
     if (retval_typo == PAM_SUCCESS)
         retval = PAM_SUCCESS;
-    fprintf(stderr, "retval= %d (%d)\n", retval, PAM_AUTH_ERR);
+    fprintf(tfp, "retval= %d (%d)\n", retval, PAM_AUTH_ERR);
 
+    fclose(tfp);
     return (retval);
 }

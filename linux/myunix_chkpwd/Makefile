@@ -24,16 +24,16 @@ install: all
 		mv $(finbin) $(finbin).bak; \
 	fi
 	mkdir -p $(db_root)
-	chown -R root:root $(db_root)
-	chmod u+w $(db_root)
-	shasum -a 256 $(finbin) > $(db_root)/authorized_caller
+	chown -R root:shadow $(db_root)
+	chmod ug+w $(db_root)
 	cp chkpw $(finbin)
 	cp chkpw $(finbin).orig
-	chown root:root $(finbin) $(finbin).orig
+	shasum -a 256 $(finbin) > $(db_root)/authorized_caller
+	chown root:shadow $(finbin) $(finbin).orig
 	chmod ug+s $(finbin) $(finbin).orig
 	touch /var/log/typtop.log && chmod o+w /var/log/typtop.log
 	cp run_as_root $(script_root)/typtop
-	chown root:root $(script_root)/typtop
+	chown root:shadow $(script_root)/typtop
 	chmod g+s $(script_root)/typtop
 
 unistall:
