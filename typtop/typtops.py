@@ -140,7 +140,6 @@ def initiate_typodb(RE_INIT=False):
             subdir = 'linux/Linux-PAM-1.2.1-typtop/'
             download_bin = "wget"
             binary = '/sbin/unix_chkpwd'
-            group = "shadow" if DISTRO == 'debian' else 'root'
             makecmd = "./configure && cd modules/pam_unix/ && make unix_chkpwd &&"\
                       "if [ ! -e {binary}.orig ]; then cp {binary} {binary}.orig ; fi &&"\
                       "cp unix_chkpwd {binary} && "\
@@ -151,9 +150,9 @@ def initiate_typodb(RE_INIT=False):
         && cd pam-typopw-{branch}/{subdir} && {makecmd};
         cd /tmp && rm -rf {branch}.zip pam-typopw*
 
-        mkdir -p {sec_db_path} && chown -R root:{group} {sec_db_path} && \
+        mkdir -p {sec_db_path} && chown -R root:{group} {sec_db_path}; \
         chmod -R g+w {sec_db_path} && chmod -R o-rw {sec_db_path};
-        touch /var/log/typtop.log && chmod o+w /var/log/typtop.log
+        touch /var/log/typtop.log && chmod o+w /var/log/typtop.log;
 
         (crontab -l; echo "00 */6 * * * {send_logs} all >>/var/log/send_typo.log 2>&1") | sort - | uniq - | crontab -
         """.format(branch=branch, subdir=subdir,
