@@ -134,7 +134,6 @@ def initiate_typodb(RE_INIT=False):
         if DISTRO == 'darwin':
             subdir = 'osx/pam_opendirectory'
             download_bin = "curl -LO"
-            group = 'wheel'
             makecmd = 'make && make install'
         elif DISTRO in ('debian', 'fedora'):
             subdir = 'linux/Linux-PAM-1.2.1-typtop/'
@@ -200,10 +199,11 @@ set -u
 user=$(who am i| awk '{{print $1}}')
 if [ -e {binary}.orig ]; then
    mv {binary}.orig {binary}
+   chown root:{group} {binary}; chmod g+s {binary}
 fi
 rm -rf /var/log/typtop.log {sec_db_path} /tmp/typtop* /usr/local/etc/typtop.d
 pip -q uninstall --yes typtop
-        '''.format(sec_db_path=SEC_DB_PATH, binary=binary)
+        '''.format(sec_db_path=SEC_DB_PATH, binary=binary, group=GROUP)
         os.system(cmd)
 
 

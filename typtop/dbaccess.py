@@ -132,7 +132,6 @@ class UserTypoDB(object):
             f.flush(); os.fsync(f.fileno())
         os.rename(tmp_f, self._db_path)
         change_db_ownership(self._db_path)
-        os.chmod(self._db_path, 0o660)
 
     def init_typtop(self, pw, allow_typo_login=True):
         """Create the 'typtop' database in user's home-directory.  Changes
@@ -145,7 +144,6 @@ class UserTypoDB(object):
             dict(allow_typo_login=allow_typo_login)
         ))
         change_db_ownership(self._db_path)
-        os.chmod(self._db_path, 0o660)  # Only the owner can read/write it.
 
         # db[auxT].delete()         # make sure there's no old unrelevent data
         # doesn't delete log because it will also be used
