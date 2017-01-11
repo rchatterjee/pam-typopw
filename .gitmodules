@@ -1,3 +1,0 @@
-[submodule "osx/zxcvbn-c"]
-	path = osx/zxcvbn-c
-	url = https://github.com/tsyrogit/zxcvbn-c.git
