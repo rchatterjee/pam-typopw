@@ -70,6 +70,12 @@ def test_login_settings():
     typoDB.allow_login()
     assert typoDB.is_allowed_login()
 
+
+def test_root_login():
+    with pytest.raises(AssertionError):
+        db = UserTypoDB('root', debug_mode=True)
+
+
 def test_db_not_readable():
     import stat
     db = start_DB()
@@ -78,6 +84,7 @@ def test_db_not_readable():
     s = os.stat(db.get_db_path()).st_mode
     assert not ((stat.S_IROTH | stat.S_IWOTH) & s)
     remove_DB()
+
 
 def test_waitlist(isStandAlone=True):
     typoDB = start_DB()
@@ -92,6 +99,25 @@ def test_waitlist(isStandAlone=True):
         if not typo.startswith(install_id):
             typos_in_waitlist.add(typo)
     assert not (typos_in_waitlist - pwset) and not (pwset - typos_in_waitlist)
+
+
+def test_unintialized_exceptions():
+    db = UserTypoDB(get_username(), debug_mode=True)
+    assert not call_check(0, get_username(), get_pw())
+    assert call_check(1, get_username(), get_pw())
+    db.init_typtop(get_pw())
+    assert call_check(0, get_username(), get_pw()) == 0
+    assert call_check(0, get_username(), pws[1]) == 0
+    assert call_check(0, get_username(), get_pw()) == 0
+
+
+def test_typtop_id():
+    db = start_DB()
+    oid = db.get_installation_id()
+    db.reinit_typtop(pws[0])
+    nid = db.get_installation_id()
+    assert oid == nid
+
 
 def test_add_to_cache(isStandAlone=True):
     typoDB = start_DB()
@@ -179,6 +205,7 @@ def test_deleting_logs(isStandAlone = True):
     else:
         return typoDB
 
+
 def test_pw_change(isStandAlone = True):
     typoDB = test_alt_typo(isStandAlone = False)
     db = typoDB._db
@@ -198,6 +225,7 @@ def test_pw_change(isStandAlone = True):
         remove_DB()
     else:
         return typoDB
+
 
 def test_logT(is_stand_alone=True):
     typoDB = start_DB()
@@ -252,6 +280,7 @@ def add_pw(pw, correct=False):
     else:
         on_wrong_password(db, pw)
 
+
 def test_profile():
     typoDB = start_DB()
     time_to_add, time_to_delete = 0, 0
@@ -268,8 +297,10 @@ def test_profile():
     assert time_to_add<0.02 and time_to_delete < 0.03
     remove_DB()
 
+
 def get_pw():
     return 'GoldApp&3'
+
 
 def new_pw():
     return "Beetle*Juice94"

@@ -69,10 +69,13 @@ class UserTypoDB(object):
     class TypoDBError(Exception):
         # all errors that have to do with the typoDB state
         pass
+
     class NoneInitiatedDB(TypoDBError):
         pass
+
     class CorruptedDB(TypoDBError):
         pass
+
     def __str__(self):
         return "UserTypoDB ({})".format(self._user)
 
@@ -626,13 +629,13 @@ def on_correct_password(typo_db, password):
             # the initialization is now part of the installation process
         check_system_status(typo_db)
         # correct password but db fails to see it
-        ismatch = typo_db.check(password)
-        if not ismatch:
+        is_match = typo_db.check(password)
+        if not is_match:
             logger.debug("Changing system status to {}.".format(
                 SYSTEM_STATUS_PW_CHANGED
             ))
             typo_db.set_status(SYSTEM_STATUS_PW_CHANGED)
-            logger.info("Changing the system status because: match={}".format(ismatch))
+            logger.info("Changing the system status because: match={}".format(is_match))
     except (ValueError, KeyError) as e:
         # most probably - an error of decryption as a result of pw change
         typo_db.set_status(SYSTEM_STATUS_PW_CHANGED)
@@ -646,18 +649,19 @@ def on_correct_password(typo_db, password):
     # In order to avoid locking out - always return true for correct password
     return True
 
+
 def on_wrong_password(typo_db, password):
     logger.info("Got the password and typo_db")
-    ismatch = False
+    is_match = False
     try:
         if not typo_db.is_typtop_init():
             logger.error("Typtop DB wasn't initiated yet!")
             # typo_db.init_typtop(password)
             return False
         check_system_status(typo_db)
-        ismatch = typo_db.check(password)
+        is_match = typo_db.check(password)
         # password has changed and this is an old password
-        if ismatch and typo_db._isreal_pw(password):
+        if is_match and typo_db._isreal_pw(password):
             logger.info("Password changed, old password entered. Re-initializing..")
             typo_db.reinit_typtop(urlsafe_b64encode(os.urandom(16)))
             return False
@@ -669,7 +673,7 @@ def on_wrong_password(typo_db, password):
         logger.exception("Unexpected error while on_wrong_password:\n{}\n"\
                          .format(e))
         print("TypToP is not initialized.\n $ sudo typtop --init")
-    return ismatch
+    return is_match
 
 
 def call_check(wascorrect, user, password):
