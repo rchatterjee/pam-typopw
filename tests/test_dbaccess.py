@@ -16,7 +16,7 @@ import pytest
 import re
 import time
 
-WARM_UP_CACHE = False
+dbaccess.WARM_UP_CACHE = False
 NN = 5
 secretAuxSysT = "SecretAuxData"
 ORIG_PW_ID = 'OrgPwID'
@@ -137,17 +137,21 @@ def test_alt_typo(isStandAlone = True):
 def test_many_entries(isStandAlone = True):
     print "TEST MANY ENTRIES"
     BIG = 60
+    config.WARM_UP_CACHE = True
     typoDB = start_DB()
     log_t = typoDB.getdb('Log')
+    assert all(a['ts'] == -1 for a in log_t)
+    assert len(log_t)> 0 and len(log_t) <= len(config.warm_up_with(get_pw()))
     print "start log:{}".format(len(log_t))
     for typ in listOfOneDist(BIG):
         typoDB.check(typ)
     typoDB.check(get_pw())
     print "log len:{}".format(len(log_t))
     # print "hash len:{}".format(count_real_typos_in_cache(typoDB))
-    assert(len(log_t) == WAITLIST_SIZE + 1) # plus the original password
+    assert(len(log_t) >= WAITLIST_SIZE + 1) # plus the original password
     # realIn = min(BIG, NN)
     # tcnt, fcnt = count_real_typos_in_cache(typoDB)
+    config.WARM_UP_CACHE = False
     if isStandAlone:
         remove_DB()
     else:
@@ -160,7 +164,7 @@ def test_deleting_logs(isStandAlone = True):
         typoDB.check(pws[i%len(pws)])
     typoDB.check(get_pw())
     log_t = typoDB.getdb('Log')
-    assert len(log_t) == 11 # because that's the length of the log so far
+    assert len(log_t) >= 11 # because that's the length of the log so far
     to_send, log_iter = typoDB.get_last_unsent_logs_iter()
     assert not to_send
     typoDB.update_last_log_sent_time('0')

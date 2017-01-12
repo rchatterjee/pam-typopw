@@ -28,7 +28,7 @@ from typtop.config import (
     EDIT_DIST_CUTOFF, WAIT_LIST, TYPO_CACHE, SEC_DB_PATH,
     NUMBER_OF_ENTRIES_TO_ALLOW_TYPO_LOGIN, REL_ENT_CUTOFF,
     SYSTEM_STATUS_PW_CHANGED, SYSTEM_STATUS_CORRUPTED_DB, LOG_DIR,
-    logT, GROUP 
+    logT, GROUP, warm_up_with
 )
 from typtop.pw_pkcrypto import (
     generate_key_pair, compute_id,
@@ -307,22 +307,18 @@ class UserTypoDB(object):
         random.shuffle(perm_index)
         pw = self._pw
         popular_typos = [os.urandom(16) for _ in xrange(CACHE_SIZE)]
-        self._pwent = entropy(self._pw)        
-        if WARM_UP_CACHE:
-            i = 0
-            for tpw in [
-                pw.swapcase(), pw[0].swapcase()+pw[1:],
-                pw + '1', pw + '`', '1' + pw,
-                pw[:-1] + pw[-1] + pw[-1]
-            ]:
-                if i>=CACHE_SIZE: break
-                if (pw != tpw and tpw not in popular_typos):
-                    self.insert_log(typo=tpw, incache=True)
-                    popular_typos[perm_index[i]] = tpw
-                    i += 1
-                elif tpw in popular_typos:
-                    self.insert_log(typo=tpw, incache=False)
-            # print(WARM_UP_CACHE, popular_typos)
+        self._pwent = entropy(self._pw)
+
+        # if WARM_UP_CACHE: # No need to check, assumes always WARM_UP
+        i = 0
+        for tpw in warm_up_with(pw):
+            if (WARM_UP_CACHE and i<CACHE_SIZE and pw != tpw and tpw not in popular_typos):
+                self.insert_log(typo=tpw, incache=True, ts=-1)
+                popular_typos[perm_index[i]] = tpw
+                i += 1
+            elif pw != tpw:
+                self.insert_log(typo=tpw, incache=False, ts=-1)
+
         popular_typos = [pw] + popular_typos
         garbage_list = [
             pwencrypt(tpw, self._sk) for tpw in popular_typos

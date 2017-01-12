@@ -23,6 +23,14 @@ def set_distro():
 
 DISTRO = set_distro()
 
+
+def warm_up_with(pw):
+    return [
+        pw.swapcase(), pw[0].swapcase()+pw[1:],
+        pw + '1', pw + '`', '1' + pw,
+        pw[:-1] + pw[-1] + pw[-1]
+    ]
+
 # The group
 GROUP = 'shadow' if DISTRO in ('debian') else \
     'root' if DISTRO in ('fedora') else \
