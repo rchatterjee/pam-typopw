@@ -12,7 +12,6 @@ from typtop.config import (
 from typtop.validate_parent import is_valid_parent
 import subprocess
 
-
 USER = ""
 SEND_LOGS = 'send_typo_log.py'
 ALLOW_TYPO_LOGIN = True
@@ -66,6 +65,7 @@ def _get_login_user():
     user = first_line.split()[0]
     return user
 
+
 def _get_username():
     # trying to go over the problem of
     if USER:
@@ -75,14 +75,15 @@ def _get_username():
     is_root = uid == 0
     user = _get_login_user()
     if is_root:
-        r = raw_input("Setting will be done for login user: {}.\n"
-              "Please confirm. (Yn) ".format(user))
+        r = input("Setting will be done for login user: {}.\n"
+                  "Please confirm. (Yn) ".format(user))
         abort = r and r.lower() == 'n'
         if abort:
             raise AbortSettings()
     else:
         print("Designated user: {}".format(user))
     return user
+
 
 def _get_typoDB():
     user = _get_username()
@@ -92,7 +93,7 @@ def _get_typoDB():
         print(
             "It seems you have not initialized the db. Try running"\
             " \"sudo {} --init\" to initialize the db.\nThe error "\
-            "I ran into is the following:\n{}"\
+            "I ran into is the following:\n{}"
             .format(sys.argv[0], e)
         )
         return None
@@ -106,7 +107,7 @@ def _get_typoDB():
 
 def root_only_operation():
     if os.getuid() != 0:
-        print("ERROR!! You need root priviledge to run this operation")
+        print("ERROR!! You need root privilege to run this operation")
         raise AbortSettings
 
 
@@ -160,11 +161,12 @@ def initiate_typodb(RE_INIT=False):
         print(cmd)
         os.system(cmd)
 
-common_auth = { # Not used
+common_auth = {   # Not used
     'debian': '/etc/pam.d/common-auth',
     'fedora': '/etc/pam.d/system-auth',
     'darwin': ''
 }[DISTRO]
+
 
 def uninstall_pam_typtop():
     # Last try to send logs
@@ -225,7 +227,7 @@ parser.add_argument(
 
 parser.add_argument(
     "--allowupload", type=str.lower, choices=['yes', 'no'],
-    help="Allow uploading the non-sensive annonymous "\
+    help="Allow uploading the non-sensitive anonymous "\
     "data into the server for research purposes."
 )
 
@@ -236,7 +238,7 @@ parser.add_argument(
 
 parser.add_argument(
     "--status", action="store", nargs="*",
-    help='Prints current states of the typotolerance. Needs a username as argument.'
+    help='Prints current states of the typo-tolerance. Needs a username as argument.'
 )
 
 parser.add_argument(
@@ -265,12 +267,11 @@ def main():
         print(parser.print_help())
         exit(0)
 
-    # ITS IMPORTENT THIS ONE WILL BE FIRST
+    # ITS IMPORTANT THIS ONE WILL BE FIRST
     if args.user:
+        global USER
         USER = args.user
         # print("User settings have been set to {}".format(USER))
-
-
     try:
         # root_only_operation()
         if args.allowtypo:
@@ -323,8 +324,8 @@ def main():
                 print("\tWarmup cache: {}".format(WARM_UP_CACHE))
 
         if args.uninstall:
-            r = raw_input("Uninstalling pam_typtop. Will delete all the "
-                          "databases.\nPlease confirm. (yN)")
+            r = input("Uninstalling pam_typtop. Will delete all the "
+                      "databases.\nPlease confirm. (yN)")
             if r and r.lower() == 'y':
                 uninstall_pam_typtop()
 
@@ -337,14 +338,13 @@ def main():
         if args.check:
             # ensure the parent is pam_opendirectory_typo.so
             assert is_valid_parent()
-            failed, user, pw =  args.check
+            failed, user, pw = args.check
             ret = call_check(failed, user, pw)
             sys.stdout.write(str(ret))
             # if ret==0:
             #     p = subprocess.Popen([SEND_LOGS, user])
 
-
-    except AbortSettings as abort:
+    except AbortSettings as abrt:
         print("Settings' change had been aborted.")
 
 

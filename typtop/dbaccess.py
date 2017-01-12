@@ -83,8 +83,8 @@ class UserTypoDB(object):
         assert is_user(user), "User {!r} does not exists".format(user)
 
         # Disable Typtop for root
-        assert pwd.getpwnam(user).pw_uid != 0, \
-           "Currently Typtop is disabled for {} user.".format(user)
+        assert pwd.getpwnam(user).pw_uid != 0,\
+            "Currently Typtop is disabled for {} user.".format(user)
 
         self._user = user  # this is a real user.
         # homedir = pwd.getpwnam(self._user).pw_dir
@@ -122,7 +122,7 @@ class UserTypoDB(object):
         else:
             self._aux_tab = self._db[auxT] = {}
 
-        # always contains the serialized versino of sk, pk
+        # always contains the serialized versin of sk, pk
         self._sk, self._pk = None, None
         # the global salt for the hmac-id only will be available if
         # correct pw is provided.
@@ -184,7 +184,7 @@ class UserTypoDB(object):
             for i in range(CACHE_SIZE):
                 freq_counts[perm_index[i]] = freq_counts[i]
         else:
-            freq_counts = [0 for _ in xrange(CACHE_SIZE)]
+            freq_counts = [0 for _ in range(CACHE_SIZE)]
         header_ctx = pkencrypt(self._pk, json.dumps({
             REAL_PW: self._pw,
             HMAC_SALT: urlsafe_b64encode(self._hmac_salt),
@@ -225,7 +225,7 @@ class UserTypoDB(object):
             for i, f in enumerate(range(CACHE_SIZE)):
                 freq_counts[perm_index[i]] = freq_counts[i]
         else:
-            freq_counts = [0 for _ in xrange(CACHE_SIZE)]
+            freq_counts = [0 for _ in range(CACHE_SIZE)]
 
         header_ctx = pkencrypt(self._pk, json.dumps({
             REAL_PW: self._pw,
@@ -279,7 +279,7 @@ class UserTypoDB(object):
             )
         return is_on
 
-    def _isreal_pw(self, pw):
+    def is_real_pw(self, pw):
         return self._pw == pw
 
     def allow_login(self, allow=True):
@@ -293,14 +293,16 @@ class UserTypoDB(object):
     def _fill_waitlist_w_garbage(self):
         ts = get_time()
         install_id = self.get_installation_id()
+
         def randomstring(k):
             return urlsafe_b64encode(os.urandom(16))
+
         waitlist = [
             pkencrypt(
                 self._pk,
                 json.dumps([install_id+randomstring(5), ts])
             )
-            for _ in xrange(WAITLIST_SIZE)
+            for _ in range(WAITLIST_SIZE)
         ]
         self.set_in_auxtdb(WAIT_LIST, waitlist)
 
@@ -309,18 +311,18 @@ class UserTypoDB(object):
         perm_index = range(CACHE_SIZE)
         random.shuffle(perm_index)
         pw = self._pw
-        popular_typos = [os.urandom(16) for _ in xrange(CACHE_SIZE)]
+        popular_typos = [os.urandom(16) for _ in range(CACHE_SIZE)]
         self._pwent = entropy(self._pw)
 
         # if WARM_UP_CACHE: # No need to check, assumes always WARM_UP
         i = 0
         for tpw in warm_up_with(pw):
-            if (WARM_UP_CACHE and i<CACHE_SIZE and pw != tpw and tpw not in popular_typos):
-                self.insert_log(typo=tpw, incache=True, ts=-1)
+            if WARM_UP_CACHE and i < CACHE_SIZE and pw != tpw and tpw not in popular_typos:
+                self.insert_log(typo=tpw, in_cache=True, ts=-1)
                 popular_typos[perm_index[i]] = tpw
                 i += 1
             elif pw != tpw:
-                self.insert_log(typo=tpw, incache=False, ts=-1)
+                self.insert_log(typo=tpw, in_cache=False, ts=-1)
 
         popular_typos = [pw] + popular_typos
         garbage_list = [
@@ -356,12 +358,12 @@ class UserTypoDB(object):
         time_now = time.time()
         passed_enough_time = ((time_now - last_sending) >= update_gap)
         if not force and not passed_enough_time:
-            logger.debug("Last sent time:{}".format(str(last_sending)))
-            logger.debug("Not enought time has passed to send new logs")
+            logger.debug("Not enough time has passed ({}) to send new logs."
+                         .format(str(last_sending)))
             return False, iter([])
         log_t = self._db[logT]
         try:
-            new_logs = iter(log_t) # .find(log_t.table.columns.ts >= last_sending)
+            new_logs = iter(log_t)  # .find(log_t.table.columns.ts >= last_sending)
             logger.info("Prepared new logs to be sent, from {} to {}".format(
                 str(last_sending), str(time_now))
             )
@@ -396,7 +398,7 @@ class UserTypoDB(object):
         send_stat_row = self.get_from_auxtdb(ALLOWED_LOGGING, bool)
         return send_stat_row
 
-    def insert_log(self, typo, incache, ts=None):
+    def insert_log(self, typo, in_cache, ts=None):
         """Updates the log with information about typo. Remember, if sk_dict is
         not provided it will insert @typo as typo_id and 0 as relative_entropy.
         Note the default values used in other_info, which is basically what
@@ -404,15 +406,17 @@ class UserTypoDB(object):
         """
         assert self._pw and self._hmac_salt
         # Only log columns:
-        log_columns = {'tid', 'edit_dist', 'rel_entropy', 'ts',
-                       'istop5fixable', 'in_cache'}
+        # log_columns = set([
+        #     'tid', 'edit_dist', 'rel_entropy', 'ts',
+        #     'istop5fixable', 'in_cache'
+        # ])
         log_info = {
             'tid': compute_id(self._hmac_salt, typo),
             'edit_dist': distance(str(self._pw), str(typo)),
             'rel_entropy': (entropy(typo)/self._pwent - 1)*100,
             'ts': ts if ts else get_time(),
             'istop5fixable': is_in_top5_fixes(self._pw, typo),
-            'in_cache': incache
+            'in_cache': in_cache
         }
         try:
             self._db[logT].append(log_info)
@@ -437,12 +441,12 @@ class UserTypoDB(object):
         logger.debug("Typo encrpted.")
 
     def _decrypt_n_filter_waitlist(self):
-        '''Decrypts the waitlist and filters out the ones failed validity
+        """Decrypts the waitlist and filters out the ones failed validity
         check. After that it combines the typos and returns a list of
         typos sorted by their frequency.
 
         return: [(typo_i, f_i)]
-        '''
+        """
         filtered_typos = defaultdict(int)
         sk = deserialize_sk(self._sk)
         assert self._pwent, "PW is not initialized: {}".format(self._pwent)
@@ -454,7 +458,7 @@ class UserTypoDB(object):
             # starts with installation id, then must be garbage
             if typo.startswith(install_id):
                 continue
-            self.insert_log(typo, incache=False, ts=ts)
+            self.insert_log(typo, in_cache=False, ts=ts)
             if typo in ignore: continue
             if self.validate(self._pw, typo):
                 filtered_typos[typo] += 1
@@ -469,6 +473,7 @@ class UserTypoDB(object):
     def get_table_size(self, tableName):
         return self._db[tableName].count()
 
+    @staticmethod
     def get_typo_cache_size(self):
         return CACHE_SIZE
 
@@ -481,10 +486,10 @@ class UserTypoDB(object):
     # TODO: More policies
     @staticmethod
     def cache_insert_policy(old_t_c, new_t_c):
-        if old_t_c < 0: # for garbage rows in cache
+        if old_t_c < 0:  # for garbage rows in cache
             return True
         d = old_t_c + new_t_c
-        assert d>0
+        assert d > 0
         rnd = random.randint(0, d-1)
         return rnd <= new_t_c
 
@@ -523,10 +528,11 @@ class UserTypoDB(object):
             )
             self._hmac_salt = urlsafe_b64decode(header[HMAC_SALT])
             freq_counts = header[FREQ_COUNTS]
-            if i > 0: freq_counts[i-1] += 1
+            if i > 0:
+                freq_counts[i-1] += 1
             self._pw = header[REAL_PW]
             self._pwent = entropy(self._pw)
-            self.insert_log(pw, incache=True, ts=get_time())
+            self.insert_log(pw, in_cache=True, ts=get_time())
             match_found = True
             break
         if match_found:
@@ -536,7 +542,7 @@ class UserTypoDB(object):
                 self.check_login_count(update=True)
                 return True
             else:
-                return (self.check_login_count(update=False) and \
+                return (self.check_login_count(update=False) and
                         self.is_allowed_login())
         else:
             self._add_typo_to_waitlist(pw)
@@ -558,7 +564,7 @@ class UserTypoDB(object):
         notMuchWeaker = (typo_ent >= self._pwent - REL_ENT_CUTOFF)
         notTooWeak = (typo_ent >= LOWER_ENT_CUTOFF)
         closeEdit = (editDist <= EDIT_DIST_CUTOFF)
-        return (notTooWeak and notMuchWeaker and closeEdit)
+        return notTooWeak and notMuchWeaker and closeEdit
 
     def _update_typo_cache_by_waitlist(self, typo_cache, freq_counts):
         """
@@ -576,7 +582,7 @@ class UserTypoDB(object):
             if UserTypoDB.cache_insert_policy(minf, f):
                 logger.debug("Inserting: {} @ {}".format(typo, mini))
                 typo_cache[mini+1] = pwencrypt(typo, self._sk)
-                freq_counts[mini] = max(minf + 1, f) # TODO: Check
+                freq_counts[mini] = max(minf + 1, f)  # TODO: Check
                 mini, minf = min(enumerate(freq_counts), key=itemgetter(1))
             else:
                 logger.debug("I miss you: {} ({} <-> {})".format(typo, minf, f))
@@ -587,7 +593,6 @@ class UserTypoDB(object):
             HMAC_SALT: urlsafe_b64encode(self._hmac_salt),
             FREQ_COUNTS: freq_counts
         }))
-        sk = pwdecrypt(self._pw, typo_cache[0])
         logger.debug("Real pw={!r}".format(self._pw))
 
         self.set_in_auxtdb(HEADER_CTX, header_ctx)
@@ -595,7 +600,9 @@ class UserTypoDB(object):
         self.clear_waitlist()
 
     def get_prompt(self):
-        # Password promts
+        """This used to supply password prompt, but in new versions,
+        this function is useless"""
+        # Password prompts
         return {
             SYSTEM_STATUS_ALL_GOOD: 'aDAPTIVE pASSWORD',
             SYSTEM_STATUS_NOT_INITIALIZED: 'Please Initialize',
@@ -661,7 +668,7 @@ def on_wrong_password(typo_db, password):
         check_system_status(typo_db)
         is_match = typo_db.check(password)
         # password has changed and this is an old password
-        if is_match and typo_db._isreal_pw(password):
+        if is_match and typo_db.is_real_pw(password):
             logger.info("Password changed, old password entered. Re-initializing..")
             typo_db.reinit_typtop(urlsafe_b64encode(os.urandom(16)))
             return False
@@ -676,20 +683,20 @@ def on_wrong_password(typo_db, password):
     return is_match
 
 
-def call_check(wascorrect, user, password):
+def call_check(exchk_ret_val, user, password):
     ret = -1
     usage = '<1 or 0> <username> <password>'
     if not is_user(user):
         ret = 1
     else:
         typo_db = UserTypoDB(user)
-        wascorrect = str(wascorrect)
-        if wascorrect == '0':
+        exchk_ret_val = str(exchk_ret_val)
+        if exchk_ret_val == '0':
             ret = int(not on_correct_password(typo_db, password))
-        elif wascorrect == '1':
+        elif exchk_ret_val == '1':
             ret = int(not on_wrong_password(typo_db, password))
         else:
-            sys.stderr.write("wascorrect={}".format(wascorrect) + "\n")
+            sys.stderr.write("exchk_ret_val={}".format(exchk_ret_val) + "\n")
             sys.stderr.write(usage+"\n")
     return ret
 
