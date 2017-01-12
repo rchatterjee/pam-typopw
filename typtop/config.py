@@ -1,5 +1,5 @@
 import sys, platform
-VERSION = "0.1.1"
+VERSION = "0.1.2"
 DB_NAME = "typtop"
 SEC_DB_PATH = '/etc/typtop.d'
 LOG_DIR = '/var/log/'
@@ -27,7 +27,9 @@ DISTRO = set_distro()
 def warm_up_with(pw):
     return [
         pw.swapcase(), pw[0].swapcase()+pw[1:],
-        pw + '1', pw + '`', '1' + pw,
+        pw + '1','1' + pw,
+        '`' + pw, pw + '`',
+        pw + '0', '0' + pw,
         pw[:-1] + pw[-1] + pw[-1]
     ]
 
