@@ -1,0 +1,3 @@
+auth      [success=1 new_authtok_reqd=1 auth_err=ignore ignore=ignore default=bad]   pam_unix.so     try_first_pass nullok
+auth      [success=1 ignore=ignore default=die]  pam_typtop.so   incorrect_pass use_first_pass
+auth      optional  pam_typtop.so   use_first_pass
