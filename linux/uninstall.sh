@@ -1,13 +1,17 @@
-#!/bin/sh
+#!/bin/bash
+set -e
+set -u
 
 if [ "$EUID" -ne 0 ]
   then echo "Please run as root"
   exit
 fi
 
-rm -f /usr/lib/security/pam_typtop.so
+typtopexec=/usr/local/bin/typtop
+rm -f /usr/lib/security/pam_typtop.so $typtopexec
 
 if [ -d "/etc/pam.d/" ]; then
+    rm -rf /etc/pam.d/typtop-auth*
     pushd /etc/pam.d/ >/dev/null
     for f in *.orig; do
         if [ -e $f ]; then

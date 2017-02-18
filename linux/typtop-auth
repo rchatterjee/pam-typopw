@@ -1,3 +1,7 @@
-auth      [success=1 new_authtok_reqd=1 auth_err=ignore ignore=ignore default=bad]   pam_unix.so     try_first_pass nullok
-auth      [success=1 ignore=ignore default=die]  pam_typtop.so   incorrect_pass use_first_pass
-auth      optional  pam_typtop.so   use_first_pass
+auth      [success=2 new_authtok_reqd=ok auth_err=ignore ignore=ignore default=bad]   pam_unix.so try_first_pass nullok
+# auth 	  optional pam_echo.so "%u (%s) with wrong password"
+auth      [success=2 default=die]  /usr/lib/security/pam_typtop.so use_first_pass incorrect_pass
+auth	  requisite pam_deny.so
+# auth 	  optional pam_echo.so "%u (%s) with correct password"
+auth      optional  /usr/lib/security/pam_typtop.so   use_first_pass
+auth	  sufficient pam_permit.so

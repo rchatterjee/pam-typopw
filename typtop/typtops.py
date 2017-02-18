@@ -137,14 +137,9 @@ def initiate_typodb(RE_INIT=False):
             download_bin = "curl -LO"
             makecmd = 'make && make install'
         elif DISTRO in ('debian', 'fedora'):
-            subdir = 'linux/Linux-PAM-1.2.1-typtop/'
+            subdir = 'linux/'
             download_bin = "wget"
-            binary = '/sbin/unix_chkpwd'
-            makecmd = "./configure && cd modules/pam_unix/ && make unix_chkpwd &&"\
-                      "if [ ! -e {binary}.orig ]; then cp {binary} {binary}.orig ; fi &&"\
-                      "cp unix_chkpwd {binary} && "\
-                      "chown root:{group} {binary} && "\
-                      "chmod g+s {binary}".format(binary=binary, group=GROUP)
+            makecmd = "make && make install"
         cmd = """
         cd /tmp/ && {download_bin} https://github.com/rchatterjee/pam-typopw/archive/{branch}.zip && unzip {branch}.zip \
         && cd pam-typopw-{branch}/{subdir} && {makecmd};

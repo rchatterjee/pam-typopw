@@ -61,3 +61,5 @@ ffile.txt
 # pytest cracp
 .cache
 *~
+
+run_as_root
