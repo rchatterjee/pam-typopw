@@ -16,6 +16,7 @@ USER = ""
 SEND_LOGS = 'send_typo_log.py'
 ALLOW_TYPO_LOGIN = True
 GITHUB_URL = 'https://github.com/rchatterjee/pam-typopw' # URL in github repo
+
 first_msg = """\n\n
   /  |                          /  |
  _$$ |_    __    __   ______   _$$ |_     ______    ______

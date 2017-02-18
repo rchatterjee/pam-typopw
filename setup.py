@@ -1,11 +1,12 @@
-
 from __future__ import print_function
-import os
-from subprocess import Popen, call, PIPE
+
+# import os
+# from subprocess import Popen, call, PIPE
 # from glob import glob
 # try:
 from setuptools import setup
-from setuptools.command.install import install
+
+# from setuptools.command.install import install
 # except ImportError as e:
 #     print(e)
 #     print("Setuptools not found, if installation fails, "
@@ -13,7 +14,7 @@ from setuptools.command.install import install
 #     from distutils.core import setup
 #     from distutils.command.install import install
 
-from typtop.config import VERSION, BINDIR, set_distro
+from typtop.config import VERSION, set_distro
 
 GITHUB_URL = 'https://github.com/rchatterjee/pam-typopw' # URL in github repo
 SCRIPTS = {
