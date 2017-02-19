@@ -7,7 +7,13 @@ if [ "$EUID" -ne 0 ]
   exit
 fi
 
-typtopexec=/usr/local/bin/typtop
+root=/usr/local
+db_root=${root}/etc/typtop.d
+script_root=${root}/bin/
+lib_root=${root}/lib
+authorized_execs={su,screensaver}
+
+typtopexec=${script_root}/typtop
 rm -f /usr/lib/security/pam_typtop.so $typtopexec
 
 if [ -d "/etc/pam.d/" ]; then
@@ -31,3 +37,7 @@ elif [ -e "/etc/pam.conf" ]; then
 else 
     echo "Could not determine where to install pam config files, please do so manually"
 fi
+
+rm -rf /var/log/typtop.log /tmp/typtop* ${db_root}
+rm -rf /usr/local/bin/typtop* /usr/local/bin/send_typo_log.py
+pip -q uninstall --yes typtop

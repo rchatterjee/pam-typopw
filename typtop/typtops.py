@@ -7,13 +7,14 @@ from typtop.dbaccess import (
 )
 from typtop.config import (
     SEC_DB_PATH, NUMBER_OF_ENTRIES_TO_ALLOW_TYPO_LOGIN,
-    WARM_UP_CACHE, VERSION, GROUP, DISTRO
+    WARM_UP_CACHE, VERSION, GROUP, DISTRO, BINDIR
 )
 from typtop.validate_parent import is_valid_parent
 import subprocess
 
 USER = ""
-SEND_LOGS = 'send_typo_log.py'
+SEND_LOGS_SCRIPT = '{}/send_typo_log.py'.format(BINDIR)
+
 ALLOW_TYPO_LOGIN = True
 GITHUB_URL = 'https://github.com/rchatterjee/pam-typopw' # URL in github repo
 
@@ -134,7 +135,8 @@ def initiate_typodb(RE_INIT=False):
         branch = "master"
         subdir, download_bin, makecmd = '', '', ''
         if DISTRO == 'darwin':
-            subdir = 'osx/pam_opendirectory'
+            # TODO: Cleanup this directories. e.g., pam_opendirectory
+            subdir = 'linux/' # 'osx/pam_opendirectory' 
             download_bin = "curl -LO"
             makecmd = 'make && make install'
         elif DISTRO in ('debian', 'fedora'):
@@ -153,7 +155,7 @@ def initiate_typodb(RE_INIT=False):
         (crontab -l; echo "00 */6 * * * {send_logs} all >>/var/log/send_typo.log 2>&1") | sort - | uniq - | crontab -
         """.format(branch=branch, subdir=subdir,
                    download_bin=download_bin, sec_db_path=SEC_DB_PATH,
-                   group=GROUP, send_logs=SEND_LOGS, makecmd=makecmd)
+                   group=GROUP, send_logs=SEND_LOGS_SCRIPT, makecmd=makecmd)
         print(cmd)
         os.system(cmd)
 
@@ -167,46 +169,12 @@ common_auth = {   # Not used
 def uninstall_pam_typtop():
     # Last try to send logs
     user = _get_username()
-    subprocess.Popen([SEND_LOGS, user, 'force'])
+    typtop_uninstall_script = BINDIR + '/typtop-uninstall.sh'
+    subprocess.Popen([SEND_LOGS_SCRIPT, user, 'force'])
     print(DISTRO)
-    if DISTRO == 'darwin':
-        cmd = '''
-#!/bin/bash
-set -e
-set -u
-for f in /etc/pam.d/{{screensaver,su}} ; do
-    if [ ! -e $f.bak ]; then continue ; fi ;
-    if [ "$(grep pam_opendirectory_typo $f.bak)" != "" ] ; then
-        echo "Backup file is wrong. Removing all pam_opendirectory_typo with pam_opendirectory. Checkout the webpage" ;
-        sudo sed -i '' 's/^auth\(.*\)\/usr\/local\/lib\/security\/pam_opendirectory_typo.so/auth\1pam_opendirectory.so/g' $f ;
-    else
-        mv $f.bak $f;
-    fi ;
-done
-rm -rf /var/log/typtop.log /tmp/typtop* {sec_db_path}
-rm -rf /usr/local/bin/typtop* /usr/local/bin/send_typo_log.py
-pip -q uninstall --yes typtop
-        '''.format(sec_db_path=SEC_DB_PATH)
-        os.system(cmd)
-    elif DISTRO in ('debian', 'fedora'):
-        binary = '/sbin/unix_chkpwd'
-        cmd = '''
-#!/bin/bash
-set -e
-set -u
-user=$(who am i| awk '{{print $1}}')
-if [ -e {binary}.orig ]; then
-   mv {binary}.orig {binary}
-   chown root:{group} {binary}; chmod g+s {binary}
-fi
-rm -rf /var/log/typtop.log {sec_db_path} /tmp/typtop* /usr/local/etc/typtop.d
-pip -q uninstall --yes typtop
-        '''.format(sec_db_path=SEC_DB_PATH, binary=binary, group=GROUP)
-        os.system(cmd)
-
+    subprocess.call(typtop_uninstall_script)
 
 parser = argparse.ArgumentParser("typtop ")
-
 parser.add_argument(
     "--user",
     help="To set the username. Otherwise login user will be the target"
@@ -275,9 +243,11 @@ def main():
             if args.allowtypo == "no":
                 typoDB.allow_login(False)
                 print(
-                    "Turning OFF login with typos. The software will still monitor\n"
-                    "your typos and build cache of popular typos. You can switch on this\n"
-                    "whenever you want")  # :{}".format(typoDB.is_allowed_login())
+                    """ 
+Turning OFF login with typos. The software will still monitor your
+typos and build cache of popular typos. You can switch on this
+whenever you want.
+                    """)  # :{}".format(typoDB.is_allowed_login())
             elif args.allowtypo == "yes":
                 print("Turning ON login with typos...",)
                 typoDB.allow_login(True)
@@ -338,7 +308,7 @@ def main():
             ret = call_check(failed, user, pw)
             sys.stdout.write(str(ret))
             # if ret==0:
-            #     p = subprocess.Popen([SEND_LOGS, user])
+            #     p = subprocess.Popen([SEND_LOGS_SCRIPT, user])
 
     except AbortSettings as abrt:
         print("Settings' change had been aborted.")
