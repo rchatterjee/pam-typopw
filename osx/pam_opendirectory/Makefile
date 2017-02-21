@@ -19,9 +19,10 @@ typtops.c: ../../typtops.py
 	cython --embed -o typtops.c ../../typtops.py
 
 install: all
-	install.sh
+	./install.sh
 
 uninstall:
-	uninstall.sh
+	./uninstall.sh
+
 clean:
 	rm -rf pam_opendirectory_typo.so run_as_root typtops

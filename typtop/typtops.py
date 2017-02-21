@@ -77,9 +77,9 @@ def _get_username():
     is_root = uid == 0
     user = _get_login_user()
     if is_root:
-        r = input("Setting will be done for login user: {}.\n"
-                  "Please confirm. (Yn) ".format(user))
-        abort = r and r.lower() == 'n'
+        r = raw_input("Setting will be done for login user: {}.\n"
+                      "Please confirm. (Yn) ".format(user))
+        abort = r and r.lower() == "n"
         if abort:
             raise AbortSettings()
     else:
@@ -291,8 +291,8 @@ whenever you want.
                 print("\tWarmup cache: {}".format(WARM_UP_CACHE))
 
         if args.uninstall:
-            r = input("Uninstalling pam_typtop. Will delete all the "
-                      "databases.\nPlease confirm. (yN)")
+            r = raw_input("Uninstalling pam_typtop. Will delete all the "
+                          "databases.\nPlease confirm. (yN)")
             if r and r.lower() == "y":
                 uninstall_pam_typtop()
 

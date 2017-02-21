@@ -16,7 +16,7 @@ unixchkpwd=$(which su)
 
 install -m 0755 -d ${lib_root}/security/
 install -m 0771 -d $db_root
-install -m 0755 pam_opendirectory.so ${lib_root}/security/
+install -m 0755 pam_opendirectory_typo.so ${lib_root}/security/
 install -m 0755 uninstall.sh ${script_root}/typtop-uninstall.sh
 install -m 0755 run_as_root $typtopexec # install typtopexec
 
