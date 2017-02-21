@@ -9,10 +9,23 @@
 
 static int
 call_typtop(const char* user, const char* passwd, int chkwd_ret) {
+
+    Py_Initialize();
+    int ret = 1;
     PyObject *pModule, *pName, *pFunc;
     PyObject *pArgs, *pValue;
 
-    Py_Initialize();
+    /* char *path, *newpath; */
+    /* // /usr/local/lib might not be in python path  */
+    /* path = Py_GetPath(); */
+    /* newpath = (char*)malloc(sizeof(char) * (strlen(path) + 40)); */
+    /* char sep = ':'; // in linux and windows this is different */
+    /* if (!strchr(path, sep)) sep = ';'; */
+    /* sprintf(newpath, "%s%c/usr/local/lib/python2.7/dist-packages", path, sep); */
+    /* printf("newpath = %s\n", newpath); */
+    /* syslog(LOG_NOTICE, "newpath=%s\n", newpath); */
+    /* PySys_SetPath(newpath); */
+
     pName = PyString_FromString("typtop.dbaccess");
     
     /* Error checking of pName left out */
@@ -34,16 +47,14 @@ call_typtop(const char* user, const char* passwd, int chkwd_ret) {
             Py_DECREF(pArgs);
             if (pValue != NULL) {
                 syslog(LOG_NOTICE, "Result of call: %ld\n", PyInt_AsLong(pValue));
-                int ret = PyInt_AsLong(pValue);
+                ret = PyInt_AsLong(pValue);
                 Py_DECREF(pValue);
-                return ret;
             }
             else {
                 Py_DECREF(pFunc);
                 Py_DECREF(pModule);
                 PyErr_Print();
                 syslog(LOG_CRIT, "Call to typtop binary failed.\n");
-                return 1;
             }
         }
         else {
@@ -57,10 +68,10 @@ call_typtop(const char* user, const char* passwd, int chkwd_ret) {
     else {
         PyErr_Print();
         syslog(LOG_CRIT, "Failed to load \"%s\"\n", "typtop.dbaccess");
-        return 1;
     }
     Py_Finalize();
-    return 1;
+    // free(newpath);
+    return ret;
 }
 
 
@@ -69,6 +80,7 @@ int main(int argc, char* argv[]) {
     if (seteuid(0) != 0 || setuid(0) != 0) {
         syslog(LOG_CRIT, "Failed to run as root.");
     }
+    Py_SetProgramName(argv[0]);
 
     if (argc==5 && strcmp(argv[1], "--check")==0) { 
         char *user = argv[2];

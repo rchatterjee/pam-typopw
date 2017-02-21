@@ -83,8 +83,8 @@ class UserTypoDB(object):
         assert is_user(user), "User {!r} does not exists".format(user)
 
         # Disable Typtop for root
-        assert pwd.getpwnam(user).pw_uid != 0,\
-            "Currently Typtop is disabled for {} user.".format(user)
+        # assert pwd.getpwnam(user).pw_uid != 0,\
+        #     "Currently Typtop is disabled for {} user.".format(user)
 
         self._user = user  # this is a real user.
         # homedir = pwd.getpwnam(self._user).pw_dir
@@ -113,7 +113,7 @@ class UserTypoDB(object):
             os.system(cmd)
 
         try:
-            self._db = json.load(open(self._db_path, 'rw'))
+            self._db = json.load(open(self._db_path, 'r'))
         except (ValueError, IOError) as e:
             self._db = {}
 

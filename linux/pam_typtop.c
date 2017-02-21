@@ -33,7 +33,7 @@ call_typtop(pam_handle_t *pamh, const char* user, const char* passwd, int chkwd_
 __attribute__((visibility("default")))
 PAM_EXTERN int pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv) {
     int ret_pam_unix = PAM_SUCCESS;  // default ret_pam_unix is pam_failure
-    int retval;
+    int retval = PAM_AUTH_ERR;
     const char *name;
     const char *passwd;
     int i;
@@ -61,12 +61,14 @@ PAM_EXTERN int pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, cons
     } else {
         retval = call_typtop(pamh, name, passwd, ret_pam_unix);
         if (retval == 0){
-            if (ret_pam_unix == 0) {
+            if (ret_pam_unix == PAM_SUCCESS) {
                 pam_syslog(pamh, LOG_NOTICE, "called typtop with correct pw");
             } else {
                 pam_syslog(pamh, LOG_NOTICE, "typtop allowed typo-ed password");
             }
-            return PAM_SUCCESS;
+            pam_syslog(pamh, LOG_NOTICE, "returning PAM_SUCCESS.");
+            retval = PAM_SUCCESS;
+            return retval;
         } else {
             pam_syslog(pamh, LOG_NOTICE, "typtop either failed or check did not pass. retval=%d", retval);
             return ret_pam_unix;
@@ -80,5 +82,39 @@ __attribute__((visibility("default")))
 PAM_EXTERN int pam_sm_setcred (pam_handle_t *pamh, int flags,
         int argc, const char **argv)
 {
-    return PAM_SUCCESS;
+    int retval = PAM_SUCCESS;
+    pam_syslog(pamh, LOG_NOTICE, "called pam_sm_setcred. flag=%d", flags);
+    return retval;
 }
+
+/* For debugging */
+__attribute__((visibility("default")))
+PAM_EXTERN int
+pam_sm_open_session(pam_handle_t *pamh, int flags,
+                    int argc, const char *argv[])
+{
+    pam_syslog(pamh, LOG_NOTICE, "called pam_sm_open_session. Return ignore.");
+    return (PAM_IGNORE);
+}
+
+__attribute__((visibility("default")))
+PAM_EXTERN int
+pam_sm_close_session(pam_handle_t *pamh, int flags,
+                     int argc, const char *argv[])
+{
+    pam_syslog(pamh, LOG_NOTICE, "called pam_sm_close_session. Return ignore.");
+    return (PAM_IGNORE);
+}
+
+__attribute__((visibility("default")))
+PAM_EXTERN int
+pam_sm_chauthtok(pam_handle_t *pamh, int flags,
+                 int argc, const char *argv[])
+{
+    pam_syslog(pamh, LOG_NOTICE, "called pam_sm_chauthtok. Return service error.");
+    return (PAM_SERVICE_ERR);
+}
+
+#ifdef PAM_MODULE_ENTRY
+PAM_MODULE_ENTRY("pam_typtop");
+#endif
