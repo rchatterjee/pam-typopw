@@ -16,7 +16,8 @@ authorized_execs={su,screensaver}
 typtopexec=${script_root}/typtop
 unixchkpwd=$(which unix_chkpwd)
 
-install -m 0755 -d /usr/local/lib/security/
+install -m 0755 -d ${root}/lib/security/
+install -m 0765 -d ${db_root}  # owned by root, and group
 install -m 0755 pam_typtop.so ${lib_root}/security/
 install -m 0755 uninstall.sh ${script_root}/typtop-uninstall.sh
 install -m 0755 run_as_root $typtopexec # install typtopexec
@@ -32,7 +33,6 @@ elif [[ "$platform" == "Darwin" ]]; then
     pam_mod=pam_opendirectory.so
 fi
 
-# ------- OS Specific differences -----
 if [ -d "/etc/pam.d/" ]; then
     for f in /etc/pam.d/*.orig; do
         if [ -e "$f" ]; then

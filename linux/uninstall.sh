@@ -13,8 +13,6 @@ script_root=${root}/bin/
 lib_root=${root}/lib
 authorized_execs={su,screensaver}
 
-typtopexec=${script_root}/typtop
-rm -f /usr/lib/security/pam_typtop.so $typtopexec
 
 if [ -d "/etc/pam.d/" ]; then
     rm -rf /etc/pam.d/typtop-auth*
@@ -38,6 +36,12 @@ else
     echo "Could not determine where to install pam config files, please do so manually"
 fi
 
-rm -rf /var/log/typtop.log /tmp/typtop* ${db_root}
-rm -rf /usr/local/bin/typtop* /usr/local/bin/send_typo_log.py
-pip -q uninstall --yes typtop
+rm -rf ${db_root} ${root}/lib/security/pam_typtop.so
+rm -rf /var/log/typtop.log /tmp/typtop* 
+rm -rf ${script_root}/typtop* ${script_root}/send_typo_log.py
+
+
+pip freeze | grep typtop
+if [[ $? == 0 ]]; then
+    pip -q uninstall --yes typtop
+fi

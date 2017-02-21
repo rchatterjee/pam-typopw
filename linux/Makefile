@@ -13,7 +13,7 @@ run_as_root: run_as_root.c
 	$(CC) -O2 -g -Wall -Wformat-security -I/usr/include/python2.7/ run_as_root.c -o $@ $(LDLIBS) 
 
 install: pam_typtop.so run_as_root
-	./uninstall.sh
+	# ./uninstall.sh
 	./install.sh
 
 uninstall:

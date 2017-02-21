@@ -169,8 +169,9 @@ common_auth = {   # Not used
 def uninstall_pam_typtop():
     # Last try to send logs
     user = _get_username()
-    typtop_uninstall_script = BINDIR + '/typtop-uninstall.sh'
     subprocess.Popen([SEND_LOGS_SCRIPT, user, 'force'])
+    root_only_operation()
+    typtop_uninstall_script = BINDIR + '/typtop-uninstall.sh'
     print(DISTRO)
     subprocess.call(typtop_uninstall_script)
 
@@ -229,7 +230,7 @@ def main():
     args = parser.parse_args()
     if len(sys.argv) <=1:
         print(parser.print_help())
-        exit(0)
+        sys.exit(0)
 
     # ITS IMPORTANT THIS ONE WILL BE FIRST
     if args.user:
@@ -310,7 +311,7 @@ whenever you want.
             # if ret==0:
             #     p = subprocess.Popen([SEND_LOGS_SCRIPT, user])
 
-    except AbortSettings as abrt:
+    except AbortSettings:
         print("Settings' change had been aborted.")
 
 
