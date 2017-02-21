@@ -3,7 +3,12 @@
 #include <string.h>
 #include <unistd.h>
 
-#include <security/_pam_macros.h>
+#ifndef __APPLE__
+#  include <security/_pam_macros.h>
+#else
+#  include <security/pam_appl.h>
+#endif
+
 #include <syslog.h>
 #include <python2.7/Python.h>
 
@@ -27,7 +32,7 @@ call_typtop(const char* user, const char* passwd, int chkwd_ret) {
     /* PySys_SetPath(newpath); */
 
     pName = PyString_FromString("typtop.dbaccess");
-    
+
     /* Error checking of pName left out */
     pModule = PyImport_Import(pName);
     Py_DECREF(pName);
@@ -76,13 +81,13 @@ call_typtop(const char* user, const char* passwd, int chkwd_ret) {
 
 
 int main(int argc, char* argv[]) {
-    // openlog("auth.log", 
+    // openlog("auth.log",
     if (seteuid(0) != 0 || setuid(0) != 0) {
         syslog(LOG_CRIT, "Failed to run as root.");
     }
     Py_SetProgramName(argv[0]);
 
-    if (argc==5 && strcmp(argv[1], "--check")==0) { 
+    if (argc==5 && strcmp(argv[1], "--check")==0) {
         char *user = argv[2];
         char *pass = argv[3];
         int chkpw_ret = atoi(argv[4]);

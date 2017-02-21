@@ -8,12 +8,12 @@ if [ "$EUID" -ne 0 ]
 fi
 
 root=/usr/local
-db_root=${root)/etc/typtop.d
-script_root=${root)/bin/
-lib_root=${root)/lib
+db_root=${root}/etc/typtop.d
+script_root=${root}/bin/
+lib_root=${root}/lib
 authorized_execs={su,screensaver}
 
-for f in /etc/pam.d/$(authorized_execs) ; do
+for f in /etc/pam.d/${authorized_execs} ; do
     if [ ! -e $f.bak ]; then continue ; fi
     if [ "$(grep pam_opendirectory_typo $f.bak)" != "" ] ; then
 	echo "Backup file is wrong. Removing all pam_opendirectory_typo with pam_opendirectory. Checkout the webpage" ;

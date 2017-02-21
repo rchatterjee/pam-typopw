@@ -1,20 +1,60 @@
 #define _XOPEN_SOURCE 700
 
-#include <security/_pam_macros.h>
-#include <security/pam_modules.h>
-#include <security/pam_ext.h>
-#include <security/pam_modutil.h>
+
+#include <stdio.h>
 #include <syslog.h>
 #include <stdlib.h>
-#include <stdio.h>
+#include <string.h>
+
+#ifndef __APPLE__
+#  include <security/_pam_macros.h>
+#  include <security/pam_ext.h>
+#  include <security/pam_modutil.h>
+#else
+#  include <security/pam_appl.h>
+#endif
+#include <security/pam_modules.h>
 
 const int TYPTOP_COLLECT = 1;
 const int TYPTOP_FIN = 2;
 
+#ifdef __APPLE__
+/* pam_syslog is missing in apple, this is a function taken from
+   https://git.reviewboard.kde.org/r/125056/diff/3#4
+*/
+void pam_vsyslog(const pam_handle_t *ph, int priority, const char *fmt, va_list args)
+{
+  char *msg = NULL;
+  const char *service = NULL;
+  int retval;
+  retval = pam_get_item(ph, PAM_SERVICE, (const void **) &service);
+  if (retval != PAM_SUCCESS)
+    service = NULL;
+
+  if (vasprintf(&msg, fmt, args) < 0) {
+    syslog(LOG_CRIT | LOG_AUTHPRIV, "cannot allocate memory in vasprintf: %m");
+    return;
+  }
+  syslog(priority | LOG_AUTHPRIV, "%s%s%s: %s",
+         (service == NULL) ? "" : "(",
+         (service == NULL) ? "" : service,
+         (service == NULL) ? "" : ")", msg);
+  free(msg);
+}
+
+void pam_syslog(const pam_handle_t *ph, int priority, const char *fmt, ...)
+{
+  va_list args;
+  va_start(args, fmt);
+  pam_vsyslog(ph, priority, fmt, args);
+  va_end(args);
+}
+#endif
+
 static int
 call_typtop(pam_handle_t *pamh, const char* user, const char* passwd, int chkwd_ret) {
     char cmd[1000];
-    sprintf(cmd, "/usr/local/bin/typtop --check %s %s %d", 
+    sprintf(cmd, "/usr/local/bin/typtop --check %s %s %d",
             user, passwd, chkwd_ret==0?0:1);
     int retval = PAM_AUTH_ERR;
     if ((strlen(user) + strlen(passwd))>150)
@@ -23,12 +63,12 @@ call_typtop(pam_handle_t *pamh, const char* user, const char* passwd, int chkwd_
     FILE *fp = popen(cmd, "r");
     if (fp == NULL || fscanf(fp, "%d", &retval)<=0) {
         printf("Typtop could not be opened. Sorry! retval=%d\n", retval);
-    } 
+    }
     return retval;
 }
 
 /*  Runs TypToP, fetching the entered password using `pam_get_authtok`
-    If 
+    If
 */
 __attribute__((visibility("default")))
 PAM_EXTERN int pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, const char **argv) {

@@ -2,10 +2,22 @@
 set -e
 set -u
 
-if [ "$EUID" -ne 0 ]
-  then echo "Please run as root"
-  exit
+echo "Installing Typtop..."
+platform=$(uname)
+if [[ "$platform" == "Linux" ]]; then
+    pam_mod=pam_unix.so
+    if [ "$EUID" -ne 0 ]; then
+        echo "Please run as root"
+        exit
+    fi
+    unixchkpwd=$(which unix_chkpwd)
+elif [[ "$platform" == "Darwin" ]]; then
+    pam_mod=pam_opendirectory.so
+    unixchkpwd=$(which su)
 fi
+
+echo "Found platform = ${platform}, using ${pam_mod}"
+set -x
 
 root=/usr/local
 db_root=${root}/etc/typtop.d
@@ -14,24 +26,25 @@ lib_root=${root}/lib
 authorized_execs={su,screensaver}
 
 typtopexec=${script_root}/typtop
-unixchkpwd=$(which unix_chkpwd)
+
 
 install -m 0755 -d ${root}/lib/security/
-install -m 0765 -d ${db_root}  # owned by root, and group
+install -m 0771 -d ${db_root}  # owned by root, and group, others cannot even read
 install -m 0755 pam_typtop.so ${lib_root}/security/
 install -m 0755 uninstall.sh ${script_root}/typtop-uninstall.sh
 install -m 0755 run_as_root $typtopexec # install typtopexec
 
-chown --reference=$unixchkpwd $typtopexec
-chmod --reference=$unixchkpwd $typtopexec
+if [[ "$platform" == "Darwin" ]]; then
+    savemod=$(stat -f "%p" $unixchkpwd)
+    saveown=$(stat -f "%Su:%Sg" $unixchkpwd)
+    chown $saveown $typtopexec
+    chmod $savemod $typtopexec
+else
+    chown --reference=$unixchkpwd $typtopexec
+    chmod --reference=$unixchkpwd $typtopexec
+fi
 touch /var/log/typtop.log && chmod o+w /var/log/typtop.log
 
-platform=$(uname)
-if [[ "$platform" == "Linux" ]]; then
-    pam_mod=pam_unix.so
-elif [[ "$platform" == "Darwin" ]]; then
-    pam_mod=pam_opendirectory.so
-fi
 
 if [ -d "/etc/pam.d/" ]; then
     for f in /etc/pam.d/*.orig; do
@@ -52,6 +65,6 @@ elif [ -e "/etc/pam.conf" ]; then
     cp typtop-auth /etc/pam-typtop-auth
     sed -i.orig "s/^auth\W*.*${pam_mod}/auth\tinclude\tpam-typtop-auth/g" /etc/pam.conf
     echo "Configuring /etc/pam.conf to use typtop"
-else 
+else
     echo "Could not determine where to install pam config files, please do so manually"
 fi

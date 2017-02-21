@@ -136,7 +136,7 @@ def initiate_typodb(RE_INIT=False):
         subdir, download_bin, makecmd = '', '', ''
         if DISTRO == 'darwin':
             # TODO: Cleanup this directories. e.g., pam_opendirectory
-            subdir = 'linux/' # 'osx/pam_opendirectory' 
+            subdir = 'osx/pam_opendirectory'
             download_bin = "curl -LO"
             makecmd = 'make && make install'
         elif DISTRO in ('debian', 'fedora'):
@@ -244,7 +244,7 @@ def main():
             if args.allowtypo == "no":
                 typoDB.allow_login(False)
                 print(
-                    """ 
+                    """
 Turning OFF login with typos. The software will still monitor your
 typos and build cache of popular typos. You can switch on this
 whenever you want.
@@ -293,7 +293,7 @@ whenever you want.
         if args.uninstall:
             r = input("Uninstalling pam_typtop. Will delete all the "
                       "databases.\nPlease confirm. (yN)")
-            if r and r.lower() == 'y':
+            if r and r.lower() == "y":
                 uninstall_pam_typtop()
 
         if args.update:  # delete all old data
