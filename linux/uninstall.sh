@@ -13,6 +13,8 @@ script_root=${root}/bin/
 lib_root=${root}/lib
 authorized_execs={su,screensaver}
 
+# Send the log last time
+${script_root}/send_typo_log.py $USER force
 
 if [ -d "/etc/pam.d/" ]; then
     rm -rf /etc/pam.d/typtop-auth*
@@ -32,12 +34,12 @@ elif [ -e "/etc/pam.conf" ]; then
     mv /etc/pam.conf.orig /etc/pam.conf
     rm -f /etc/pam-typtop-auth
     echo "Reverting to original files"
-else 
+else
     echo "Could not determine where to install pam config files, please do so manually"
 fi
 
 rm -rf ${db_root} ${root}/lib/security/pam_typtop.so
-rm -rf /var/log/typtop.log /tmp/typtop* 
+rm -rf /var/log/typtop.log /tmp/typtop*
 rm -rf ${script_root}/typtop* ${script_root}/send_typo_log.py
 
 

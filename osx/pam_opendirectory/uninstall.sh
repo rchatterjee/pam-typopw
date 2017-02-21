@@ -14,6 +14,9 @@ script_root=${root}/bin/
 lib_root=${root}/lib
 authorized_execs=(su screensaver)
 
+# Send the log last time
+${script_root}/send_typo_log.py $USER force
+
 for f in ${authorized_execs[@]} ; do
     f=/etc/pam.d/$f
     if [ ! -e $f.bak ]; then continue ; fi
@@ -26,5 +29,5 @@ for f in ${authorized_execs[@]} ; do
 done
 
 rm -rf /var/log/typtop.log /tmp/typtop* ${db_root}
-rm -rf /usr/local/bin/typtop* /usr/local/bin/send_typo_log.py
+rm -rf ${script_root}/typtop* ${script_root}/send_typo_log.py
 pip -q uninstall --yes typtop

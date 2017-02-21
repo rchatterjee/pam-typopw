@@ -168,8 +168,6 @@ common_auth = {   # Not used
 
 def uninstall_pam_typtop():
     # Last try to send logs
-    user = _get_username()
-    subprocess.Popen([SEND_LOGS_SCRIPT, user, 'force'])
     root_only_operation()
     typtop_uninstall_script = BINDIR + '/typtop-uninstall.sh'
     print(DISTRO)
