@@ -14,7 +14,7 @@ lib_root=${root}/lib
 authorized_execs={su,screensaver}
 
 # Send the log last time
-${script_root}/send_typo_log.py $USER force
+send_typo_log.py $USER force
 
 if [ -d "/etc/pam.d/" ]; then
     rm -rf /etc/pam.d/typtop-auth*

@@ -18,7 +18,7 @@ from typtop.dbutils import (
     logger, setup_logger, is_user, get_machine_id, is_in_top5_fixes,
     change_db_ownership
 )
-from typtop.config import (    
+from typtop.config import (
     DISTRO, DB_NAME, auxT, INSTALLATION_ID,
     INSTALLATION_DATE, LOG_LAST_SENTTIME, LOG_SENT_PERIOD,
     UPDATE_GAPS, SYSTEM_STATUS, SYSTEM_STATUS_NOT_INITIALIZED,
@@ -555,13 +555,11 @@ class UserTypoDB(object):
         self._aux_tab[key] = value
 
     def validate(self, orig_pw, typo):
-        editDist = (distance(str(orig_pw), str(typo))-1)/float(len(orig_pw))
+        # Edit distance 1 is always allowed for all passwords; more
+        # allowance if len(orig_pw) is large
+        editDist = distance(str(orig_pw), str(typo)-1)/float(len(orig_pw))
         typo_ent = entropy(typo)
-        # rel_bound = self.get_from_auxtdb(REL_ENT_CUTOFF, int)
-        # strict_bound = self.get_from_auxtdb(LOWER_ENT_CUTOFF, int)
-        # edist_bound = self.get_from_auxtdb(EDIT_DIST_CUTOFF, int)
-
-        notMuchWeaker = (typo_ent >= self._pwent - REL_ENT_CUTOFF)
+        notMuchWeaker = (typo_ent >= (self._pwent - REL_ENT_CUTOFF))
         notTooWeak = (typo_ent >= LOWER_ENT_CUTOFF)
         closeEdit = (editDist <= EDIT_DIST_CUTOFF)
         return notTooWeak and notMuchWeaker and closeEdit

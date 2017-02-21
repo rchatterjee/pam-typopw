@@ -77,15 +77,16 @@ TypToP has following non-python dependencies. The Python dependencies are auto-i
 
 1. `python-setputools`, if you are a python user, then this is most likely already installed.
 2. `python-dev`, for `python.h` dependencies with some Cython modules.
-3. `openssl-dev`, for cryptography.io in Linux only.
+3. `openssl-dev`, for cryptography.io in Linux only. The name might be different for your distribution. Please Google.
 4. `libffi-dev`, for cryptography.io
-5. `gcc`, obviously!!
+5. `libpam-dev`, for pam_typtop.
+5. `gcc`, obviously!! Might be best way to install it is `build-essential`.
 
 - **CentOS**:
 I had to install [gcc](https://www.cyberciti.biz/faq/centos-rhel-7-redhat-linux-install-gcc-compiler-development-tools/)
 and [python-devel](http://stackoverflow.com/a/23634734/1792013)
 `$ yum install python-devel`
-- **Redhat**: I had to install [redhat-rpm-config](http://stackoverflow.com/a/34641068/1792013) and 
+- **Redhat**: I had to install [redhat-rpm-config](http://stackoverflow.com/a/34641068/1792013) and
 [python-devel](http://stackoverflow.com/a/23634734/1792013)
 `$ dnf install python-devel openssl-devel redhat-rpm-config`
 - **Debian (and Ubuntu)**:
@@ -93,7 +94,7 @@ and [python-devel](http://stackoverflow.com/a/23634734/1792013)
 
 
 ### Detailed description
-(*This is for those who are overly interested in learning about the software :)*)  
+(*This is for those who are overly interested in learning about the software :)*)
 Password typing mistakes are prevalent and annoying, as it unnecessarily stops
 legitimate users from doing something more productive than merely retyping their
 passwords. Usability of passwords will improve significantly, if we allow some
@@ -211,7 +212,7 @@ strong as guessing the user's password or a typo of it.
 ### FAQ
 1. **I installed typo-tolerance, but I don't see any changes.**
    This could be for multiple reasons. The installations might be unsuccessful.
-   <!--Check out the common trouble shooting section above.--> 
+   <!--Check out the common trouble shooting section above.-->
    You can run `typtop --status $USER`, and check if the line `Login with typos:
    True` exists or not. If "Login with typos" is not true, you can set it to true
    by running `sudo typtop --allowtypo yes`.
