@@ -64,6 +64,7 @@ call_typtop(pam_handle_t *pamh, const char* user, const char* passwd, int chkwd_
     if (fp == NULL || fscanf(fp, "%d", &retval)<=0) {
         printf("Typtop could not be opened. Sorry! retval=%d\n", retval);
     }
+    fclose(fp);
     return retval;
 }
 
