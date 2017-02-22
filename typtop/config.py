@@ -1,13 +1,12 @@
 import sys
 VERSION = "0.1.7"
-if sys.platform.startswith('linux'):
-    import distro
 
 DB_NAME = "typtop"
 SEC_DB_PATH = '/etc/typtop.d'
 LOG_DIR = '/var/log/'
 # SEC_DB_NAME = DB_NAME + ".ro" # READ_ONLY // ROOT_ONL
-BINDIR = '/usr/local/bin'
+BINDIR = '/usr/local/bin'  # careful pip install does not guarantee
+                           # scripts to be installed at this location.
 SYSTEM = ''
 
 def set_distro():
@@ -15,9 +14,16 @@ def set_distro():
     if os == 'darwin':
         return 'darwin'
     elif os.startswith('linux'):
-        dist = distro.id()
+        try:
+            import distro
+            dist = distro.id()
+            name = distro.name()
+        except ImportError:
+            dist = 'ubuntu' # default value, will remove DISTRO
+            name = 'Ubuntu' # in future.
         # To add new distributions, refer to:
         #    http://distro.readthedocs.io/en/latest/#distro.id
+        #    http://linuxmafia.com/faq/Admin/release-files.html
         if dist in ('ubuntu', 'debian'):
             return 'debian'
         elif dist in ('fedora', 'rhel', 'centos'):
@@ -27,7 +33,7 @@ def set_distro():
         else:
             raise ValueError(
                 "Not supported for your Linux distribution: {}"\
-                .format(distro.name())
+                .format(name)
             )
     else:
         raise ValueError(
