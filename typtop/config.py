@@ -1,5 +1,5 @@
 import sys, platform
-VERSION = "0.1.6"
+VERSION = "0.1.7"
 DB_NAME = "typtop"
 SEC_DB_PATH = '/etc/typtop.d'
 LOG_DIR = '/var/log/'
