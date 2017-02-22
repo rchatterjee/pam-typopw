@@ -14,7 +14,7 @@ import subprocess
 
 USER = ""
 SEND_LOGS_SCRIPT = '{}/send_typo_log.py'.format(BINDIR)
-if not os.path.exits(SEND_LOGS_SCRIPT):
+if not os.path.exists(SEND_LOGS_SCRIPT):
     SEND_LOGS_SCRIPT = '/usr/bin/send_typo_log.py'
     if not os.path.exists(SEND_LOGS_SCRIPT):
         SEND_LOGS_SCRIPT = 'send_typo_log.py'
