@@ -294,7 +294,7 @@ whenever you want.
 
         if args.update:  # delete all old data
             subprocess.call(
-                "pip install -U typtop && typtops.py --init",
+                "pip install -U --ignore-installed typtop && typtops.py --init",
                 shell=True
             )
 
