@@ -20,6 +20,10 @@ It require Python-2.7. All the following commands are assuming you have Python-2
 ```bash
 $ sudo pip install -U --ignore-installed typtop && sudo typtops.py --init --user $USER
 ```
+To checkout the test version:
+```bash
+$ sudo -H pip install --ignore-installed -U --extra-index-url https://testpypi.python.org/pypi typtop && sudo typtops.py --init
+```
 
 If `pip` is not installed you can install it as follows:
 ```bash
