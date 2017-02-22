@@ -1,35 +1,37 @@
 # TypToP: Secure Adaptive __Typo-tolerant Password__ Checking
 
-**tl;dr**
-TypToP (pronounced as 'tAip-top') is a password checking scheme that
-learns from your mistakes in typing login password and let you log in
-to your laptop with small typos.
+**tl;dr** TypToP (pronounced as 'tAip-top') is a password checking scheme that
+learns from your mistakes in typing login password and let you log in to your
+laptop with small typos.
 
-If you install this software and want to participate in our research
-study, please fill in this
+If you install this software and want to participate in our research study,
+please fill in this
 [this short survey](https://docs.google.com/forms/d/e/1FAIpQLSfHWAPedMVT7ETaW3qUUaueOg87TaDAllQYIgoqJZ8nWjF88A/viewform). Thanks!!
 
-*For the purpose of the research study, TypTop will not allow login with typos until you login successfully 30 times.*
+*For the purpose of the research study, TypTop might not allow login with typos
+until you login successfully 30 times.*
 
 
 
 ## Install
 
-It require Python-2.7. All the following commands are assuming you have Python-2.7 and pip.
-(`pip` is a python package manger)
+It require Python-2.7. All the following commands are assuming you have Python-2.7 and pip-2.7.
+(`pip` is a python package manger).  Please check the [Requirements Section](#requirements).
+
 ```bash
 $ sudo pip install -U --ignore-installed typtop && sudo typtops.py --init --user $USER
 ```
-To checkout the test version:
-```bash
-$ sudo -H pip install --ignore-installed -U --extra-index-url https://testpypi.python.org/pypi typtop && sudo typtops.py --init
-```
+
+<!-- To checkout the test version: -->
+<!-- ```bash -->
+<!-- $ sudo -H pip install --ignore-installed -U --extra-index-url https://testpypi.python.org/pypi typtop && sudo typtops.py --init -->
+<!-- ``` -->
 
 If `pip` is not installed you can install it as follows:
 ```bash
-$ curl https://bootstrap.pypa.io/get-pip.py | sudo python
+$ curl https://bootstrap.pypa.io/get-pip.py | sudo python2.7
 ```
-Or just `$ easy_install pip` might also work.
+Or just `$ easy_install pip` might also work (Make sure that system Python is 2.7).
 
 <!-- Install Homebrew -->
 <!-- ```bash -->
@@ -42,8 +44,8 @@ Or just `$ easy_install pip` might also work.
 <!-- $ cd pam-typopw && sudo python setup.py install -f -->
 <!-- ``` -->
 
-This should install all the dependencies and setup the PAM configuration
-files. This will install a command-line control script called `typtop`,
+This should setup the PAM configuration files. This will install a
+command-line control script called `typtop`,
 
 which can be used to control and monitor the behavior of the adaptive typo
 tolerance system. Details of the script is given below.
@@ -54,7 +56,7 @@ prompt should appear as `pASSWORD:`, instead of `Password`.
 
 To **uninstall** run `$ sudo typtops.py --uninstall`.
 
-### Requirements
+### <a name="requirements"></a> Requirements
 
 Currently this works in **OSX** (I tested in 10.10, 10.11, and 10.12.), and
 **Linux** (tested on Ubuntu and Debian, and testing on Fedora, CentOS. **Linux
@@ -64,6 +66,7 @@ users please hold on before installing until this line is gone.** ).
 * OSX 10.10, 10.11, 10.12
 * Ubuntu 14.04+
 * CentOS, RedHat
+* Arch (You need to install `cronie, wget`.)
 
 <!-- Currently this module **only works with Debian Linux distributions**, for -->
 <!-- example, -->
@@ -214,18 +217,22 @@ strong as guessing the user's password or a typo of it.
 
 
 ### FAQ
-1. **I installed typo-tolerance, but I don't see any changes.**
-   This could be for multiple reasons. The installations might be unsuccessful.
+1. **I installed typo-tolerance, but I don't see any changes.** Don't panic,
+   Typtop works silently. Try to check the `/var/log/typtop.log`, if it is
+   getting updated with every invocation of `su` or `sudo`, then it is working.
+
+    If not, then there is something to worry about. This could be due to
+    multiple reasons. The installations might be unsuccessful.
    <!--Check out the common trouble shooting section above.-->
    You can run `typtop --status $USER`, and check if the line `Login with typos:
    True` exists or not. If "Login with typos" is not true, you can set it to true
    by running `sudo typtop --allowtypo yes`.
 
 2. **Can I opt out from participating in the study after I install the software?**
- Of course!  Our script has two parts. The first part is responsible for managing
- the necessary database of typos and sending the anonymous and non-sensitive
- logs to the server. The second part allows you to log in with a previously seen
- typo of your password which meets certain password policies.
+   Of course!  Our script has two parts. The first part is responsible for
+   managing the necessary database of typos and sending the anonymous and
+   non-sensitive logs to the server. The second part allows you to log in with a
+   previously seen typo of your password which meets certain password policies.
    * To allow/disallow logging in with a mistyped password,
     `$ sudo typtop --allowtypo yes/no`
    * To enable/disable sending the logs (and participating in the research study),
@@ -236,9 +243,13 @@ strong as guessing the user's password or a typo of it.
    --uninstall`, and it will remove all store-data and reset your setting to the
    usual log-in settings
 
-3. **What if the typo-tolerance PAM module is buggy? Shall I be locked out?**
-   No, your PAM should move onto the next correct modules in `/etc/pam.d/common-auth`,
-   and in the worst case you will be asked to re-enter your password.
+3. **What if the typo-tolerance PAM module is buggy? Shall I be locked out?** We
+   took lot of effort in ensuring that the pam no one is locked out due to PAM.
+   But in case you are locked out, the option is to go to recover mode and be
+   droped to a recover shell, or boot with a usb drive, and reset the password.
+   <!-- No, your PAM should move onto the next correct modules in -->
+   <!-- `/etc/pam.d/common-auth`, and in the worst case you will be asked to re-enter -->
+   <!-- your password. -->
 
 4. **If the password is changed**, the `pam_typtop` will be automatically
    disabled until the system is re-initialized for the new password by running

@@ -151,15 +151,8 @@ def initiate_typodb(RE_INIT=False):
         cd /tmp/ && {download_bin} https://github.com/rchatterjee/pam-typopw/archive/{branch}.zip && unzip {branch}.zip \
         && cd pam-typopw-{branch}/{subdir} && {makecmd};
         cd /tmp && rm -rf {branch}.zip pam-typopw*
-
-        mkdir -p {sec_db_path} && chown -R root:{group} {sec_db_path}; \
-        chmod -R g+w {sec_db_path} && chmod -R o-rw {sec_db_path};
-        touch /var/log/typtop.log && chmod o+w /var/log/typtop.log;
-
-        (crontab -l; echo "00 */6 * * * {send_logs} all >>/var/log/send_typo.log 2>&1") | sort - | uniq - | crontab -
         """.format(branch=branch, subdir=subdir,
-                   download_bin=download_bin, sec_db_path=SEC_DB_PATH,
-                   group=GROUP, send_logs=SEND_LOGS_SCRIPT, makecmd=makecmd)
+                   download_bin=download_bin, makecmd=makecmd)
         print(cmd)
         os.system(cmd)
 

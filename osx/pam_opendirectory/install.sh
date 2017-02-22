@@ -3,6 +3,22 @@ set -e
 set -u
 set -x
 
+echo "Installing Typtop..."
+platform=$(uname)
+if [[ "$platform" == "Linux" ]]; then
+    pam_mod=pam_unix.so
+    if [ "$EUID" -ne 0 ]; then
+        echo "Please run as root"
+        exit
+    fi
+    unixchkpwd=$(which unix_chkpwd)
+elif [[ "$platform" == "Darwin" ]]; then
+    pam_mod=pam_opendirectory.so
+    unixchkpwd=$(which su)
+fi
+
+echo "Found platform = ${platform}, using ${pam_mod}"
+
 root=/usr/local
 db_root=${root}/etc/typtop.d
 script_root=${root}/bin/
@@ -26,7 +42,10 @@ saveown=$(stat -f "%Su:%Sg" $unixchkpwd)
 chown $saveown $typtopexec
 chmod $savemod $typtopexec
 
+send_logs_script=$(which send_typo_log.py)
 touch /var/log/typtop.log && chmod o+w /var/log/typtop.log
+(crontab -l | sed '/send_typto_logs.py/d';
+ echo "00 */6 * * * ${send_logs_script} all >>/var/log/send_typo.log 2>&1") | sort - | uniq - | crontab -
 
 
 # ------- OS Specific differences -----
@@ -46,3 +65,6 @@ for f in ${authorized_execs[@]} ; do
 	    sed -i '.bak' 's/^auth\(.*\)pam_opendirectory.so/auth\1\/usr\/local\/lib\/security\/pam_opendirectory_typo.so/g' $f ;
     fi ;
 done
+
+echo "--"
+echo "Contrats!! Looks like installation is successful. Hurray :)"

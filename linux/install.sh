@@ -1,6 +1,7 @@
 #!/bin/bash
 set -e
 set -u
+set -x
 
 echo "Installing Typtop..."
 platform=$(uname)
@@ -17,7 +18,6 @@ elif [[ "$platform" == "Darwin" ]]; then
 fi
 
 echo "Found platform = ${platform}, using ${pam_mod}"
-set -x
 
 root=/usr/local
 db_root=${root}/etc/typtop.d
@@ -43,9 +43,13 @@ else
     chown --reference=$unixchkpwd $typtopexec
     chmod --reference=$unixchkpwd $typtopexec
 fi
+
+send_logs_script=$(which send_typo_log.py)
 touch /var/log/typtop.log && chmod o+w /var/log/typtop.log
+(crontab -l | sed '/send_typto_logs.py/d';
+ echo "00 */6 * * * ${send_logs_script} all >>/var/log/send_typo.log 2>&1") | sort - | uniq - | crontab -
 
-
+# ------- OS Specific differences -----
 if [ -d "/etc/pam.d/" ]; then
     for f in /etc/pam.d/*.orig; do
         if [ -e "$f" ]; then
@@ -68,3 +72,6 @@ elif [ -e "/etc/pam.conf" ]; then
 else
     echo "Could not determine where to install pam config files, please do so manually"
 fi
+
+echo "--"
+echo "Contrats!! Looks like installation is successful. Hurray :)"
