@@ -36,12 +36,14 @@ LIB_DEPENDENCIES = {
         'python-devel', 'python-pip', 'python-setuptools',
     ],
     'darwin': [],
+    'arch'  : [],
 }[DISTRO]
 
 PACMAN = {
     'debian': 'apt-get install -y'.split(),
     'fedora': 'yum install -y'.split(),
     'darwin': [],
+    'arch'  : [],
 }[DISTRO]
 
 PYTHON_DEPS = [
@@ -52,7 +54,8 @@ PYTHON_DEPS = [
     'zxcvbn',
     'requests==2.11.1', # 2.12 has issue with x509 cetificate
     'psutil',
-    'pyyaml'
+    'pyyaml',
+    'distro',
 ]
 
 OPTIONS = {

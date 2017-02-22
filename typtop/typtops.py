@@ -143,7 +143,7 @@ def initiate_typodb(RE_INIT=False):
             subdir = 'osx/pam_opendirectory'
             download_bin = "curl -LO"
             makecmd = 'make && make install'
-        elif DISTRO in ('debian', 'fedora'):
+        elif DISTRO in ('debian', 'fedora', 'arch'):
             subdir = 'linux/'
             download_bin = "wget"
             makecmd = "make && make install"
@@ -166,7 +166,8 @@ def initiate_typodb(RE_INIT=False):
 common_auth = {   # Not used
     'debian': '/etc/pam.d/common-auth',
     'fedora': '/etc/pam.d/system-auth',
-    'darwin': ''
+    'darwin': '',
+    'arch'  : '/etc/pam.d/system-auth',
 }[DISTRO]
 
 

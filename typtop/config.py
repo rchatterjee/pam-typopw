@@ -1,5 +1,8 @@
-import sys, platform
+import sys
 VERSION = "0.1.7"
+if sys.platform.startswith('linux'):
+    import distro
+
 DB_NAME = "typtop"
 SEC_DB_PATH = '/etc/typtop.d'
 LOG_DIR = '/var/log/'
@@ -8,17 +11,28 @@ BINDIR = '/usr/local/bin'
 SYSTEM = ''
 
 def set_distro():
-    dist = platform.linux_distribution()[0].lower()
-    if dist in ('ubuntu', 'debian', 'lubuntu', 'kubuntu'):
-        return 'debian'
-    elif dist in ('fedora', 'red-hat', 'centos', 'centos linux', 'red-hat linux'):
-        return 'fedora'
-    elif not dist and platform.system().lower() == 'darwin':
+    os = sys.platform
+    if os == 'darwin':
         return 'darwin'
+    elif os.startswith('linux'):
+        dist = distro.id()
+        # To add new distributions, refer to:
+        #    http://distro.readthedocs.io/en/latest/#distro.id
+        if dist in ('ubuntu', 'debian'):
+            return 'debian'
+        elif dist in ('fedora', 'rhel', 'centos'):
+            return 'fedora'
+        elif dist == 'arch':
+            return 'arch'
+        else:
+            raise ValueError(
+                "Not supported for your Linux distribution: {}"\
+                .format(distro.name())
+            )
     else:
         raise ValueError(
-            "Not supported for your System: {}, and OS: {}"\
-            .format(platform.system(), platform.linux_distribution())
+            "Not supported for your OS: {}"\
+            .format(os)
         )
 
 DISTRO = set_distro()
@@ -35,7 +49,7 @@ def warm_up_with(pw):
 
 # The group
 GROUP = 'shadow' if DISTRO in ('debian') else \
-    'root' if DISTRO in ('fedora') else \
+    'root' if DISTRO in ('fedora', 'arch') else \
     'wheel' if DISTRO in ('darwin') \
     else ''
 
