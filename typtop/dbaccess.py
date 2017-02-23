@@ -557,7 +557,7 @@ class UserTypoDB(object):
     def validate(self, orig_pw, typo):
         # Edit distance 1 is always allowed for all passwords; more
         # allowance if len(orig_pw) is large
-        editDist = distance(str(orig_pw), str(typo)-1)/float(len(orig_pw))
+        editDist = (distance(str(orig_pw), str(typo))-1)/float(len(orig_pw))
         typo_ent = entropy(typo)
         notMuchWeaker = (typo_ent >= (self._pwent - REL_ENT_CUTOFF))
         notTooWeak = (typo_ent >= LOWER_ENT_CUTOFF)
