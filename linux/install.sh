@@ -43,7 +43,7 @@ if [[ "$platform" == "Darwin" ]]; then
 else
     chown --reference=$unixchkpwd $typtopexec
     chmod --reference=$unixchkpwd $typtopexec
-    chown $saveown ${db_root}
+    chown --reference=$unixchkpwd ${db_root}
 fi
 
 send_logs_script=$(which send_typo_log.py)
