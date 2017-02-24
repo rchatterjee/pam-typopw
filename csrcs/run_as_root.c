@@ -12,6 +12,8 @@
 #include <syslog.h>
 #include <python2.7/Python.h>
 
+#define MAX_PASSWD_LEN 1024
+
 static int
 call_typtop(const char* user, const char* passwd, int chkwd_ret) {
 
@@ -87,10 +89,23 @@ int main(int argc, char* argv[]) {
     }
     Py_SetProgramName(argv[0]);
 
-    if (argc==5 && strcmp(argv[1], "--check")==0) {
-        char *user = argv[2];
-        char *pass = argv[3];
-        int chkpw_ret = atoi(argv[4]);
+    if (argc==4 && strcmp(argv[1], "--check")==0) {
+        int chkpw_ret = atoi(argv[2]);
+        char *user = argv[3];
+        // char *pass = argv[3];
+        char ch, pass[MAX_PASSWD_LEN+1];
+        int pass_i = 0;
+        while(scanf("%c", &ch) > 0) {
+          pass[pass_i++] = ch;
+          if (pass_i >= MAX_PASSWD_LEN)
+            break;
+          if (pass[pass_i-1] == '\n' || pass[pass_i-1] == '\r') {
+            pass_i --; // "\n" is not allowed in your password!!
+            break;
+          }
+        }
+        pass[pass_i] = '\0';
+
         int retval = call_typtop(user, pass, chkpw_ret);
         printf("%d", retval);
         return retval;

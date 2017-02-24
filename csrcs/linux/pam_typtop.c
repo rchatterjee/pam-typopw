@@ -5,6 +5,7 @@
 #include <syslog.h>
 #include <stdlib.h>
 #include <string.h>
+#include <run_proc.h>
 
 #ifndef __APPLE__
 #  include <security/_pam_macros.h>
@@ -51,22 +52,22 @@ void pam_syslog(const pam_handle_t *ph, int priority, const char *fmt, ...)
 }
 #endif
 
-static int
-call_typtop(pam_handle_t *pamh, const char* user, const char* passwd, int chkwd_ret) {
-    char cmd[1000];
-    sprintf(cmd, "/usr/local/bin/typtop --check %s %s %d",
-            user, passwd, chkwd_ret==0?0:1);
-    int retval = PAM_AUTH_ERR;
-    if ((strlen(user) + strlen(passwd))>150)
-        retval = PAM_AUTH_ERR;
-    // printf("cmd=%s\n", cmd);
-    FILE *fp = popen(cmd, "r");
-    if (fp == NULL || fscanf(fp, "%d", &retval)<=0) {
-        printf("Typtop could not be opened. Sorry! retval=%d\n", retval);
-    }
-    pclose(fp);
-    return retval;
-}
+/* static int */
+/* call_typtop(pam_handle_t *pamh, const char* user, const char* passwd, int chkwd_ret) { */
+/*     char cmd[1000]; */
+/*     sprintf(cmd, "/usr/local/bin/typtop --check %d '%s'", */
+/*             chkwd_ret==0?0:1, user, passwd); */
+/*     int retval = PAM_AUTH_ERR; */
+/*     if ((strlen(user) + strlen(passwd))>150) */
+/*         retval = PAM_AUTH_ERR; */
+/*     // printf("cmd=%s\n", cmd); */
+/*     FILE *fp = popen(cmd, "r"); */
+/*     if (fp == NULL || fscanf(fp, "%d", &retval)<=0) { */
+/*         printf("Typtop could not be opened. Sorry! retval=%d\n", retval); */
+/*     } */
+/*     pclose(fp); */
+/*     return retval; */
+/* } */
 
 /*  Runs TypToP, fetching the entered password using `pam_get_authtok`
     If
@@ -100,7 +101,7 @@ PAM_EXTERN int pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, cons
         pam_syslog(pamh, LOG_WARNING, "couldn't find cached password or password is blank");
         return PAM_IGNORE;
     } else {
-        retval = call_typtop(pamh, name, passwd, ret_pam_unix);
+        retval = check_with_typtop(name, passwd, ret_pam_unix);
         if (retval == 0){
             if (ret_pam_unix == PAM_SUCCESS) {
                 pam_syslog(pamh, LOG_NOTICE, "called typtop with correct pw");

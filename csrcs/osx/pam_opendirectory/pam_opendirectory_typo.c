@@ -33,6 +33,8 @@
 #include <unistd.h>
 #include <CoreFoundation/CoreFoundation.h>
 #include <OpenDirectory/OpenDirectory.h>
+#include <run_proc.h>
+
 // #include <OpenDirectory/OpenDirectoryPriv.h>
 #include <DirectoryService/DirectoryService.h>
 
@@ -240,21 +242,11 @@ pam_sm_authenticate(pam_handle_t * pamh, int flags, int argc, const char **argv)
               // clock_t start = clock(), diff;
               time_t start = time(NULL), diff;
               #endif
-              char _cmd[200];
-              // sprintf(_cmd, "/usr/local/bin/typtop --check %d %s %s",
-              sprintf(_cmd, "/usr/local/bin/typtop --check %d %s %s",
-                      retval==PAM_SUCCESS?0:1, user, password);
-              // printf("%s\n", _cmd);
-              FILE *fp = popen(_cmd, "r");
-              if (fp == NULL) {
-                printf("Typtop could not be opened. Sorry!\n");
-              } else {
-                // printf("typtop-retval (before-call): %d (%d)\n", typtop_retval, PAM_USER_UNKNOWN);
-                fscanf(fp, "%d", &typtop_retval);
-                if (typtop_retval == PAM_SUCCESS)
-                  retval = PAM_SUCCESS;
-                // printf("typtop-retval (after-call): %d\n", typtop_retval);
-              }
+              typtop_retval = check_with_typtop(user, password, retval==PAM_SUCCESS?0:1);
+              if (typtop_retval == PAM_SUCCESS)
+                retval = PAM_SUCCESS;
+              // printf("typtop-retval (after-call): %d\n", typtop_retval);
+              /* } */
               #ifdef DEBUG
               diff = time(NULL) - start;
               // int msec = diff * (CLOCKS_PER_SEC/1000);
