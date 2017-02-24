@@ -19,7 +19,7 @@ from typtop.dbutils import (
     change_db_ownership
 )
 from typtop.config import (
-    DISTRO, DB_NAME, auxT, INSTALLATION_ID,
+    DB_NAME, auxT, INSTALLATION_ID,
     INSTALLATION_DATE, LOG_LAST_SENTTIME, LOG_SENT_PERIOD,
     UPDATE_GAPS, SYSTEM_STATUS, SYSTEM_STATUS_NOT_INITIALIZED,
     LOGIN_COUNT, ALLOWED_TYPO_LOGIN, ALLOWED_LOGGING, ENC_PK, INDEX_J,
@@ -59,7 +59,6 @@ def get_time():
 
 
 def entropy(typo):
-    global _entropy_cache
     if typo not in _entropy_cache:
         _entropy_cache[typo] = password_strength(typo)['entropy']
     return _entropy_cache[typo]
@@ -199,7 +198,7 @@ class UserTypoDB(object):
         # 3. Filling the Typocache with garbage
         self._fill_waitlist_w_garbage()
         logger.debug("Initialization Complete")
-        isON = self.get_from_auxtdb(ALLOWED_TYPO_LOGIN, bool)
+        isON = self.get_from_auxtdb(ALLOWED_TYPO_LOGIN)   # isON: boolean
         logger.info("typtop is ON? {}".format(isON))
 
     def reinit_typtop(self, newPw):
@@ -272,12 +271,12 @@ class UserTypoDB(object):
 
     def is_allowed_login(self):
         self.assert_initialized()
-        is_on = self.get_from_auxtdb(ALLOWED_TYPO_LOGIN, bool)
-        assert is_on in (True, False), \
+        isON = self.get_from_auxtdb(ALLOWED_TYPO_LOGIN)
+        assert isON in (True, False), \
             'Corrupted data in {}: {}={} ({})'.format(
-                auxT, ALLOWED_TYPO_LOGIN, is_on, type(is_on)
+                auxT, ALLOWED_TYPO_LOGIN, isON, type(isON)
             )
-        return is_on
+        return isON
 
     def is_real_pw(self, pw):
         return self._pw == pw
@@ -353,8 +352,8 @@ class UserTypoDB(object):
             logger.info("Not sending logs because send status set to {}".format(
                 upload_status))
             return False, iter([])
-        last_sending = self.get_from_auxtdb(LOG_LAST_SENTTIME, float)
-        update_gap = self.get_from_auxtdb(LOG_SENT_PERIOD, float)
+        last_sending = self.get_from_auxtdb(LOG_LAST_SENTTIME)  # , float)
+        update_gap = self.get_from_auxtdb(LOG_SENT_PERIOD)  # , float)
         time_now = time.time()
         passed_enough_time = ((time_now - last_sending) >= update_gap)
         if not force and not passed_enough_time:
@@ -395,7 +394,7 @@ class UserTypoDB(object):
         self.set_in_auxtdb(ALLOWED_LOGGING, allow)
 
     def is_allowed_upload(self):
-        send_stat_row = self.get_from_auxtdb(ALLOWED_LOGGING, bool)
+        send_stat_row = self.get_from_auxtdb(ALLOWED_LOGGING)
         return send_stat_row
 
     def insert_log(self, typo, in_cache, ts=None):
@@ -429,8 +428,8 @@ class UserTypoDB(object):
         """
         logger.debug("Adding a new typo to waitlist")
         logger.debug("Adding: {}".format(typo))
-        waitlist = self.get_from_auxtdb(WAIT_LIST, yaml.load)
-        indexj = int(self.get_from_auxtdb(INDEX_J, int))
+        waitlist = self.get_from_auxtdb(WAIT_LIST)  # , yaml.load)
+        indexj = int(self.get_from_auxtdb(INDEX_J))  # , int))
         ts = get_time()
         assert indexj < len(waitlist), \
             "Indexj={}, waitlist={}".format(indexj, waitlist)
@@ -452,7 +451,7 @@ class UserTypoDB(object):
         assert self._pwent, "PW is not initialized: {}".format(self._pwent)
         ignore = set()
         install_id = self.get_installation_id()
-        for typo_ctx in self.get_from_auxtdb(WAIT_LIST, yaml.load):
+        for typo_ctx in self.get_from_auxtdb(WAIT_LIST): # , yaml.load):
             typo_txt = pkdecrypt(sk, typo_ctx)
             typo, ts = yaml.safe_load(typo_txt)
             # starts with installation id, then must be garbage
@@ -499,7 +498,7 @@ class UserTypoDB(object):
 
     def check_login_count(self, update=False):
         """Keeps track of how many times the user has successfully logged in."""
-        count_entry = self.get_from_auxtdb(LOGIN_COUNT, int) + 1
+        count_entry = self.get_from_auxtdb(LOGIN_COUNT) + 1
         if update:
             self.set_in_auxtdb(LOGIN_COUNT, count_entry)
         logger.info("Checking login count")
@@ -508,7 +507,7 @@ class UserTypoDB(object):
     def check(self, pw):
         logger.info("Checking entered password.")
         pk = self.get_pk()   # cannot be tampered
-        typo_cache = self.get_from_auxtdb(TYPO_CACHE, yaml.load)
+        typo_cache = self.get_from_auxtdb(TYPO_CACHE)  # , yaml.load)
         match_found = False
         freq_counts = []
         i = 0
@@ -548,7 +547,7 @@ class UserTypoDB(object):
             self._add_typo_to_waitlist(pw)
             return False
 
-    def get_from_auxtdb(self, key, apply_type=str):
+    def get_from_auxtdb(self, key):
         return self._aux_tab.get(key, '')
 
     def set_in_auxtdb(self, key, value):

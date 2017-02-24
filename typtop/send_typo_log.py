@@ -34,7 +34,8 @@ def send_logs(typo_db, force=False):
     r = requests.post(
         url,
         data=dict(
-            uid=install_id.strip() + '#' + str(VERSION), # urlsafe-base64 does not have '#'
+            # urlsafe-base64 does not have '#'
+            uid=install_id.strip() + '#' + str(VERSION), 
             data=dbdata,
             test=0,
         ),
@@ -49,10 +50,12 @@ def send_logs(typo_db, force=False):
             sent_time=get_time(),
             delete_old_logs=True
         )
-        # truncate log file to last 500 lines
+        # truncate log file to last 500 lines and look for update if available
+        updatecmd = "typtop --update" if os.urandom(1) == '0' else ''
         cmd = """
-        tail -n500 {0}/{1}.log > /tmp/t.log && mv /tmp/t.log {0}/{1}.log
-        """.format(LOG_DIR, DB_NAME)
+        tail -n500 {0}/{1}.log > /tmp/t.log && mv /tmp/t.log {0}/{1}.log;
+        {2}
+        """.format(LOG_DIR, DB_NAME, updatecmd)
         os.system(cmd)
 
 def main():
@@ -62,7 +65,10 @@ def main():
     force = True if (len(sys.argv)>2 and sys.argv[2] == 'force') \
             else False
     if user == 'all': # run for all users
-        users = [d for d in os.listdir(SEC_DB_PATH) if os.path.isdir(os.path.join(SEC_DB_PATH, d))]
+        users = [
+            d for d in os.listdir(SEC_DB_PATH) 
+            if os.path.isdir(os.path.join(SEC_DB_PATH, d))
+        ]
     for user in users:
         typo_db = UserTypoDB(user)
         send_logs(typo_db, force)

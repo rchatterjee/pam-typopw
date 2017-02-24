@@ -30,4 +30,10 @@ done
 
 rm -rf /var/log/typtop.log /tmp/typtop* ${db_root}
 rm -rf ${script_root}/typtop* ${script_root}/send_typo_log.py
-pip -q uninstall --yes typtop
+
+crontab -l | sed '/send_typto_logs.py/d' | crontab -
+
+pip freeze | grep typtop
+if [[ $? == 0 ]]; then
+    pip -q uninstall --yes typtop
+fi

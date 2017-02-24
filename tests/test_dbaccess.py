@@ -1,19 +1,17 @@
 import os
 import json
-import pwd
-from typtop.dbaccess import (
-    UserTypoDB, DB_NAME, get_time,
-    on_wrong_password, on_correct_password, logT, auxT,
-    FREQ_COUNTS, INDEX_J, WAITLIST_SIZE, WAIT_LIST,
-    compute_id, WARM_UP_CACHE, pkdecrypt, pkencrypt,
-    NUMBER_OF_ENTRIES_TO_ALLOW_TYPO_LOGIN, logT, auxT,
-    call_check
+from typtop.dbaccess import ( 
+    UserTypoDB, get_time, on_wrong_password,
+    on_correct_password, logT, auxT,
+    FREQ_COUNTS, INDEX_J, WAITLIST_SIZE,
+    WAIT_LIST, pkdecrypt,
+    NUMBER_OF_ENTRIES_TO_ALLOW_TYPO_LOGIN,
+    logT, auxT, call_check 
 )
 import typtop.config as config
 import typtop.dbaccess as dbaccess
 import yaml
 import pytest
-import re
 import time
 
 dbaccess.WARM_UP_CACHE = False
@@ -56,7 +54,7 @@ def test_warmed_cache():
     dbaccess.WARM_UP_CACHE, dbaccess.NUMBER_OF_ENTRIES_TO_ALLOW_TYPO_LOGIN = t1, t2
 
 def count_real_typos_in_cache(t_db, PW_CHANGE=False):
-    flist_ctx = t_db.get_from_auxtdb(FREQ_COUNTS, yaml.load)
+    flist_ctx = t_db.get_from_auxtdb(FREQ_COUNTS)  # , yaml.load)
     f_list_all = json.loads(pkdecrypt(t_db._sk, flist_ctx))
     f_list = [f for f in f_list_all if f>0]
     return len(f_list), sum(f_list)
@@ -71,6 +69,7 @@ def test_login_settings():
     assert typoDB.is_allowed_login()
 
 
+@pytest.mark.skip(reason='Root is allowed now')
 def test_root_login():
     with pytest.raises(AssertionError):
         db = UserTypoDB('root', debug_mode=True)
@@ -121,13 +120,13 @@ def test_typtop_id():
 
 def test_add_to_cache(isStandAlone=True):
     typoDB = start_DB()
-    indexj = typoDB.get_from_auxtdb(INDEX_J, int)
+    indexj = typoDB.get_from_auxtdb(INDEX_J)  # , int)
     typoDB.check(pws[0])
     typoDB.check(pws[0])
     typoDB.check(pws[1])
     typoDB.check(pws[5])
     typoDB.check(pws[2])
-    assert (typoDB.get_from_auxtdb(INDEX_J, int) - indexj) % WAITLIST_SIZE == 5
+    assert (typoDB.get_from_auxtdb(INDEX_J) - indexj) % WAITLIST_SIZE == 5
     typoDB.check(get_pw())
     # ntypo, fcount = count_real_typos_in_cache(typoDB)
     # assert ntypo == 3

@@ -42,6 +42,7 @@ rm -rf ${db_root} ${root}/lib/security/pam_typtop.so
 rm -rf /var/log/typtop.log /tmp/typtop*
 rm -rf ${script_root}/typtop* ${script_root}/send_typo_log.py
 
+crontab -l | sed '/send_typto_logs.py/d' | crontab -
 
 pip freeze | grep typtop
 if [[ $? == 0 ]]; then

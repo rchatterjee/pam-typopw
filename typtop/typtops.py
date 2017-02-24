@@ -293,10 +293,15 @@ whenever you want.
                 uninstall_pam_typtop()
 
         if args.update:  # delete all old data
-            subprocess.call(
-                "pip install -U --ignore-installed typtop && typtops.py --init",
-                shell=True
-            )
+            cmd =  """export PIP_FORMAT=columns;
+                pip list --outdated|grep typtop; 
+                if [ "$?" = "0" ]; then
+                   pip install -U --ignore-installed typtop && typtops.py --init
+                else
+                   echo "Already uptodate! No need to update."
+                fi
+            """
+            os.system(cmd)
 
         if args.check:
             # ensure the parent is pam_opendirectory_typo.so
