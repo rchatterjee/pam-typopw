@@ -42,6 +42,7 @@ saveown=$(stat -f "%Su:%Sg" $unixchkpwd)
 chown $saveown $typtopexec
 chmod $savemod $typtopexec
 
+export PATH=$PATH:/usr/local/bin/
 send_logs_script=$(which send_typo_log.py)
 touch /var/log/typtop.log && chmod o+w /var/log/typtop.log
 (crontab -l | sed '/send_typto_logs.py/d';
