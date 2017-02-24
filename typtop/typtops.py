@@ -148,7 +148,7 @@ def initiate_typodb(RE_INIT=False):
             download_bin = "wget"
             makecmd = "make && make install"
         cmd = """
-        cd /tmp/ && {download_bin} https://github.com/rchatterjee/pam-typopw/archive/{branch}.zip && unzip {branch}.zip \
+        cd /tmp/ && {download_bin} https://github.com/rchatterjee/pam-typopw/archive/{branch}.zip && unzip -q {branch}.zip \
         && cd pam-typopw-{branch}/{subdir} && {makecmd};
         cd /tmp && rm -rf {branch}.zip pam-typopw*
         """.format(branch=branch, subdir=subdir,
