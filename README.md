@@ -8,31 +8,29 @@ If you install this software and want to participate in our research study,
 please fill in this
 [this short survey](https://docs.google.com/forms/d/e/1FAIpQLSfHWAPedMVT7ETaW3qUUaueOg87TaDAllQYIgoqJZ8nWjF88A/viewform). Thanks!!
 
-*For the purpose of the research study, TypTop might not allow login with typos
-until you login successfully 30 times.*
+<!-- *For the purpose of the research study, TypTop might not allow login with typos
+until you login successfully 30 times.* -->
 
 
 
-## Install
-
-It require Python-2.7. All the following commands are assuming you have Python-2.7 and pip-2.7.
-(`pip` is a python package manger).  Please check the [Requirements Section](#requirements).
+## <a name="install"></a>Install
+It requires Python-2.7 and some more depending on your OS, check the [Requirements Section](#requirements).
+#### Works in following OSs
+* OSX 10.9+
+* Ubuntu 14.04+ 
+* CentOS, RedHat, Arch (You need to install extra `cronie, wget`.)
 
 ```bash
-$ sudo pip install -U --ignore-installed typtop && sudo typtops.py --init --user $USER
+# If you don't have pip, install it using the following command.
+$ curl https://bootstrap.pypa.io/get-pip.py | sudo python2.7  # use 'wget -O -' if you don't have 'curl' 
+$ sudo pip install -U --ignore-installed typtop && sudo typtops.py --init
 ```
+To **uninstall** run `$ sudo typtops.py --uninstall`.
 
 <!-- To checkout the test version: -->
 <!-- ```bash -->
 <!-- $ sudo -H pip install --ignore-installed -U --extra-index-url https://testpypi.python.org/pypi typtop && sudo typtops.py --init -->
 <!-- ``` -->
-
-If `pip` is not installed you can install it as follows:
-```bash
-$ curl https://bootstrap.pypa.io/get-pip.py | sudo python2.7
-```
-Or just `$ easy_install pip` might also work (Make sure that system Python is 2.7).
-
 <!-- Install Homebrew -->
 <!-- ```bash -->
 <!-- $ ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)" -->
@@ -44,68 +42,55 @@ Or just `$ easy_install pip` might also work (Make sure that system Python is 2.
 <!-- $ cd pam-typopw && sudo python setup.py install -f -->
 <!-- ``` -->
 
-This should setup the PAM configuration files. This will install a
+<!-- This should setup the PAM configuration files. This will install a
 command-line control script called `typtop`,
 
 which can be used to control and monitor the behavior of the adaptive typo
-tolerance system. Details of the script is given below.
+tolerance system. Details of the script is given below. -->
 
 <!-- To **check successful installation**, run `$ su <your username>`. The password
 prompt should appear as `pASSWORD:`, instead of `Password`.
 -->
 
-To **uninstall** run `$ sudo typtops.py --uninstall`.
 
 ### <a name="requirements"></a> Requirements
-
-Currently this works in **OSX** (I tested in 10.10, 10.11, and 10.12.), and
-**Linux** (tested on Ubuntu and Debian, and testing on Fedora, CentOS. **Linux
-users please hold on before installing until this line is gone.** ).
-
-#### Works in following OSs
-* OSX 10.10, 10.11, 10.12
-* Ubuntu 14.04+
-* CentOS, RedHat
-* Arch (You need to install `cronie, wget`.)
 
 <!-- Currently this module **only works with Debian Linux distributions**, for -->
 <!-- example, -->
 <!-- **Ubuntu, Lubuntu, Kubuntu, Debian**, etc. -->
 
-In OSX, this installs a modified
-[pam_opendirectory](https://opensource.apple.com/source/pam\_modules/pam_modules-76/pam_opendirectory/pam_opendirectory.c)
-module which calls the Typtop module on every invocation for authentication.
-
-In Linux, it replaces the `unix_chkpwd` with a modified `unix_chkpwd` that
-mimics the functionality of original `unix_chkpwd` in addition to calling
-Typtop module on every invocation.
-
-TypToP has following non-python dependencies. The Python dependencies are auto-installed while installing with pip.
+TypToP has following non-python dependencies requird **only for Linux**. The Pythonic dependencies are auto-installed while installing with pip.
 
 1. `python-setputools`, if you are a python user, then this is most likely already installed.
 2. `python-dev`, for `python.h` dependencies with some Cython modules.
-3. `openssl-dev`, for cryptography.io in Linux only. The name might be different for your distribution. Please Google.
-4. `libffi-dev`, for cryptography.io
+3. `openssl-dev` or `libssl-dev`, for cryptography.io (only in Linux only). The name might be different for your distribution. Please Google.
+4. `libffi-dev`, for cryptography.io.
 5. `libpam-dev`, for pam_typtop.
-5. `gcc`, obviously!! Might be best way to install it is `build-essential`.
+6. `gcc`, obviously!! Might be best way to install it is `build-essential`.
+7. `cronie`, and `wget` for Arch Linux.
+
 
 - **CentOS**:
-I had to install [gcc](https://www.cyberciti.biz/faq/centos-rhel-7-redhat-linux-install-gcc-compiler-development-tools/)
-and [python-devel](http://stackoverflow.com/a/23634734/1792013)
-`$ yum install python-devel`
+  I had to install [gcc](https://www.cyberciti.biz/faq/centos-rhel-7-redhat-linux-install-gcc-compiler-development-tools/)
+  and [python-devel](http://stackoverflow.com/a/23634734/1792013)
+  `$ yum install python-devel gcc python-devel openssl-devel`
+
 - **Redhat**: I had to install [redhat-rpm-config](http://stackoverflow.com/a/34641068/1792013) and
-[python-devel](http://stackoverflow.com/a/23634734/1792013)
-`$ dnf install python-devel openssl-devel redhat-rpm-config`
+  [python-devel](http://stackoverflow.com/a/23634734/1792013)
+  `$ dnf install python-devel openssl-devel redhat-rpm-config`
+
 - **Debian (and Ubuntu)**:
-`$ apt-get install build-essential python-dev libffi-dev libssl-dev pkg-config`
+  `$ apt-get install build-essential python-dev libffi-dev libssl-dev pkg-config`
 
+- **Arch**
+  `$ pacman -S python-devel cronie wget`
 
-### Detailed description
-(*This is for those who are overly interested in learning about the software :)*)
+### <a name="details"></a>Detailed description
+(*This is for those who are overly interested in learning about the software :)*)  
 Password typing mistakes are prevalent and annoying, as it unnecessarily stops
 legitimate users from doing something more productive than merely retyping their
-passwords. Usability of passwords will improve significantly, if we allow some
-small typographical errors while checking passwords. However, as passwords are
+passwords. Usability of passwords will improve significantly, if some
+small typographical errors are allowed while checking passwords. However, as passwords are
 not stored in plaintext, it is not trivial to check whether or not an entered
 password is a typo of the stored password or an adversarial guess. One possible
 solution is to check a set of possible corrections of the entered password, and
@@ -121,8 +106,20 @@ Here, we propose a typo correcting system that learns about the typos made by an
 individual while typing their passwords, and allows the user to log in with five
 most probable mistyped variants of their password which are safe to do so. In
 this way, we can keep the number of corrections low (saving in computation
-overhead and security loss), while maximize the benefits of password typo correction.
+overhead and security loss), while maximizing the benefits of password typo correction.
 
+
+In OSX, this installs a modified
+[pam_opendirectory](https://opensource.apple.com/source/pam\_modules/pam_modules-76/pam_opendirectory/pam_opendirectory.c)
+module which calls the Typtop module on every invocation for authentication for `su` and `screensaver`.
+Note, `sudo` is not modified, so if (for some reason) TypTop fails, you can just change the `/etc/pam.d/su` and
+`/etc/pam.d/screensaver` file.
+
+In Linux, `pam_unix` is primary module for authentication. Typtop creates a PAM module named 
+`pam_typtop.so` and modify the pam config files in way such that
+whenever `pam_unix` is called for authentication the control is next passed on to `pam_typtop.so`.
+In Linux all binaries (su, sudo, login etc.) are modified to use pam_typtop.so, however, even if TypTop crashes
+the applications will function properly, only with a error message about pam_typtop.
 
 <!-- ### Common trouble shooting
 
@@ -157,13 +154,12 @@ re-install everything.
 
 ### `typtop` Utility
 
-_In Linux we have `typtops.py` instead of `typtop`, and one will need root permission to run the script_.
-
+This runs with `shadow` group's permission, which is not technically `root`, but close.
 You can use this utility to control the settings of adaptive
 typo-tolerance.  *We are working on cleaning this utility and making it easier to use.*
 
 ```bash
-$ sudo typtop
+$ typtop
 usage: typtop  [-h] [--user USER] [--init] [--allowtypo {yes,no}]
                      [--allowupload {yes,no}] [--installid] [--status]
                      [--uninstall] [--reinit]
@@ -188,7 +184,7 @@ optional arguments:
 
 ```
 
-### A bit more technical details
+### What data we collect
 
 This module tries to add typo tolerance to standard Unix password based
 authentication systems. It uses Pluggable authentication module (PAM) to plug
@@ -196,8 +192,10 @@ typo tolerant password checking into normal linux login.
 
 The script will report the following information back to us for research
 purposes. All the collected data is anonymous, and handled with utmost care. All
-the sensitive data in the user's laptop is encrypted, and the weakest link is as
-strong as guessing the user's password or a typo of it.
+the sensitive data in the user's laptop is encrypted, and the weakest link in the whole
+system is as strong as the user's correct password or typos of it. It's important to note
+not all typos are accepted as safe, and the system will allow only the typos which are very
+"close" to the original password.
 
 1. The timestamp and local time of logging in.
 2. A unique id of the submitted password. The id is obtained by computing `HMAC`
@@ -251,9 +249,8 @@ strong as guessing the user's password or a typo of it.
    <!-- `/etc/pam.d/common-auth`, and in the worst case you will be asked to re-enter -->
    <!-- your password. -->
 
-4. **If the password is changed**, the `pam_typtop` will be automatically
-   disabled until the system is re-initialized for the new password by running
-   `sudo typtop --reinit`
+4. **If the password is changed**, the `pam_typtop` will automatically updates itself after couple of right 
+   new password entry.
 
 
 ### TODO
