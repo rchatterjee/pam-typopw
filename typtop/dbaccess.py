@@ -682,7 +682,7 @@ def on_wrong_password(typo_db, password):
 
 def call_check(exchk_ret_val, user, password):
     ret = -1
-    usage = '<1 or 0> <username> <password>'
+    # usage = '<1 or 0> <username> <password>'
     if not is_user(user):
         ret = 1
     else:
@@ -690,11 +690,8 @@ def call_check(exchk_ret_val, user, password):
         exchk_ret_val = str(exchk_ret_val)
         if exchk_ret_val == '0':
             ret = int(not on_correct_password(typo_db, password))
-        elif exchk_ret_val == '1':
-            ret = int(not on_wrong_password(typo_db, password))
         else:
-            sys.stderr.write("exchk_ret_val={}".format(exchk_ret_val) + "\n")
-            sys.stderr.write(usage+"\n")
+            ret = int(not on_wrong_password(typo_db, password))
     return ret
 
 if __name__ == "__main__":
