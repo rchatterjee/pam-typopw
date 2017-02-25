@@ -140,11 +140,11 @@ def initiate_typodb(RE_INIT=False):
         subdir, download_bin, makecmd = '', '', ''
         if DISTRO == 'darwin':
             # TODO: Cleanup this directories. e.g., pam_opendirectory
-            subdir = 'osx/pam_opendirectory'
+            subdir = 'csrcs/osx/pam_opendirectory'
             download_bin = "curl -LO"
             makecmd = 'make && make install'
         elif DISTRO in ('debian', 'fedora', 'arch'):
-            subdir = 'linux/'
+            subdir = 'csrcs/linux/'
             download_bin = "wget"
             makecmd = "make && make install"
         cmd = """
