@@ -412,7 +412,7 @@ class UserTypoDB(object):
         log_info = {
             'tid': compute_id(self._hmac_salt, typo),
             'edit_dist': distance(str(self._pw), str(typo)),
-            'rel_entropy': (entropy(typo)/self._pwent - 1)*100,
+            'rel_entropy': entropy(typo) - self._pwent,
             'ts': ts if ts else get_time(),
             'istop5fixable': is_in_top5_fixes(self._pw, typo),
             'in_cache': in_cache

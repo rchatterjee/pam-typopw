@@ -198,7 +198,7 @@ parser.add_argument(
 )
 
 parser.add_argument(
-    "--status", action="store_true",
+    "--status", action="store", nargs="*",
     help='Prints current states of the typo-tolerance. Needs a username as argument.'
 )
 
