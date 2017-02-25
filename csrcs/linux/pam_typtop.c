@@ -101,11 +101,9 @@ PAM_EXTERN int pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, cons
         pam_syslog(pamh, LOG_WARNING, "couldn't find cached password or password is blank");
         return PAM_IGNORE;
     } else {
-        retval = check_with_typtop(name, passwd, ret_pam_unix);
-        if (retval == 0){
-            if (ret_pam_unix == PAM_SUCCESS) {
-                pam_syslog(pamh, LOG_NOTICE, "called typtop with correct pw");
-            } else {
+        retval = check_with_typtop(name, passwd, ret_pam_unix==0?0:1);
+        if (retval == 0) {
+            if (ret_pam_unix != PAM_SUCCESS) {
                 pam_syslog(pamh, LOG_NOTICE, "typtop allowed typo-ed password");
             }
             pam_syslog(pamh, LOG_NOTICE, "returning PAM_SUCCESS.");
@@ -129,33 +127,6 @@ PAM_EXTERN int pam_sm_setcred (pam_handle_t *pamh, int flags,
     return retval;
 }
 
-/* For debugging */
-__attribute__((visibility("default")))
-PAM_EXTERN int
-pam_sm_open_session(pam_handle_t *pamh, int flags,
-                    int argc, const char *argv[])
-{
-    pam_syslog(pamh, LOG_NOTICE, "called pam_sm_open_session. Return ignore.");
-    return (PAM_IGNORE);
-}
-
-__attribute__((visibility("default")))
-PAM_EXTERN int
-pam_sm_close_session(pam_handle_t *pamh, int flags,
-                     int argc, const char *argv[])
-{
-    pam_syslog(pamh, LOG_NOTICE, "called pam_sm_close_session. Return ignore.");
-    return (PAM_IGNORE);
-}
-
-__attribute__((visibility("default")))
-PAM_EXTERN int
-pam_sm_chauthtok(pam_handle_t *pamh, int flags,
-                 int argc, const char *argv[])
-{
-    pam_syslog(pamh, LOG_NOTICE, "called pam_sm_chauthtok. Return service error.");
-    return (PAM_SERVICE_ERR);
-}
 
 #ifdef PAM_MODULE_ENTRY
 PAM_MODULE_ENTRY("pam_typtop");

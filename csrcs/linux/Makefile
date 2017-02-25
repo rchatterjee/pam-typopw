@@ -6,7 +6,7 @@ LDLIBS = -lpython2.7 -lpam
 
 all: pam_typtop.so run_as_root
 
-pam_typtop.so: pam_typtop.o
+pam_typtop.so: pam_typtop.o ../run_proc.h
 	$(CC) $(LDFLAGS) $(LIBOBJ) $(LDLIBS) pam_typtop.o -o $@
 
 run_as_root: ../run_as_root.c

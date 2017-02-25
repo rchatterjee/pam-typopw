@@ -112,7 +112,11 @@ int main(int argc, char* argv[]) {
     } else {
         char **args = (char**)malloc(sizeof(char*)*(argc+1));
         int i;
-        const char* cmd = "/usr/local/bin/typtops.py";
+        char cmd[100] = "/usr/local/bin/typtops.py";
+        if(access(cmd, F_OK) == -1) { // file does not exists
+            bzero(cmd, 100);
+            strncpy(cmd, "/usr/bin/typtops.py", 100); // try this.
+        }
         args[0] = (char*)malloc(sizeof(char)*(strlen(cmd)+1));
         strcpy(args[0], cmd);
         for(i=1; i<argc; i++) {
