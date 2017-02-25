@@ -17,8 +17,7 @@ until you login successfully 30 times.* -->
 It requires Python-2.7 and some more depending on your OS, check the [Requirements Section](#requirements).
 #### Works in following OSs
 * OSX 10.9+
-* Ubuntu 14.04+ 
-* CentOS, RedHat, Arch (You need to install extra `cronie, wget`.)
+* Most of Linux distros (Tested in Ubuntu 14.04+, CentOS, RedHat, Arch.)
 
 ```bash
 # If you don't have pip, install it using the following command.
