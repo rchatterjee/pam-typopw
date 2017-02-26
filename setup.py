@@ -14,9 +14,11 @@ from setuptools import setup
 #     from distutils.core import setup
 #     from distutils.command.install import install
 
-from typtop.config import VERSION, set_distro
+from typtop.config import (
+    VERSION, set_distro, first_msg, GITHUB_URL
+)
 
-GITHUB_URL = 'https://github.com/rchatterjee/pam-typopw' # URL in github repo
+
 SCRIPTS = {
     'typtop/send_typo_log.py',
     'typtop/typtops.py'
@@ -43,7 +45,7 @@ PACMAN = {
     'debian': 'apt-get install -y'.split(),
     'fedora': 'yum install -y'.split(),
     'darwin': [],
-    'arch'  : [],
+    'arch': [],
 }[DISTRO]
 
 PYTHON_DEPS = [
@@ -75,11 +77,12 @@ OPTIONS = {
 # ]
 # With the help from http://peterdowns.com/posts/first-time-with-pypi.html
 setup(
-    name='typtop', # 'loginwitherror',
+    name='typtop',   # 'loginwitherror',
     # app=['typtop/dbaccess.py'],
     packages=['typtop'], # this must be the same as the name above
     version=VERSION,
     description='Adaptive typo-tolerant password checking for Debian logins',
+    long_description=first_msg,
     author='Rahul Chatterjee, Yuval Pnueli',
     author_email='rc737@cornell.edu',
     url=GITHUB_URL,
@@ -89,7 +92,7 @@ setup(
         'login-with-errors', 'Login'
     ],
     # scripts=SCRIPTS,
-    entry_points = {
+    entry_points={
         'console_scripts': [
             'typtops.py = typtop.typtops:main',
             'send_typo_log.py = typtop.send_typo_log:main']
@@ -99,7 +102,7 @@ setup(
     package_data={
         'typtop': ['../LICENSE', '../README.md', 'typtopserver.crt'],
     },
-    data_files=[], # DATA_FILES,
+    data_files=[],  # DATA_FILES,
     include_package_data=True,
     options={'py2app': OPTIONS},
     classifiers=['Development Status :: 4 - Beta'],
