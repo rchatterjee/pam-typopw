@@ -92,6 +92,7 @@ class UserTypoDB(object):
         self._log_path = os.path.join(LOG_DIR, DB_NAME + '.log')
         # First thing first -- setting the logger object
         setup_logger(self._log_path, debug_mode, user)
+        self.logger = logger  # just in case I need it
         logger.info("---UserTypoDB instantiated---")
 
         # creating dir only if it doesn't exist
@@ -134,6 +135,7 @@ class UserTypoDB(object):
             f.flush(); os.fsync(f.fileno())
         os.rename(tmp_f, self._db_path)
         change_db_ownership(self._db_path)
+        logger.info("---UserTypoDB deleted---")
 
     def init_typtop(self, pw, allow_typo_login=True):
         """Create the 'typtop' database in user's home-directory.  Changes
@@ -378,8 +380,9 @@ class UserTypoDB(object):
         self._db[auxT][LOG_LAST_SENTTIME] = float(sent_time)
         if delete_old_logs:
             logger.debug("deleting old logs")
-            while self._db[logT]:
-                self._db[logT].pop()
+            del self._db[logT][:]
+            # while self._db[logT]:
+            #     self._db[logT].pop()
             # try:
             #     log_t.table.delete().where(
             #         log_t.table.columns.ts <= float(sent_time)
@@ -432,12 +435,12 @@ class UserTypoDB(object):
         indexj = int(self.get_from_auxtdb(INDEX_J))  # , int))
         ts = get_time()
         assert indexj < len(waitlist), \
-            "Indexj={}, waitlist={}".format(indexj, waitlist)
+            "Index_j={}, wait-list={}".format(indexj, waitlist)
         waitlist[indexj] = pkencrypt(self.get_pk(), json.dumps([typo, ts]))
         indexj = (indexj + 1) % WAITLIST_SIZE
         self.set_in_auxtdb(WAIT_LIST, waitlist)
         self.set_in_auxtdb(INDEX_J, indexj)
-        logger.debug("Typo encrpted.")
+        logger.debug("Typo encrypted.")
 
     def _decrypt_n_filter_waitlist(self):
         """Decrypts the waitlist and filters out the ones failed validity
@@ -469,11 +472,11 @@ class UserTypoDB(object):
             filtered_typos.items(), key=lambda a: a[1], reverse=True
         )
 
-    def get_table_size(self, tableName):
-        return self._db[tableName].count()
+    def get_table_size(self, table_name):
+        return self._db[table_name].count()
 
     @staticmethod
-    def get_typo_cache_size(self):
+    def get_typo_cache_size():
         return CACHE_SIZE
 
     def get_pk(self):
@@ -501,8 +504,10 @@ class UserTypoDB(object):
         count_entry = self.get_from_auxtdb(LOGIN_COUNT) + 1
         if update:
             self.set_in_auxtdb(LOGIN_COUNT, count_entry)
-        logger.info("Checking login count")
-        return count_entry > NUMBER_OF_ENTRIES_TO_ALLOW_TYPO_LOGIN
+        allowed = count_entry > NUMBER_OF_ENTRIES_TO_ALLOW_TYPO_LOGIN
+        if not allowed:
+            logger.info("Checking login count. Allowed = {}".format(allowed))
+        return allowed
 
     def check(self, pw):
         logger.info("Checking entered password.")
@@ -534,18 +539,21 @@ class UserTypoDB(object):
             self.insert_log(pw, in_cache=True, ts=get_time())
             match_found = True
             break
+        allowed = False
         if match_found:
             assert self._pwent, "PW is not initialized: {}".format(self._pwent)
             self._update_typo_cache_by_waitlist(typo_cache, freq_counts)
-            if i == 0:
+            if i == 0:   # the real password entered
                 self.check_login_count(update=True)
-                return True
-            else:
-                return (self.check_login_count(update=False) and
-                        self.is_allowed_login())
+                allowed = True
+            else:   # A typo entered
+                allowed = (self.check_login_count(update=False) and
+                           self.is_allowed_login())
         else:
             self._add_typo_to_waitlist(pw)
-            return False
+            allowed = False
+        logger.info("TypTop's decision: LoginAllowed = {}".format(allowed))
+        return allowed
 
     def get_from_auxtdb(self, key):
         return self._aux_tab.get(key, '')
@@ -556,12 +564,12 @@ class UserTypoDB(object):
     def validate(self, orig_pw, typo):
         # Edit distance 1 is always allowed for all passwords; more
         # allowance if len(orig_pw) is large
-        editDist = (distance(str(orig_pw), str(typo))-1)/float(len(orig_pw))
+        edit_dist = (distance(str(orig_pw), str(typo))-1)/float(len(orig_pw))
         typo_ent = entropy(typo)
-        notMuchWeaker = (typo_ent >= (self._pwent - REL_ENT_CUTOFF))
-        notTooWeak = (typo_ent >= LOWER_ENT_CUTOFF)
-        closeEdit = (editDist <= EDIT_DIST_CUTOFF)
-        return notTooWeak and notMuchWeaker and closeEdit
+        not_much_weaker = (typo_ent >= (self._pwent - REL_ENT_CUTOFF))
+        not_too_weak = (typo_ent >= LOWER_ENT_CUTOFF)
+        close_edit = (edit_dist <= EDIT_DIST_CUTOFF)
+        return not_too_weak and not_much_weaker and close_edit
 
     def _update_typo_cache_by_waitlist(self, typo_cache, freq_counts):
         """
@@ -612,15 +620,15 @@ class UserTypoDB(object):
 
 
 def check_system_status(typo_db):
-    sysStatVal = typo_db.get_from_auxtdb(SYSTEM_STATUS)
+    sys_stat_val = typo_db.get_from_auxtdb(SYSTEM_STATUS)
     # if reached here - db should be initiated updating the entry count
-    if not sysStatVal: # if not found in table
+    if not sys_stat_val:  # if not found in table
         raise UserTypoDB.CorruptedDB(
             "ERROR: (check_system_status) Typtop DB is Corrupted."
         )
-    if sysStatVal == SYSTEM_STATUS_PW_CHANGED:  # pasword_changed
+    if sys_stat_val == SYSTEM_STATUS_PW_CHANGED:  # password_changed
         raise ValueError(SYSTEM_STATUS_PW_CHANGED)
-    if sysStatVal == SYSTEM_STATUS_CORRUPTED_DB:  # corrupted_db
+    if sys_stat_val == SYSTEM_STATUS_CORRUPTED_DB:  # corrupted_db
         raise ValueError(SYSTEM_STATUS_CORRUPTED_DB)
 
 
@@ -647,7 +655,7 @@ def on_correct_password(typo_db, password):
         typo_db.reinit_typtop(password)
     except Exception as e:
         logger.exception(
-            "Unexpected error while on_correct_password:\n{}\n"\
+            "Unexpected error while on_correct_password:\n{}\n"
             .format(e)
         )
     # In order to avoid locking out - always return true for correct password

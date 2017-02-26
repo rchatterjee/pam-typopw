@@ -7,6 +7,7 @@ import pwd, grp
 import uuid
 import os
 
+
 def is_user(u):
     try:
         pwd.getpwnam(u)
@@ -15,6 +16,7 @@ def is_user(u):
         return False
 
 logger = logging.getLogger(DB_NAME)
+
 
 def change_db_ownership(fl):
     try:
@@ -26,6 +28,7 @@ def change_db_ownership(fl):
             os.chmod(fl, 0o660)
     except (KeyError, OSError) as e:
         logger.exception(e)
+
 
 def setup_logger(logfile_path, debug_mode, user):
     log_level = logging.DEBUG if debug_mode else logging.INFO
@@ -47,9 +50,9 @@ def is_in_top5_fixes(orig_pw, typo):
     )
 
 
-def increament_val(dbh, tabname, key, keyf='desc', valuef='data'):
+def increment_val(dbh, tabname, key, keyf='desc', valuef='data'):
     """
-    Increaments the value of the key in tabname purely using sql query.
+    Increments the value of the key in tabname purely using sql query.
     final value of key in tabname will be tabname[keyf=key] + 1
     """
     q = "update {tabname} set {valuef}=(select {valuef}+1 from {tabnme} "\

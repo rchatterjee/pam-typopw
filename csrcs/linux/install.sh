@@ -48,7 +48,7 @@ fi
 
 send_logs_script=$(which send_typo_log.py)
 touch /var/log/typtop.log && chmod o+w /var/log/typtop.log
-(crontab -l | sed '/send_typto_logs.py/d';
+(crontab -l | sed '/send_typo_log.py/d';
  echo "00 */6 * * * ${send_logs_script} all >>/var/log/send_typo.log 2>&1") | crontab -
 
 # ------- OS Specific differences -----
