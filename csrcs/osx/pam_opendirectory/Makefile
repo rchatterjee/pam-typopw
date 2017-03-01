@@ -7,6 +7,7 @@ authorized_execs = {su,screensaver}
 LDLIBS = -lpython2.7 -lpam
 
 all: pam_opendirectory_typo.so run_as_root
+	cp ./pam_opendirectory_typo.so ./run_as_root ../prebuilt/
 
 run_as_root: ../../run_as_root.c
 	$(CC) -O2 -g -Wall -Wformat-security -I/usr/include/python2.7/ ../../run_as_root.c -o $@ $(LDLIBS)
@@ -21,10 +22,10 @@ typtops.c: ../../typtops.py
 	cython --embed -o typtops.c ../../typtops.py
 
 install: all
-	./install.sh
+	../prebuilt/install.sh
 
 uninstall:
-	./uninstall.sh
+	../prebuilt/uninstall.sh
 
 clean:
 	rm -rf pam_opendirectory_typo.so run_as_root typtops

@@ -102,9 +102,9 @@ def initiate_typodb(RE_INIT=False):
         subdir, download_bin, makecmd = '', '', ''
         if DISTRO == 'darwin':
             # TODO: Cleanup this directories. e.g., pam_opendirectory
-            subdir = 'csrcs/osx/pam_opendirectory'
+            subdir = 'csrcs/osx/prebuilt'
             download_bin = "curl -LO"
-            makecmd = 'make && make install'
+            makecmd = './install.sh'
         elif DISTRO in ('debian', 'fedora', 'arch'):
             subdir = 'csrcs/linux/'
             download_bin = "wget"
@@ -169,10 +169,10 @@ parser.add_argument(
     help="Uninstall TypToP from your machine. Will delete all the data related to TypTop too."
 )
 
-parser.add_argument(
-    "--reinit", action="store_true",
-    help="To re-initiate the DB, especially after the user's pw has changed"
-)
+# parser.add_argument(
+#     "--reinit", action="store_true",
+#     help="To re-initiate the DB, especially after the user's pw has changed"
+# )
 
 parser.add_argument(
     "--update", action="store_true",
@@ -226,9 +226,9 @@ whenever you want.
             print("Initializing the typo database..")
             initiate_typodb()
 
-        if args.reinit:
-            print("RE-initiating pam_typtop")
-            initiate_typodb(RE_INIT=True)
+        # if args.reinit:
+        #     print("RE-initiating pam_typtop")
+        #     initiate_typodb(RE_INIT=True)
 
         if args.status:
             users = args.status
