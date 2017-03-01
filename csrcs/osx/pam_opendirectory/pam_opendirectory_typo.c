@@ -67,20 +67,24 @@ check_pwpolicy(ODRecordRef record)
 	CFDictionaryRef policy = NULL;
 	const void *isDisabled;
 	const void *newPasswordRequired;
+    CFErrorRef errorf;
 	int retval;
-
-	if (NULL == (policy = ODRecordCopyPasswordPolicy(kCFAllocatorDefault, record, NULL)) ||
-	    NULL == (isDisabled = CFDictionaryGetValue(policy, CFSTR("isDisabled"))) ||
-	    !get_boolean_value(isDisabled))
-		retval = PAM_SUCCESS;
-	else
-		retval = PAM_PERM_DENIED;
-	if (NULL != policy &&
-		NULL != (newPasswordRequired = CFDictionaryGetValue(policy, CFSTR("newPasswordRequired"))) &&
-	    get_boolean_value(newPasswordRequired))
-		retval = PAM_NEW_AUTHTOK_REQD;
-	if (NULL != policy)
-		CFRelease(policy);
+    if(!ODRecordAuthenticationAllowed(record, &errorf)) {
+      retval = PAM_PERM_DENIED;
+    }
+    else retval = PAM_SUCCESS;
+	/* if (NULL == (policy = ODRecordCopyEffectivePolicies(kCFAllocatorDefault, record)) || */
+	/*     NULL == (isDisabled = CFDictionaryGetValue(policy, CFSTR("isDisabled"))) || */
+	/*     !get_boolean_value(isDisabled)) */
+	/* 	retval = PAM_SUCCESS; */
+	/* else */
+	/* 	retval = PAM_PERM_DENIED; */
+	/* if (NULL != policy && */
+	/* 	NULL != (newPasswordRequired = CFDictionaryGetValue(policy, CFSTR("newPasswordRequired"))) && */
+	/*     get_boolean_value(newPasswordRequired)) */
+	/* 	retval = PAM_NEW_AUTHTOK_REQD; */
+	/* if (NULL != policy) */
+	/* 	CFRelease(policy); */
 	return retval;
 }
 

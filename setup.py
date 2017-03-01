@@ -55,7 +55,6 @@ PYTHON_DEPS = [
     # 'dataset',
     'zxcvbn',
     'requests==2.11.1', # 2.12 has issue with x509 cetificate
-    'psutil',
     'pyyaml',
     'distro',
 ]

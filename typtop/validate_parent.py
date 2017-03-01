@@ -1,14 +1,23 @@
 import hashlib
 import sys
 import os
-import psutil
 from config import SEC_DB_PATH, DISTRO
 import json
+import re
 
 # VALID_PARENTS = [
 #     "/usr/local/lib/security/pam_opendirectory_typo.so",
 #     "/sbin/unix_chkpwd
 # ]
+
+def get_ppid_and_attr(pid):
+    cmd = "ps -p %d -oppid=,uid=,user=,comm=" % pid
+    try:
+        ppid, uid, user, exe = re.split(r'\s+', os.popen(cmd).read().strip(), maxsplit=3)
+    except Exception as e:
+        print e
+        ppid, uid, user, exe = '-1', '', '', ''
+    return ppid, uid, user, exe
 
 def load_recoreded_digest():
     return [
@@ -19,6 +28,8 @@ def load_recoreded_digest():
     ]
 
 def sha256(fname):
+    if not os.path.exists(fname):
+        return "-1"
     hash_sha256 = hashlib.sha256()
     with open(fname, "rb") as f:
         for chunk in iter(lambda: f.read(4096), b""):
@@ -33,20 +44,16 @@ def is_valid_parent():
     """
     # f = open('/tmp/typtop.log', 'a')
     RECORDED_DIGESTS = load_recoreded_digest()
-    def attrib(p):
-        if p:
-            return p.as_dict(attrs=['exe', 'uids', 'username'])
-    p = psutil.Process(os.getppid()).parent()
+    ppid = os.getppid()
     for _ in xrange(3):
-        d = attrib(p)
-        if not d: break
-        if not d['exe']: break
-        # f.write(json.dumps(d) + '\n')
-        if not d['uids'][0]: # any of the uids is 0 (root)
+        ppid, uid, user, exe = get_ppid_and_attr(ppid)
+        if not ppid or int(ppid) <= 0: break
+        ppid = int(ppid)
+        continue;
+        if uid and int(uid) == 0: # any of the uids is 0 (root)
             return True
-        if sha256(d['exe']) in RECORDED_DIGESTS:
+        if sha256(exe) in RECORDED_DIGESTS:
             return True
-        p = p.parent()
     # f.close()
     return False
 
@@ -56,3 +63,4 @@ def validate_pam_opendirectory(fname):
 if __name__ == '__main__':
     print load_recoreded_digest()
     print sha256(sys.argv[1])
+    print is_valid_parent()
