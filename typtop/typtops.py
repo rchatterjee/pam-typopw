@@ -134,10 +134,11 @@ def uninstall_pam_typtop():
     subprocess.call(typtop_uninstall_script)
 
 parser = argparse.ArgumentParser("typtop ")
-parser.add_argument(
-    "--user",
-    help="To set the username. Otherwise login user will be the target"
-)
+# parser.add_argument(
+#     "--user",
+#     help="To set the username. Otherwise login user will be the target"
+# )
+
 parser.add_argument(
     "--init", action="store_true",
     help="To initialize the DB. You have to run this once you install pam_typtop"
@@ -154,13 +155,13 @@ parser.add_argument(
     "data into the server for research purposes."
 )
 
-parser.add_argument(
-    "--installid", action="store_true",
-    help="Prints the installation id, which you have to submit while filling up the google form"
-)
+# parser.add_argument(
+#     "--installid", action="store_true",
+#     help="Prints the installation id, which you have to submit while filling up the google form"
+# )
 
 parser.add_argument(
-    "--status", action="store", nargs="*",
+    "--status", action="store", nargs="+",
     help='Prints current states of the typo-tolerance. Needs a username as argument.'
 )
 
@@ -184,6 +185,11 @@ parser.add_argument(
     help="(INTERNAL FUNCTION. PLEASE DON'T CALL THIS.)"
 )
 
+parser.add_argument(
+    "--debug", action="store_true",
+    help="Prepare report for debugging"
+)
+
 def main():
     args = parser.parse_args()
     if len(sys.argv) <=1:
@@ -191,9 +197,9 @@ def main():
         sys.exit(0)
 
     # ITS IMPORTANT THIS ONE WILL BE FIRST
-    if args.user:
-        global USER
-        USER = args.user
+    # if args.user:
+    #     global USER
+    #     USER = args.user
         # print("User settings have been set to {}".format(USER))
     try:
         # root_only_operation()
@@ -264,6 +270,28 @@ whenever you want.
                 fi
             """
             os.system(cmd)
+
+        if args.debug:
+            proc = subprocess.Popen(
+                """
+                set -x
+                set -u
+
+                users
+                su $USER -c "which su"
+                # <enter correct password>
+                # if [ $? -neq 0 ]; then exit; else "echo password incorrect"; fi
+                typtop --status $USER
+                sudo ls -altrh  /usr/local/etc/typtop.d/$USER/typtop.json
+                ls -altrh $(which su) $(which typtop)
+                python -c "import pwd; print pwd.getpwnam('$USER')"
+                tail -n50 /var/log/typtop.log
+                """, shell=True,
+                stdout=subprocess.PIPE,
+                # stderr=subprocess.STDOUT
+                stderr=sys.stdout.fileno()
+            )
+            print(proc.stdout.read())
 
         if args.check:
             # ensure the parent is pam_opendirectory_typo.so

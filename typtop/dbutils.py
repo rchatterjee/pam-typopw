@@ -22,8 +22,10 @@ def change_db_ownership(fl):
     try:
         g_id = grp.getgrnam(GROUP).gr_gid
         f_stat = os.stat(fl)
-        f_uid, f_gid = f_stat.st_uid, f_stat.st_gid
-        if f_uid != 0 or f_gid != g_id:
+        f_uid, f_gid, mode = f_stat.st_uid, f_stat.st_gid, f_stat.st_mode
+        # 511 = 2**9 - 1, last 3x3 permission bits, Should be 0660
+        # o-rw
+        if f_uid != 0 or f_gid != g_id or (mode & 511 != 0o660):
             os.chown(fl, f_uid, g_id)
             os.chmod(fl, 0o660)
     except (KeyError, OSError) as e:

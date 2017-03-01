@@ -56,6 +56,7 @@ for f in ${authorized_execs[@]}; do
         shasum -a 256 $f > ${db_root}/authorized_caller;
     fi
 done
+chmod o-w ${db_root}/authorized_caller;  # No one should be able to write to it.
 
 for f in ${authorized_execs[@]} ; do
     f=/etc/pam.d/$f

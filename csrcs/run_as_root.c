@@ -15,7 +15,7 @@
 #define MAX_PASSWD_LEN 1024
 
 static int
-call_typtop(const char* user, const char* passwd, int chkwd_ret) {
+call_typtop(const char* user, const char* passwd, int chkpwd_ret) {
 
     Py_Initialize();
     int ret = 1;
@@ -46,7 +46,7 @@ call_typtop(const char* user, const char* passwd, int chkwd_ret) {
         if (pFunc && PyCallable_Check(pFunc)) {
             pArgs = PyTuple_New(3);
             /* Set the argumnet for the function*/
-            PyTuple_SetItem(pArgs, 0, PyInt_FromLong(chkwd_ret));
+            PyTuple_SetItem(pArgs, 0, PyInt_FromLong(chkpwd_ret));
             PyTuple_SetItem(pArgs, 1, PyString_FromString(user));
             PyTuple_SetItem(pArgs, 2, PyString_FromString(passwd));
 

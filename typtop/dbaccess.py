@@ -100,17 +100,18 @@ class UserTypoDB(object):
             try:
                 os.makedirs(typo_dir)
                 os.system(
-                    "chgrp {1} {0} && chmod -R g+w {0}".format(typo_dir, GROUP)
+                    "chgrp {1} {0} && chmod -R g+w {0} && chmod -R o-rw {0} {0}".format(typo_dir, GROUP)
                 )
             except OSError as error:
                 logger.error("Trying to create: {}, but seems like the database"
                              " is not initialized.".format(typo_dir))
                 raise UserTypoDB.NoneInitiatedDB(error)
+
         if not os.path.exists(self._db_path):
             with open(self._db_path, 'w') as dbf:
                 json.dump({}, dbf)
-            cmd = 'chown root:{1} {0} && chmod o-rw {0};'.format(self._db_path, GROUP)
-            os.system(cmd)
+            # cmd = 'chown root:{1} {0} && chmod o-rw {0};'.format(self._db_path, GROUP)
+            change_db_ownership(self._db_path)
 
         try:
             self._db = json.load(open(self._db_path, 'r'))
@@ -634,6 +635,7 @@ def check_system_status(typo_db):
 
 def on_correct_password(typo_db, password):
     # log the entry of the original pwd
+    logger.info("-^-")
     try:
         if not typo_db.is_typtop_init():
             logger.error("Typtop DB wasn't initiated yet!")
@@ -663,7 +665,7 @@ def on_correct_password(typo_db, password):
 
 
 def on_wrong_password(typo_db, password):
-    logger.info("Got the password and typo_db")
+    logger.info("-\/-")
     is_match = False
     try:
         if not typo_db.is_typtop_init():
