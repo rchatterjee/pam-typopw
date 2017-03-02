@@ -69,4 +69,4 @@ for f in ${authorized_execs[@]} ; do
 done
 
 echo "--"
-echo "Contrats!! Looks like installation is successful. Hurray :)"
+echo "Congrats!! Looks like installation is successful. Hurray :)"

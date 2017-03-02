@@ -76,4 +76,4 @@ else
 fi
 
 echo "--"
-echo "Contrats!! Looks like installation is successful. Hurray :)"
+echo "Congrats!! Looks like installation is successful. Hurray :)"

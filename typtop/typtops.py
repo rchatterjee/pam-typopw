@@ -273,13 +273,27 @@ whenever you want.
             os.system(cmd)
 
         if args.debug:
+            p = subprocess.Popen(
+                'pip show numpy', shell=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT
+            )
+            numpypath = ''
+            for l in p.stdout:
+                l = l.strip().split(': ', 1)
+                if l[0] == 'Location':
+                    numpypath = l[1]
+                    break
+            print("Is numpy in path: {}".format(numpypath in sys.path))
             proc = subprocess.Popen(
+                # TODO: Add numpy path constraint
+
                 """
                 set -x
                 set -u
 
                 users
-                su $USER -c "which su"
+                # su $USER -c "which su"
                 # <enter correct password>
                 # if [ $? -neq 0 ]; then exit; else "echo password incorrect"; fi
                 typtop --status $USER
