@@ -22,7 +22,7 @@ from typtop.config import (
     DB_NAME, auxT, INSTALLATION_ID,
     INSTALLATION_DATE, LOG_LAST_SENTTIME, LOG_SENT_PERIOD,
     UPDATE_GAPS, SYSTEM_STATUS, SYSTEM_STATUS_NOT_INITIALIZED,
-    LOGIN_COUNT, ALLOWED_TYPO_LOGIN, ALLOWED_LOGGING, ENC_PK, INDEX_J,
+    LOGIN_COUNT, ALLOWED_TYPO_LOGIN, ALLOWED_UPLOAD, ENC_PK, INDEX_J,
     WAITLIST_SIZE, WARM_UP_CACHE, CACHE_SIZE, REAL_PW, HMAC_SALT,
     FREQ_COUNTS, HEADER_CTX, SYSTEM_STATUS_ALL_GOOD, LOWER_ENT_CUTOFF,
     EDIT_DIST_CUTOFF, WAIT_LIST, TYPO_CACHE, SEC_DB_PATH,
@@ -173,7 +173,7 @@ class UserTypoDB(object):
             SYSTEM_STATUS: SYSTEM_STATUS_NOT_INITIALIZED,
             LOGIN_COUNT: 0,
             ALLOWED_TYPO_LOGIN: allow_typo_login,
-            ALLOWED_LOGGING: True,
+            ALLOWED_UPLOAD: True,
             ENC_PK: serialize_pk(self._pk),
             INDEX_J: random.randint(0, WAITLIST_SIZE-1),
         })
@@ -269,28 +269,40 @@ class UserTypoDB(object):
     def assert_initialized(self):
         if not self.is_typtop_init():
             raise UserTypoDB.NoneInitiatedDB(
-                "is_allowed_login: Typtop DB wasn't initiated yet!"
+                "Typtop DB wasn't initiated yet!"
             )
 
-    def is_allowed_login(self):
+    def is_allowed(self, what):
         self.assert_initialized()
-        isON = self.get_from_auxtdb(ALLOWED_TYPO_LOGIN)
+        isON = self.get_from_auxtdb(what)
         assert isON in (True, False), \
             'Corrupted data in {}: {}={} ({})'.format(
-                auxT, ALLOWED_TYPO_LOGIN, isON, type(isON)
+                auxT, what, isON, type(isON)
             )
         return isON
 
-    def is_real_pw(self, pw):
-        return self._pw == pw
+    def allow(self, what, how):
+        self.assert_initialized()
+        assert how in (True, False, 0, 1), "Expects a boolean"
+        how = True if how else False
+        self.set_in_auxtdb(what, how)
+        state = "ON" if how else "OFF"
+        logger.info("typtop::{} set to {}".format(what, state))
+
+    def allow_upload(self, allow):
+        self.allow(ALLOWED_UPLOAD, allow)
 
     def allow_login(self, allow=True):
-        self.assert_initialized()
-        assert allow in (True, False, 0, 1), "Expects a boolean"
-        allow = True if allow else False
-        self.set_in_auxtdb(ALLOWED_TYPO_LOGIN, allow)
-        state = "ON" if allow else "OFF"
-        logger.info("typtop set to {}".format(state))
+        self.allow(ALLOWED_TYPO_LOGIN, allow)
+
+    def is_allowed_login(self):
+        return self.is_allowed(ALLOWED_TYPO_LOGIN)
+
+    def is_allowed_upload(self):
+        return self.is_allowed(ALLOWED_UPLOAD)
+
+    def is_real_pw(self, pw):
+        return self._pw == pw
 
     def _fill_waitlist_w_garbage(self):
         ts = get_time()
@@ -346,14 +358,8 @@ class UserTypoDB(object):
         if not self.is_typtop_init():
             logger.debug("Could not send. Typtop not initiated")
             return False, iter([])
-        upload_status = self.get_from_auxtdb(ALLOWED_LOGGING)
-        if not upload_status:
-            raise UserTypoDB.CorruptedDB(
-                "Missing {} in {}".format(ALLOWED_LOGGING, auxT)
-            )
-        if not upload_status:
-            logger.info("Not sending logs because send status set to {}".format(
-                upload_status))
+        if not self.is_allowed_upload():
+            logger.info("Not sending logs because send status set to False")
             return False, iter([])
         last_sending = self.get_from_auxtdb(LOG_LAST_SENTTIME)  # , float)
         update_gap = self.get_from_auxtdb(LOG_SENT_PERIOD)  # , float)
@@ -390,16 +396,6 @@ class UserTypoDB(object):
             #     ).execute()
             # except AttributeError:
             #     pass
-
-    def allow_upload(self, allow):
-        if allow in (0, 1):
-            allow = bool(allow)
-        assert isinstance(allow, bool)
-        self.set_in_auxtdb(ALLOWED_LOGGING, allow)
-
-    def is_allowed_upload(self):
-        send_stat_row = self.get_from_auxtdb(ALLOWED_LOGGING)
-        return send_stat_row
 
     def insert_log(self, typo, in_cache, ts=None):
         """Updates the log with information about typo. Remember, if sk_dict is

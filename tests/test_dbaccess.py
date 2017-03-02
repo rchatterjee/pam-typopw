@@ -1,12 +1,12 @@
 import os
 import json
-from typtop.dbaccess import ( 
+from typtop.dbaccess import (
     UserTypoDB, get_time, on_wrong_password,
     on_correct_password, logT, auxT,
     FREQ_COUNTS, INDEX_J, WAITLIST_SIZE,
     WAIT_LIST, pkdecrypt,
     NUMBER_OF_ENTRIES_TO_ALLOW_TYPO_LOGIN,
-    logT, auxT, call_check 
+    logT, auxT, call_check
 )
 import typtop.config as config
 import typtop.dbaccess as dbaccess
@@ -19,8 +19,7 @@ NN = 5
 secretAuxSysT = "SecretAuxData"
 ORIG_PW_ID = 'OrgPwID'
 
-NUMBER_OF_ENTRIES_TO_ALLOW_TYPO_LOGIN \
-    = dbaccess.NUMBER_OF_ENTRIES_TO_ALLOW_TYPO_LOGIN = 30
+dbaccess.NUMBER_OF_ENTRIES_TO_ALLOW_TYPO_LOGIN = 30
 dbaccess.WARM_UP_CACHE = 0
 
 def get_username():
@@ -67,6 +66,7 @@ def test_login_settings():
     assert not typoDB.is_allowed_login()
     typoDB.allow_login()
     assert typoDB.is_allowed_login()
+
 
 
 @pytest.mark.skip(reason='Root is allowed now')
@@ -233,11 +233,17 @@ def test_logT(is_stand_alone=True):
     assert not on_wrong_password(typoDB, pws[0])
     assert on_correct_password(typoDB, get_pw()) # 1
     assert not on_wrong_password(typoDB, pws[0]) # not enough login count
-    for _ in range(NUMBER_OF_ENTRIES_TO_ALLOW_TYPO_LOGIN-1):
+    for _ in range(dbaccess.NUMBER_OF_ENTRIES_TO_ALLOW_TYPO_LOGIN-1):
         # on_wrong_password(typoDB, pws[0]) # not enough login count
         assert typoDB.check(get_pw())
         # on_correct_password(typoDB, get_pw())
     assert on_wrong_password(typoDB, pws[0]) # now it should work
+    typoDB.allow_login(allow=False)
+    assert not on_wrong_password(typoDB, pws[0]) # now it should work
+    assert on_correct_password(typoDB, get_pw())
+
+    typoDB.allow_login(allow=True)
+    assert on_wrong_password(typoDB, pws[0])
 
     assert set(typoDB._db[logT][0].keys()) == set(config.logT_cols)
     if is_stand_alone:

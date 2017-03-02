@@ -1,5 +1,5 @@
 import sys
-VERSION = "0.2.2"
+VERSION = "0.2.3"
 
 DB_NAME = "typtop"
 SEC_DB_PATH = '/etc/typtop.d'
@@ -110,6 +110,7 @@ LOGIN_COUNT = 'LoginCount'
 INSTALLATION_ID = 'InstallationId'
 INSTALLATION_DATE = 'InstallationDate'
 ALLOWED_LOGGING = 'AllowLogging'
+ALLOWED_UPLOAD = 'AllowUpload'
 LOG_LAST_SENTTIME = 'LastLogSetntTime'
 LOG_SENT_PERIOD = 'PeriodForSendingLog' # How frequently to send the logs
 SYSTEM_STATUS = 'SystemStatus'
