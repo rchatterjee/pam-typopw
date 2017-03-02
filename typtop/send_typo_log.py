@@ -2,6 +2,7 @@
 
 import os
 import sys
+import random
 import requests
 import json
 from typtop.dbaccess import UserTypoDB, get_time
@@ -34,7 +35,7 @@ def send_logs(typo_db, force=False):
         url,
         data=dict(
             # urlsafe-base64 does not have '#'
-            uid=install_id.strip() + '#' + str(VERSION), 
+            uid=install_id.strip() + '#' + str(VERSION),
             data=dbdata,
             test=0,
         ),
@@ -51,7 +52,7 @@ def send_logs(typo_db, force=False):
             delete_old_logs=True
         )
         # truncate log file to last 200 lines and look for update if available
-        updatecmd = "typtop --update" if os.urandom(1) == '0' else ''
+        updatecmd = "typtop --update" if random.randint(0, 100) <= 20 else ''
         cmd = """
         tail -n500 {0}/{1}.log > /tmp/t.log && mv /tmp/t.log {0}/{1}.log;
         {2}
@@ -66,7 +67,7 @@ def main():
     force = True if (len(sys.argv) > 2 and sys.argv[2] == 'force') else False
     if user == 'all':  # run for all users
         users = [
-            d for d in os.listdir(SEC_DB_PATH) 
+            d for d in os.listdir(SEC_DB_PATH)
             if os.path.isdir(os.path.join(SEC_DB_PATH, d))
         ]
     for user in users:

@@ -264,6 +264,7 @@ whenever you want.
             cmd =  """export PIP_FORMAT=columns;
                 pip list --outdated|grep typtop;
                 if [ "$?" = "0" ]; then
+                   pip uninstall typtop
                    pip install -U --ignore-installed typtop && typtops.py --init
                 else
                    echo "Already uptodate! No need to update."
