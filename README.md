@@ -21,7 +21,7 @@ It requires Python-2.7 and some more depending on your OS, check the [Requiremen
 
 ```bash
 # If you don't have pip, install it using the following command.
-$ curl https://bootstrap.pypa.io/get-pip.py | sudo python2.7  # use 'wget -O -' if you don't have 'curl' 
+$ curl https://bootstrap.pypa.io/get-pip.py | sudo python2.7  # use 'wget -O -' if you don't have 'curl'
 $ sudo pip install -U --ignore-installed typtop && sudo typtops.py --init
 ```
 To **uninstall** run `$ sudo typtops.py --uninstall`.
@@ -85,7 +85,7 @@ TypToP has following non-python dependencies requird **only for Linux**. The Pyt
   `$ pacman -S python-devel cronie wget`
 
 ### <a name="details"></a>Detailed description
-(*This is for those who are overly interested in learning about the software :)*)  
+(*This is for those who are overly interested in learning about the software :)*)
 Password typing mistakes are prevalent and annoying, as it unnecessarily stops
 legitimate users from doing something more productive than merely retyping their
 passwords. Usability of passwords will improve significantly, if some
@@ -114,7 +114,7 @@ module which calls the Typtop module on every invocation for authentication for 
 Note, `sudo` is not modified, so if (for some reason) TypTop fails, you can just change the `/etc/pam.d/su` and
 `/etc/pam.d/screensaver` file.
 
-In Linux, `pam_unix` is primary module for authentication. Typtop creates a PAM module named 
+In Linux, `pam_unix` is primary module for authentication. Typtop creates a PAM module named
 `pam_typtop.so` and modify the pam config files in way such that
 whenever `pam_unix` is called for authentication the control is next passed on to `pam_typtop.so`.
 In Linux all binaries (su, sudo, login etc.) are modified to use pam_typtop.so, however, even if TypTop crashes
@@ -159,28 +159,29 @@ typo-tolerance.  *We are working on cleaning this utility and making it easier t
 
 ```bash
 $ typtop
-usage: typtop  [-h] [--user USER] [--init] [--allowtypo {yes,no}]
-                     [--allowupload {yes,no}] [--installid] [--status]
-                     [--uninstall] [--reinit]
+usage: typtop  [-h] [--init] [--allowtypo {yes,no}] [--allowupload {yes,no}]
+               [--status STATUS [STATUS ...]] [--uninstall] [--update]
+               [--check CHECK CHECK CHECK] [--debug]
 
 optional arguments:
   -h, --help            show this help message and exit
-  --user USER           To set the username. Otherwise login user will be the
-                        target
   --init                To initialize the DB. You have to run this once you
                         install pam_typtop
   --allowtypo {yes,no}  Allow login with typos of the password
   --allowupload {yes,no}
-                        Allow uploading the non-sensive annonymous data into
+                        Allow uploading the non-sensitive anonymous data into
                         the server for research purposes.
-  --installid           Prints the installation id, which you have to submit
-                        while filling up the google form
-  --status  $USER       Prints current states of the typotolerance.
-  --uninstall           To initialize the DB. You have to run this once you
-                        install pam_typtop
-  --reinit              To re-initiate the DB, especially after the user's pw
-                        has changed
-
+  --status STATUS [STATUS ...]
+                        Prints current states of the typo-tolerance. Needs a
+                        username as argument.
+  --uninstall           Uninstall TypToP from your machine. Will delete all
+                        the data related to TypTop too.
+  --update              Updates TypTop to the latest released version
+  --check CHECK CHECK CHECK
+                        (INTERNAL FUNCTION. PLEASE DON'T CALL THIS.)
+  --debug               Prepare report for debugging.
+                        (If you discover TypTop is not working as it should,
+                         can you please run this and send the output to me.)
 ```
 
 ### What data we collect
@@ -248,7 +249,7 @@ not all typos are accepted as safe, and the system will allow only the typos whi
    <!-- `/etc/pam.d/common-auth`, and in the worst case you will be asked to re-enter -->
    <!-- your password. -->
 
-4. **If the password is changed**, the `pam_typtop` will automatically updates itself after couple of right 
+4. **If the password is changed**, the `pam_typtop` will automatically updates itself after couple of right
    new password entry.
 
 
