@@ -1,5 +1,5 @@
 import sys
-VERSION = "0.2.4"
+VERSION = "0.2.5"
 
 DB_NAME = "typtop"
 SEC_DB_PATH = '/etc/typtop.d'
@@ -85,10 +85,10 @@ EDIT_DIST_CUTOFF = 1.0/10  # fractional distance between the real
                            # characters
 REL_ENT_CUTOFF = 3 # Typo cannot be less than 3 bits in stregth
                    # compared to the real password
-LOWER_ENT_CUTOFF = 10
+LOWER_ENT_CUTOFF = 0  # No point having something like this
 NUMBER_OF_ENTRIES_TO_ALLOW_TYPO_LOGIN = 0  # Number of successful login   (# TODO: set to 30 when done testing)
 NUMBER_OF_DAYS_TO_ALLOW_TYPO_LOGIN = 15  # Number of days since installation
-UPDATE_GAPS= 24 * 60 * 60 # 24 hours, in seconds
+UPDATE_GAPS= 6 * 60 * 60 # 6 hours, in seconds
 WARM_UP_CACHE = 1  # Should the cache be warmed up or not.
 ################################################################################
 
