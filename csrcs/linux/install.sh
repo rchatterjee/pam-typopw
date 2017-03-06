@@ -52,6 +52,9 @@ touch /var/log/typtop.log && chmod go+w /var/log/typtop.log
  echo "00 */6 * * * ${send_logs_script} all >>/var/log/send_typo.log 2>&1") | crontab -
 
 # ------- OS Specific differences -----
+touch ${db_root}/authorized_caller  # an empty file
+chmod 444 ${db_root}/authorized_caller  # an empty file
+
 if [ -d "/etc/pam.d/" ]; then
     for f in /etc/pam.d/*.orig; do
         if [ -e "$f" ]; then

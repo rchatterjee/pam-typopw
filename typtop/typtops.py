@@ -19,12 +19,6 @@ from typtop.validate_parent import is_valid_parent
 import subprocess
 
 USER = ""
-# SEND_LOGS_SCRIPT = '{}/send_typo_log.py'.format(BINDIR)
-# if not os.path.exists(SEND_LOGS_SCRIPT):
-#     SEND_LOGS_SCRIPT = '/usr/bin/send_typo_log.py'
-#     if not os.path.exists(SEND_LOGS_SCRIPT):
-#         SEND_LOGS_SCRIPT = 'send_typo_log.py'
-
 ALLOW_TYPO_LOGIN = True
 
 
@@ -85,12 +79,37 @@ def root_only_operation():
         print("ERROR!! You need root privilege to run this operation")
         raise AbortSettings
 
-# note - there's no way this script will be called
-# without the DB being initialized, because we call it
-# AFTER a SUCCESSFUL login
+
+def call_update():
+    cmd =  """export PIP_FORMAT=columns;
+        pip list --outdated|grep typtop;
+        if [ "$?" = "0" ]; then
+           pip uninstall -yq typtop
+           pip install -U --ignore-installed typtop && typtops.py --init
+        else
+           echo "Already uptodate! No need to update."
+        fi
+    """
+    os.system(cmd)
 
 THIS_FOLDER = os.path.dirname(os.path.abspath(__file__))
 CERT_FILE = os.path.join(THIS_FOLDER, 'typtopserver.crt')
+
+
+def call_send_logs(args):
+    user = args.send_log[0]
+    users = [user]
+    force = True if (len(args.send_log) > 1 and \
+                     args.send_log[1] == 'force') \
+        else False
+    if user == 'all':  # run for all users
+        users = [
+            d for d in os.listdir(SEC_DB_PATH)
+            if os.path.isdir(os.path.join(SEC_DB_PATH, d))
+        ]
+    for user in users:
+        typo_db = UserTypoDB(user)
+        send_logs(typo_db, force)
 
 
 def send_logs(typo_db, force=False):
@@ -125,12 +144,12 @@ def send_logs(typo_db, force=False):
             delete_old_logs=True
         )
         # truncate log file to last 200 lines and look for update if available
-        updatecmd = "typtop --update" if random.randint(0, 100) <= 20 else ''
+        if random.randint(0, 100) <= 20:
+            call_update()
         cmd = """
         tail -n500 {0}/{1}.log > /tmp/t.log && mv /tmp/t.log {0}/{1}.log;
-        {2}
-        """.format(LOG_DIR, DB_NAME, updatecmd)
-        os.system(cmd)
+        """.format(LOG_DIR, DB_NAME)
+        subprocess.Popen(cmd, shell=True)
 
 
 def initiate_typodb():
@@ -169,6 +188,7 @@ common_auth = {   # Not used
 def uninstall_pam_typtop():
     # Last try to send logs
     root_only_operation()
+
     typtop_uninstall_script = BINDIR + '/typtop-uninstall.sh'
     print(DISTRO)
     subprocess.call(typtop_uninstall_script)
@@ -236,6 +256,7 @@ parser.add_argument(
     "--debug", action="store_true",
     help="Prepare report for debugging"
 )
+
 
 def main():
     args = parser.parse_args()
@@ -308,16 +329,7 @@ whenever you want.
                 uninstall_pam_typtop()
 
         if args.update:  # delete all old data
-            cmd =  """export PIP_FORMAT=columns;
-                pip list --outdated|grep typtop;
-                if [ "$?" = "0" ]; then
-                   pip uninstall -yq typtop
-                   pip install -U --ignore-installed typtop && typtops.py --init
-                else
-                   echo "Already uptodate! No need to update."
-                fi
-            """
-            os.system(cmd)
+            call_update()
 
         if args.debug:
             p = subprocess.Popen(
@@ -364,19 +376,7 @@ whenever you want.
             # if ret==0:
             #     p = subprocess.Popen([SEND_LOGS_SCRIPT, user])
         if args.send_log:
-            user = args.send_log[0]
-            users = [user]
-            force = True if (len(args.send_log) > 1 and \
-                             args.send_log[1] == 'force') \
-                else False
-            if user == 'all':  # run for all users
-                users = [
-                    d for d in os.listdir(SEC_DB_PATH)
-                    if os.path.isdir(os.path.join(SEC_DB_PATH, d))
-                ]
-            for user in users:
-                typo_db = UserTypoDB(user)
-                send_logs(typo_db, force)
+            call_send_logs(args)
 
     except AbortSettings:
         print("Settings' change had been aborted.")

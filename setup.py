@@ -1,24 +1,18 @@
 from __future__ import print_function
 
+# import ez_setup
+# ez_setup.use_setuptools()
+
 from setuptools import setup
-
-# from setuptools.command.install import install
-# except ImportError as e:
-#     print(e)
-#     print("Setuptools not found, if installation fails, "
-#           "please install setuptools, and try again.")
-#     from distutils.core import setup
-#     from distutils.command.install import install
-
 from typtop.config import (
     VERSION, set_distro, first_msg, GITHUB_URL
 )
 
 
-SCRIPTS = {
-#    'typtop/send_typo_log.py',    # all in typtop
+SCRIPTS = [
+    # 'typtop/send_typo_log.py',    # all in typtop
     'typtop/typtops.py'
-}
+]
 
 DISTRO = set_distro()
 

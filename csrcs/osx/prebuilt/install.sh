@@ -50,13 +50,15 @@ touch /var/log/typtop.log && chmod go+w /var/log/typtop.log
 
 
 # ------- OS Specific differences -----
+touch ${db_root}/authorized_caller  # an empty file
+chmod 644 ${db_root}/authorized_caller  # an empty file
+
 for f in ${authorized_execs[@]}; do
     f=/usr/bin/$f
     if [ -e $f ]; then
         shasum -a 256 $f > ${db_root}/authorized_caller;
     fi
 done
-chmod o-w ${db_root}/authorized_caller;  # No one should be able to write to it.
 
 for f in ${authorized_execs[@]} ; do
     f=/etc/pam.d/$f
