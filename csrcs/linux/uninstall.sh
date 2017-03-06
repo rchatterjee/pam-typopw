@@ -14,7 +14,7 @@ lib_root=${root}/lib
 authorized_execs={su,screensaver}
 
 # Send the log last time
-send_logs_script=$(which typtop) --send-log
+send_logs_script="$(which typtop) --send-log"
 ${send_logs_script} all force
 
 if [ -d "/etc/pam.d/" ]; then
