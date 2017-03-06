@@ -88,6 +88,7 @@ setup(
     install_requires=PYTHON_DEPS,
     # cmdclass={'install': CustomInstaller},
     zip_safe=True,
+    test_requires=["pam"]
 )
 
 

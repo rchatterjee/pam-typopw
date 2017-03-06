@@ -9,6 +9,7 @@ BINDIR = '/usr/local/bin'  # careful pip install does not guarantee
                            # scripts to be installed at this location.
 SYSTEM = ''
 
+TEST = False
 
 def set_distro():
     os = sys.platform

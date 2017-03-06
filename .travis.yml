@@ -1,7 +1,7 @@
 language: python
 os:
-   osx
-   linux
+  - osx
+  - linux
 
 python:
   #  - "2.6"
@@ -17,9 +17,18 @@ python:
 # Requires sudo for install and testing
 sudo: True
 
+#before_install:
+#  - sudo useradd -u 2540 -p $(echo "superpass" | openssl passwd -2 -stdin) tmp
+
 # command to install dependencies
 install:
   - pip install .
+
+after_script:
+  - bash csrcs/init.sh
+
+#after_install:
+#  - sudo userdel tmp
 
 # command to run tests
 script: pytest

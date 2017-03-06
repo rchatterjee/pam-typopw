@@ -13,6 +13,7 @@ import typtop.dbaccess as dbaccess
 import yaml
 import pytest
 import time
+import pwd
 
 dbaccess.WARM_UP_CACHE = False
 NN = 5
@@ -22,10 +23,16 @@ ORIG_PW_ID = 'OrgPwID'
 dbaccess.NUMBER_OF_ENTRIES_TO_ALLOW_TYPO_LOGIN = 30
 dbaccess.WARM_UP_CACHE = 0
 
+
+@pytest.fixture(autouse=True)
+def no_requests(monkeypatch):
+    monkeypatch.setattr("dbaccess.TEST", False)
+
+
 def get_username():
-    user='rahul'
-    # return pwd.getpwuid(os.getuid()).pw_name
+    user = pwd.getpwuid(os.getuid()).pw_name
     return user
+
 
 def DB_path():
     # TODO _ for some reason it does't work
@@ -34,9 +41,11 @@ def DB_path():
     return db.get_db_path()
     #return "/home/{}/{}.db".format(get_username(), DB_NAME)
 
+
 def remove_DB():
     print(DB_path())
     os.remove(DB_path())
+
 
 def start_DB():
     remove_DB()
@@ -182,6 +191,7 @@ def test_many_entries(isStandAlone = True):
     else:
         return typoDB
 
+
 def test_deleting_logs(isStandAlone = True):
     typoDB = start_DB()
     insert = 10
@@ -319,6 +329,7 @@ pws = [
     'G0ldAppp&3'  # 5, 2 edit dist
 ]
 
+
 def listOfOneDist(length):
     # using only lower letters
     # to avoid shift --> 2 edit dist
@@ -329,6 +340,7 @@ def listOfOneDist(length):
         newC = chr(ii%M + m)
         typo = get_pw()[:col]+newC+get_pw()[col:]
         yield typo
+
 
 
 # profile()
