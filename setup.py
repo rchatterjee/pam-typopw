@@ -77,10 +77,10 @@ setup(
             'send_typo_log.py = typtop.send_typo_log:main']
     },
     license='MIT',
-    package_dir={'typtop': 'typtop/'},
-    package_data={
-        'typtop': ['../LICENSE', '../README.md', 'typtopserver.crt'],
-    },
+    # package_dir={'typtop': 'typtop/'},
+    # package_data={
+    #     'typtop': ['../LICENSE', '../README.md', 'typtopserver.crt'],
+    # },
     data_files=[],  # DATA_FILES,
     include_package_data=True,
     options={'py2app': OPTIONS},
