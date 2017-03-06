@@ -84,9 +84,9 @@ call_typtop(const char* user, const char* passwd, int chkpwd_ret) {
 
 int main(int argc, char* argv[]) {
     // openlog("auth.log",
-    if (seteuid(0) != 0 || setuid(0) != 0) {
-        syslog(LOG_CRIT, "Failed to run as root.");
-    }
+    /* if (seteuid(0) != 0 || setuid(0) != 0) { */
+    /*     syslog(LOG_CRIT, "Failed to run as root."); */
+    /* } */
     Py_SetProgramName(argv[0]);
 
     if (argc==4 && strcmp(argv[1], "--check")==0) {

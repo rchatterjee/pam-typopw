@@ -1,9 +1,5 @@
 from __future__ import print_function
 
-# import os
-# from subprocess import Popen, call, PIPE
-# from glob import glob
-# try:
 from setuptools import setup
 
 # from setuptools.command.install import install
@@ -20,12 +16,13 @@ from typtop.config import (
 
 
 SCRIPTS = {
-    'typtop/send_typo_log.py',
+#    'typtop/send_typo_log.py',    # all in typtop
     'typtop/typtops.py'
 }
 
 DISTRO = set_distro()
 
+# OLD, not used now
 LIB_DEPENDENCIES = {
     'debian': [
         'libffi-dev', 'python-pkg-resources', 'libssl-dev',
@@ -64,17 +61,6 @@ OPTIONS = {
     # 'packages': ['requests', 'requests', 'selenium']
 }
 
-# Shitty python way of getting these files
-# DATA_FILES = [
-#     ('/tmp/typtop_osx/pam_opendirectory', [
-#         "osx/pam_opendirectory/pam_opendirectory_typo.c",
-#         "osx/pam_opendirectory/typtops.c",
-#         "osx/pam_opendirectory/run_as_root.c",
-#         "osx/pam_opendirectory/Makefile"
-#     ]),
-#     ('/tmp/typtop_linux/unixchkpwd', [])
-# ]
-# With the help from http://peterdowns.com/posts/first-time-with-pypi.html
 setup(
     name='typtop',   # 'loginwitherror',
     # app=['typtop/dbaccess.py'],
@@ -109,3 +95,5 @@ setup(
     # cmdclass={'install': CustomInstaller},
     zip_safe=True,
 )
+
+

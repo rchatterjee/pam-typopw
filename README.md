@@ -255,5 +255,6 @@ not all typos are accepted as safe, and the system will allow only the typos whi
 
 ### TODO
 
+* Remove typtops.py and creat a c binary for all typtop operations 
 
 Enjoy!  Write to us with your feedbacks and comments.

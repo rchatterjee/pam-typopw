@@ -15,7 +15,8 @@ lib_root=${root}/lib
 authorized_execs=(su screensaver)
 
 # Send the log last time
-send_typo_log.py $USER force
+send_logs_script=$(which typtop) --send-log
+${send_logs_script} all force
 
 for f in ${authorized_execs[@]} ; do
     f=/etc/pam.d/$f
@@ -31,7 +32,7 @@ done
 rm -rf /var/log/typtop.log /tmp/typtop* ${db_root}
 rm -rf ${script_root}/typtop* ${script_root}/send_typo_log.py
 
-crontab -l | sed '/send_typto_logs.py/d' | crontab -
+crontab -l | sed -d '/send_typto_logs.py|typtop/d' | crontab -
 
 pip freeze | grep typtop
 if [[ $? == 0 ]]; then

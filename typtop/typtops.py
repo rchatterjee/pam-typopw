@@ -1,29 +1,36 @@
 from __future__ import print_function
-import os, sys
+import os
+import sys
 import argparse
+import requests
+import random
+import json
 from typtop.dbaccess import (
     UserTypoDB,
-    call_check
+    call_check,
+    get_time
 )
 from typtop.config import (
-    SEC_DB_PATH, NUMBER_OF_ENTRIES_TO_ALLOW_TYPO_LOGIN,
-    WARM_UP_CACHE, VERSION, GROUP, DISTRO, BINDIR, first_msg,
-)
+    NUMBER_OF_ENTRIES_TO_ALLOW_TYPO_LOGIN,
+    WARM_UP_CACHE, VERSION, DISTRO, BINDIR, first_msg,
+    LOG_DIR, DB_NAME,
+    SEC_DB_PATH)
 from typtop.validate_parent import is_valid_parent
 import subprocess
 
 USER = ""
-SEND_LOGS_SCRIPT = '{}/send_typo_log.py'.format(BINDIR)
-if not os.path.exists(SEND_LOGS_SCRIPT):
-    SEND_LOGS_SCRIPT = '/usr/bin/send_typo_log.py'
-    if not os.path.exists(SEND_LOGS_SCRIPT):
-        SEND_LOGS_SCRIPT = 'send_typo_log.py'
+# SEND_LOGS_SCRIPT = '{}/send_typo_log.py'.format(BINDIR)
+# if not os.path.exists(SEND_LOGS_SCRIPT):
+#     SEND_LOGS_SCRIPT = '/usr/bin/send_typo_log.py'
+#     if not os.path.exists(SEND_LOGS_SCRIPT):
+#         SEND_LOGS_SCRIPT = 'send_typo_log.py'
 
 ALLOW_TYPO_LOGIN = True
 
 
 class AbortSettings(RuntimeError):
     pass
+
 
 def _get_login_user():
     # gets the username of the logging user
@@ -78,23 +85,56 @@ def root_only_operation():
         print("ERROR!! You need root privilege to run this operation")
         raise AbortSettings
 
+# note - there's no way this script will be called
+# without the DB being initialized, because we call it
+# AFTER a SUCCESSFUL login
 
-def initiate_typodb(RE_INIT=False):
-    # ValueError(
-    #     "You should not require to call this. "
-    #     "Something is wrong!! Try re-installing the whole system"
-    # )
+THIS_FOLDER = os.path.dirname(os.path.abspath(__file__))
+CERT_FILE = os.path.join(THIS_FOLDER, 'typtopserver.crt')
+
+
+def send_logs(typo_db, force=False):
+    need_to_send, iter_data = typo_db.get_last_unsent_logs_iter(force)
+    logger = typo_db.logger
+    if not need_to_send:
+        logger.info("No need to send logs now.")
+        return
+
+    list_of_logs = list(iter_data)
+    install_id = str(typo_db.get_installation_id())
+    dbdata = json.dumps(list_of_logs)
+    url = 'https://ec2-54-209-30-18.compute-1.amazonaws.com/submit'
+    r = requests.post(
+        url,
+        data=dict(
+            # urlsafe-base64 does not have '#'
+            uid=install_id.strip() + '#' + str(VERSION),
+            data=dbdata,
+            test=0,
+        ),
+        allow_redirects=True,
+        verify=CERT_FILE
+    )
+    sent_successfully = (r.status_code == 200)
+    logger.info("Sent logs status {} ({}) (sent_successfully={})"
+                .format(r.status_code, r.text, sent_successfully))
+    # deletes the logs that we have sent
+    if sent_successfully:
+        typo_db.update_last_log_sent_time(
+            sent_time=get_time(),
+            delete_old_logs=True
+        )
+        # truncate log file to last 200 lines and look for update if available
+        updatecmd = "typtop --update" if random.randint(0, 100) <= 20 else ''
+        cmd = """
+        tail -n500 {0}/{1}.log > /tmp/t.log && mv /tmp/t.log {0}/{1}.log;
+        {2}
+        """.format(LOG_DIR, DB_NAME, updatecmd)
+        os.system(cmd)
+
+
+def initiate_typodb():
     root_only_operation()
-    # user = _get_username()
-    # try:
-    #     # checks that such a user exists:
-    #     _ = pwd.getpwnam(user).pw_dir
-    # except KeyError as e:
-    #     print("Error: {}".format(e.message))
-    #     print("Hint: The user ({}) must have an account in this computer."\
-    #           .format(user))
-    #     print("Hint 2: It's not a registration. User the username for "\
-    #           "your account in the computer.")
     if False:
         pass
     else:
@@ -159,10 +199,17 @@ parser.add_argument(
 #     "--installid", action="store_true",
 #     help="Prints the installation id, which you have to submit while filling up the google form"
 # )
+parser.add_argument(
+    "--send-log", nargs="*", type=str, action="store",
+    metavar=("user", "force"),
+    help="Send the logs to the server"
+)
 
 parser.add_argument(
     "--status", action="store", nargs="+",
-    help='Prints current states of the typo-tolerance. Needs a username as argument.'
+    metavar="user",
+    help="Prints current states of the typo-tolerance."\
+    "Needs a username as argument."
 )
 
 parser.add_argument(
@@ -236,7 +283,7 @@ whenever you want.
         #     print("RE-initiating pam_typtop")
         #     initiate_typodb(RE_INIT=True)
 
-        if args.status:
+        if args.status :
             users = args.status
             if not users:
                 users.add(_get_username())
@@ -264,7 +311,7 @@ whenever you want.
             cmd =  """export PIP_FORMAT=columns;
                 pip list --outdated|grep typtop;
                 if [ "$?" = "0" ]; then
-                   pip uninstall typtop
+                   pip uninstall -yq typtop
                    pip install -U --ignore-installed typtop && typtops.py --init
                 else
                    echo "Already uptodate! No need to update."
@@ -316,6 +363,20 @@ whenever you want.
             sys.stdout.write(str(ret))
             # if ret==0:
             #     p = subprocess.Popen([SEND_LOGS_SCRIPT, user])
+        if args.send_log:
+            user = args.send_log[0]
+            users = [user]
+            force = True if (len(args.send_log) > 1 and \
+                             args.send_log[1] == 'force') \
+                else False
+            if user == 'all':  # run for all users
+                users = [
+                    d for d in os.listdir(SEC_DB_PATH)
+                    if os.path.isdir(os.path.join(SEC_DB_PATH, d))
+                ]
+            for user in users:
+                typo_db = UserTypoDB(user)
+                send_logs(typo_db, force)
 
     except AbortSettings:
         print("Settings' change had been aborted.")
