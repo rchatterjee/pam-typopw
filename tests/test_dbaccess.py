@@ -26,7 +26,7 @@ dbaccess.WARM_UP_CACHE = 0
 
 @pytest.fixture(autouse=True)
 def no_requests(monkeypatch):
-    monkeypatch.setattr("dbaccess.TEST", False)
+    monkeypatch.setattr("typtop.config.TEST", True)
 
 
 def get_username():

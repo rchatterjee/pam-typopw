@@ -1,5 +1,7 @@
 import pytest
 import os
+import sys
+import subprocess
 
 
 files_to_delete = [
@@ -18,12 +20,18 @@ files_to_delete = [
 def test_cleanup():
     for f in files_to_delete:
         assert not os.path.exists(f)
+    thisdir = os.path.abspath('.')
     with pytest.raises(ImportError) as imperr:
+        sys.path.remove(thisdir)
         import typtop
 
 
-def pytest_sessionstart(session):
+@pytest.fixture(scope="session", autouse=True)
+def pytest_sessionstart(request):
     """ before session.main() is called. """
-    os.system('typtop --uninstall')
-
+    p = subprocess.Popen('sudo typtop --uninstall',
+                         stdin=subprocess.PIPE, shell=True)
+    p.stdin.write('y')
+    p.stdin.close()
+    p.wait()
 

@@ -26,7 +26,7 @@ from typtop.config import (
     WAITLIST_SIZE, WARM_UP_CACHE, CACHE_SIZE, REAL_PW, HMAC_SALT,
     FREQ_COUNTS, HEADER_CTX, SYSTEM_STATUS_ALL_GOOD, LOWER_ENT_CUTOFF,
     EDIT_DIST_CUTOFF, WAIT_LIST, TYPO_CACHE, SEC_DB_PATH,
-    NUMBER_OF_ENTRIES_TO_ALLOW_TYPO_LOGIN, REL_ENT_CUTOFF,
+    NUMBER_OF_ENTRIES_TO_ALLOW_TYPO_LOGIN, REL_ENT_CUTOFF, TEST,
     SYSTEM_STATUS_PW_CHANGED, SYSTEM_STATUS_CORRUPTED_DB, LOG_DIR,
     logT, GROUP, warm_up_with
 )
@@ -38,7 +38,8 @@ from typtop.pw_pkcrypto import (
 )
 
 # GENERAL TODO:
-# - improve computation speed, moved to json file, but still slow
+# - improve computation speed. I have moved to json file, but
+#   still slow.
 #
 
 _entropy_cache = {}
@@ -78,7 +79,8 @@ class UserTypoDB(object):
     def __str__(self):
         return "UserTypoDB ({})".format(self._user)
 
-    def __init__(self, user, debug_mode=False): # TODO CHANGE to False
+    def __init__(self, user, debug_mode=False):
+        # type: (string, boolean) -> UserTypoDB
         assert is_user(user), "User {!r} does not exists".format(user)
 
         # Disable Typtop for root
@@ -309,12 +311,12 @@ class UserTypoDB(object):
         install_id = self.get_installation_id()
 
         def randomstring(k):
-            return urlsafe_b64encode(os.urandom(16))
+            return urlsafe_b64encode(os.urandom(k))
 
         waitlist = [
             pkencrypt(
                 self._pk,
-                json.dumps([install_id+randomstring(5), ts])
+                json.dumps([install_id+randomstring(16), ts])
             )
             for _ in range(WAITLIST_SIZE)
         ]
@@ -398,6 +400,7 @@ class UserTypoDB(object):
             #     pass
 
     def insert_log(self, typo, in_cache, ts=None):
+        # type: (str, bool, int) -> None
         """Updates the log with information about typo. Remember, if sk_dict is
         not provided it will insert @typo as typo_id and 0 as relative_entropy.
         Note the default values used in other_info, which is basically what
@@ -497,6 +500,7 @@ class UserTypoDB(object):
         logger.info("Waitlist is deleted.")
 
     def check_login_count(self, update=False):
+        # type: (boolean) -> boolean
         """Keeps track of how many times the user has successfully logged in."""
         count_entry = self.get_from_auxtdb(LOGIN_COUNT) + 1
         if update:
@@ -556,6 +560,7 @@ class UserTypoDB(object):
         return self._aux_tab.get(key, '')
 
     def set_in_auxtdb(self, key, value):
+        # type: (string, object) -> None
         self._aux_tab[key] = value
 
     def validate(self, orig_pw, typo):
@@ -588,6 +593,8 @@ class UserTypoDB(object):
                 mini, minf = min(enumerate(freq_counts), key=itemgetter(1))
             else:
                 logger.debug("I miss you: {} ({} <-> {})".format(typo, minf, f))
+                logger.debug("Freq counts: {}".format(freq_counts))
+
         # write the new typo_cache and freq_list
         # TODO: Apply permutation
         header_ctx = pkencrypt(self._pk, json.dumps({
@@ -692,7 +699,7 @@ def call_check(exchk_ret_val, user, password):
     if not is_user(user):
         ret = 1
     else:
-        typo_db = UserTypoDB(user)
+        typo_db = UserTypoDB(user, debug_mode=TEST)
         exchk_ret_val = str(exchk_ret_val)
         if exchk_ret_val == '0':
             ret = int(not on_correct_password(typo_db, password))

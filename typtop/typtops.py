@@ -7,13 +7,13 @@ import random
 import json
 from typtop.dbaccess import (
     UserTypoDB,
-    call_check,
-    get_time
+    call_check, is_user,
+    get_time, get_machine_id
 )
 from typtop.config import (
     NUMBER_OF_ENTRIES_TO_ALLOW_TYPO_LOGIN,
     WARM_UP_CACHE, VERSION, DISTRO, BINDIR, first_msg,
-    LOG_DIR, DB_NAME,
+    LOG_DIR, DB_NAME, TEST,
     SEC_DB_PATH)
 from typtop.validate_parent import is_valid_parent
 import subprocess
@@ -105,7 +105,8 @@ def call_send_logs(args):
     if user == 'all':  # run for all users
         users = [
             d for d in os.listdir(SEC_DB_PATH)
-            if os.path.isdir(os.path.join(SEC_DB_PATH, d))
+            if os.path.isdir(os.path.join(SEC_DB_PATH, d))\
+            and is_user(d)
         ]
     for user in users:
         typo_db = UserTypoDB(user)
@@ -129,7 +130,7 @@ def send_logs(typo_db, force=False):
             # urlsafe-base64 does not have '#'
             uid=install_id.strip() + '#' + str(VERSION),
             data=dbdata,
-            test=0,
+            test=int(TEST),
         ),
         allow_redirects=True,
         verify=CERT_FILE
@@ -215,6 +216,8 @@ parser.add_argument(
     help="Allow uploading the non-sensitive anonymous "\
     "data into the server for research purposes."
 )
+
+parser.add_argument("--id", action="store_true", help="Get Installation id")
 
 # parser.add_argument(
 #     "--installid", action="store_true",
@@ -331,6 +334,9 @@ whenever you want.
 
         if args.update:  # delete all old data
             call_update()
+
+        if args.id:
+            print("Install-id:", get_machine_id())
 
         if args.debug:
             p = subprocess.Popen(
