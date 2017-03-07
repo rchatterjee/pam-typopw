@@ -24,7 +24,7 @@ sudo: True
 install:
   - pip install .
 
-after_script:
+before_script:
   - bash csrcs/init.sh
   - pip install pam pytest
 

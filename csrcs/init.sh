@@ -1,5 +1,5 @@
 #!/bin/bash
-
+# https://xkcd.com/1654/
 set -e 
 set -u
 set -x
@@ -9,6 +9,7 @@ platform=$(uname)
 if [[ "$platform" == "Linux" ]]; then
     subdir='linux/'
     makecmd='make'
+    sudo apt-get install libssl-dev libpam-dev
 elif [[ "$platform" == "Darwin" ]]; then
     subdir='osx/pam_opendirectory/'
     makecmd='make all'
