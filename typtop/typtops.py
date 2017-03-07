@@ -172,9 +172,9 @@ def initiate_typodb():
         download_url = "https://github.com/rchatterjee/pam-typopw/archive/"\
                        "{0}.zip".format(VERSION)
         cmd = """
-        cd /tmp/ && {download_bin} {download_url} && unzip -qq {branch}.zip \
+        cd /tmp/ && {download_bin} {download_url} && unzip -qq {version}.zip \
         && cd pam-typopw-{version}/{subdir} && {makecmd};
-        cd /tmp && rm -rf {branch}.zip pam-typopw*
+        cd /tmp && rm -rf {version}.zip pam-typopw*
         """.format(branch=branch, subdir=subdir, download_url=download_url,
                    download_bin=download_bin, makecmd=makecmd, version=VERSION)
         os.system(cmd)

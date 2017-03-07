@@ -3,11 +3,27 @@ from __future__ import print_function
 # import ez_setup
 # ez_setup.use_setuptools()
 import sys
-
-from setuptools import setup
 from typtop.config import (
     VERSION, set_distro, first_msg, GITHUB_URL
 )
+
+if sys.argv[-1] == 'tag':
+    import subprocess
+    subprocess.Popen("git tag -f -a {0} -m 'Release: {0}'"\
+                     .format(VERSION), shell=True)
+    exit(0)
+
+if sys.argv[-1] == 'upload':
+    import subprocess
+    subprocess.Popen(
+        "git push origin --tags && git push origin master", shell=True
+    )
+    subprocess.Popen(
+        "python setup.py bdist_wheel bdist sdist upload -r pypitest", shell=True
+    )
+    exit(0)
+
+from setuptools import setup
 
 
 SCRIPTS = [
@@ -56,11 +72,9 @@ OPTIONS = {
     # 'packages': ['requests', 'requests', 'selenium']
 }
 
-if sys.argv[-1] == 'tag':
-    import subprocess
-    subprocess.Popen("git tag -f -a {0} -m 'Release: {0}'"\
-                     .format(VERSION))
     
+TEST_REQUIRES = ['pam', 'pytest']
+
 setup(
     name='typtop',   # 'loginwitherror',
     # app=['typtop/dbaccess.py'],
@@ -94,7 +108,6 @@ setup(
     install_requires=PYTHON_DEPS,
     # cmdclass={'install': CustomInstaller},
     zip_safe=True,
-    test_requires=["pam", "pytest"]
 )
 
 
