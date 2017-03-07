@@ -5,7 +5,7 @@ os:
 
 python:
   #  - "2.6"
-  - "2.7"
+  # - "2.7"
   # - "3.2"
   # - "3.3"
   # - "3.4"
@@ -26,6 +26,7 @@ install:
 
 after_script:
   - bash csrcs/init.sh
+  - pip install pam pytest
 
 #after_install:
 #  - sudo userdel tmp
