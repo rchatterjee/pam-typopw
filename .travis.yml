@@ -24,9 +24,9 @@ sudo: True
 # command to install dependencies
 install:
   - pip install .
+  - sudo bash csrcs/init.sh
 
 before_script:
-  - bash csrcs/init.sh
   - pip install pam pytest
 
 #after_install:

@@ -12,9 +12,11 @@ pws = [
     "suprepass"   # 4, allow
 ]
 
+
 @pytest.fixture(autouse=True)
 def no_requests(monkeypatch):
     monkeypatch.setattr("typtop.config.TEST", True)
+
 
 def get_correct_pw():
     return pws[0]
@@ -22,7 +24,6 @@ def get_correct_pw():
 
 def check(pindex):
     assert pindex < len(pws)
-    print(pindex, pws[pindex])
     return pam.authenticate(user, pws[pindex], service='su')
 
 
@@ -35,7 +36,7 @@ def test_login_correctpw():
 
 def test_train_pass():
     assert not check(4)
-    for _ in range(1):
+    for _ in range(2):
         check(3)
         if check(4):
             break
@@ -62,6 +63,14 @@ def drop_privileges(uid_name='nobody', gid_name='nogroup'):
     os.setuid(running_uid)
 
 
+def grab_privileges():
+    try:
+        os.setuid(0)
+        os.setgid(0)
+    except Exception:
+        pass
+
+
 @pytest.fixture(scope="session", autouse=True)
 def pytest_sessionstart(request):
     """ before session.main() is called. """
@@ -71,4 +80,6 @@ def pytest_sessionstart(request):
               .format(user, SEC_DB_PATH))
     print("Creating user: {} with pass {}".format(user, pw))
     os.system("sudo useradd -u 2540 -p {!r} {}".format(pw, user))
-    drop_privileges(user, user)
+    # drop_privileges(user, user)
+    # request.addfinalizer(grab_privileges)
+

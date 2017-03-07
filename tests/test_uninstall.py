@@ -26,12 +26,24 @@ def test_cleanup():
         import typtop
 
 
+def install_typtop():
+    os.setuid(0)
+    os.setgid(0)
+    p = subprocess.Popen('sudo -H -u root pip install . '
+                         '&& sudo bash ./csrcs/init.sh',
+                         shell=True)
+    p.wait()
+
+
 @pytest.fixture(scope="session", autouse=True)
 def pytest_sessionstart(request):
     """ before session.main() is called. """
-    p = subprocess.Popen('sudo typtop --uninstall',
+    os.setuid(0)
+    os.setgid(0)
+    p = subprocess.Popen('sudo -H -u root typtop --uninstall',
                          stdin=subprocess.PIPE, shell=True)
     p.stdin.write('y')
     p.stdin.close()
     p.wait()
+    request.addfinalizer(install_typtop)
 
