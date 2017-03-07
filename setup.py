@@ -23,6 +23,16 @@ if sys.argv[-1] == 'upload':
     )
     exit(0)
 
+if sys.argv[-1] == 'publish':
+    import subprocess
+    subprocess.Popen(
+        "git push origin --tags && git push origin master", shell=True
+    )
+    subprocess.Popen(
+        "python setup.py bdist_wheel bdist sdist upload -r pypi", shell=True
+    )
+    exit(0)
+
 from setuptools import setup
 
 
