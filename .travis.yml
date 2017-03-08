@@ -1,6 +1,18 @@
-os:
-  - osx
-  - linux
+language: python
+
+matrix:
+    include:
+        - os: linux
+          sudo: required
+          python: 2.7
+          env: TOXENV=py32
+        - os: osx
+          language: generic
+          env: TOXENV=py32
+
+before_install:
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update          ; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install pip python; fi
 
 language: python
 
@@ -33,4 +45,4 @@ before_script:
 #  - sudo userdel tmp
 
 # command to run tests
-script: pytest
+script: export RUN_TYPTOP_TEST=true; pytest -c pytest.ini

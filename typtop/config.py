@@ -1,4 +1,5 @@
 import sys
+import os
 VERSION = "0.2.7"
 
 DB_NAME = "typtop"
@@ -10,6 +11,10 @@ BINDIR = '/usr/local/bin'  # careful pip install does not guarantee
 SYSTEM = ''
 
 TEST = False
+
+if os.environ.get('RUN_TYPTOP_TEST', None):
+    TEST = True
+
 
 def set_distro():
     os = sys.platform

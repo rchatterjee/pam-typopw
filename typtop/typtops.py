@@ -99,7 +99,7 @@ CERT_FILE = os.path.join(THIS_FOLDER, 'typtopserver.crt')
 def call_send_logs(args):
     user = args.send_log[0]
     users = [user]
-    force = True if (len(args.send_log) > 1 and \
+    force = True if (len(args.send_log) > 1 and
                      args.send_log[1] == 'force') \
         else False
     if user == 'all':  # run for all users
