@@ -1,7 +1,7 @@
 import pytest
 import pam
 import os
-from typtop.config import SEC_DB_PATH
+from typtop.config import SEC_DB_PATH, distro
 
 user = 'tmp2540'
 pws = [
@@ -76,10 +76,16 @@ def pytest_sessionstart(request):
     """ before session.main() is called. """
     import crypt
     pw = crypt.crypt(pws[0], 'ab')
-    os.system("sudo userdel {0} && sudo rm -rf {1}/{0}"
-              .format(user, SEC_DB_PATH))
-    print("Creating user: {} with pass {}".format(user, pw))
-    os.system("sudo useradd -u 2540 -p {!r} {}".format(pw, user))
-    # drop_privileges(user, user)
-    # request.addfinalizer(grab_privileges)
+    if distro == 'darwin':
+        os.system("""
+        sudo dscl . -create /Users/{0} && sudo dscl . -passwd /Users/{0} {1}
+        """.format(user, pws[0]),
+        shell=True)
+    else:
+        os.system("sudo userdel {0} && sudo rm -rf {1}/{0}"
+                  .format(user, SEC_DB_PATH))
+        print("Creating user: {} with pass {}".format(user, pw))
+        os.system("sudo useradd -u 2540 -p {!r} {}".format(pw, user))
+        # drop_privileges(user, user)
+        # request.addfinalizer(grab_privileges)
 
