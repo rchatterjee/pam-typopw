@@ -12,7 +12,7 @@ SYSTEM = ''
 
 TEST = False
 
-if os.environ.get('RUN_TYPTOP_TEST', None):
+if os.environ.get('RUN_TYPTOP_TEST'):
     TEST = True
 
 

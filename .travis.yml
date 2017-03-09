@@ -35,14 +35,18 @@ sudo: True
 
 # command to install dependencies
 install:
-  - pip install .
+  - sudo pip install .
   - sudo bash csrcs/init.sh
 
 before_script:
-  - pip install pam pytest
+  - sudo pip install pam pytest
 
 #after_install:
 #  - sudo userdel tmp
 
+
 # command to run tests
-script: export RUN_TYPTOP_TEST=true; sudo pytest -c pytest.ini
+script:
+  - sudo RUN_TYPTOP_TEST=true pytest tests/test_pw_pkcrypto2.py tests/test_upload.py tests/test_dbaccess.py
+  - RUN_TYPTOP_TEST=true pytest tests/test_pam.py
+  - sudo RUN_TYPTOP_TEST=true pytest tests/test_uninstall.py
