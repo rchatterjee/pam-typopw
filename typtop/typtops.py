@@ -81,13 +81,13 @@ def root_only_operation():
 
 
 def call_update():
-    cmd =  """export PIP_FORMAT=columns;
+    cmd = """export PIP_FORMAT=columns;
         pip list --outdated|grep typtop;
         if [ "$?" = "0" ]; then
            pip uninstall -yq typtop
            pip install -U --ignore-installed typtop && typtops.py --init
         else
-           echo "Already uptodate! No need to update."
+           echo "Already up-to-date! No need to update."
         fi
     """
     os.system(cmd)
@@ -124,20 +124,25 @@ def send_logs(typo_db, force=False):
     install_id = str(typo_db.get_installation_id())
     dbdata = json.dumps(list_of_logs)
     url = 'https://ec2-54-209-30-18.compute-1.amazonaws.com/submit'
-    r = requests.post(
-        url,
-        data=dict(
-            # urlsafe-base64 does not have '#'
-            uid=install_id.strip() + '#' + str(VERSION),
-            data=dbdata,
-            test=int(TEST),
-        ),
-        allow_redirects=True,
-        verify=CERT_FILE
-    )
-    sent_successfully = (r.status_code == 200)
-    logger.info("Sent logs status {} ({}) (sent_successfully={})"
-                .format(r.status_code, r.text, sent_successfully))
+    sent_successfully = False
+    try:
+        r = requests.post(
+            url,
+            data=dict(
+                # urlsafe-base64 does not have '#'
+                uid=install_id.strip() + '#' + str(VERSION),
+                data=dbdata,
+                test=int(TEST),
+            ),
+            allow_redirects=True,
+            verify=CERT_FILE
+        )
+        sent_successfully = (r.status_code == 200)
+        logger.info("Sent logs status {} ({}) (sent_successfully={})"
+                    .format(r.status_code, r.text, sent_successfully))
+    except requests.exceptions.ConnectionError as e:
+        logger.info(e)
+
     # deletes the logs that we have sent
     if sent_successfully:
         typo_db.update_last_log_sent_time(

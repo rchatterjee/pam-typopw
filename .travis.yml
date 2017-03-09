@@ -5,16 +5,12 @@ matrix:
         - os: linux
           sudo: required
           python: 2.7
-          env: TOXENV=py32
         - os: osx
           language: generic
-          env: TOXENV=py32
 
 before_install:
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update          ; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install pip python; fi
-
-language: python
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update        ; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then type python &>/dev/null || brew install python; fi
 
 python:
   # - "2.6"
@@ -35,14 +31,19 @@ sudo: True
 
 # command to install dependencies
 install:
-  - pip install .
+  - sudo pip install .
   - sudo bash csrcs/init.sh
 
 before_script:
-  - pip install pam pytest
+  - sudo pip install pam pytest
+  - pip install pam pytest  # dumb .travis
 
 #after_install:
 #  - sudo userdel tmp
 
+
 # command to run tests
-script: export RUN_TYPTOP_TEST=true; pytest -c pytest.ini
+script:
+  - RUN_TYPTOP_TEST=true pytest tests/test_pam.py
+  - sudo RUN_TYPTOP_TEST=true pytest tests/test_pw_pkcrypto2.py tests/test_upload.py tests/test_dbaccess.py
+  - sudo RUN_TYPTOP_TEST=true pytest tests/test_uninstall.py
