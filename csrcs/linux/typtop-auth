@@ -1,4 +1,4 @@
-auth      [success=2 new_authtok_reqd=ok auth_err=ignore ignore=ignore default=bad]   pam_unix.so try_first_pass nullok
+auth      [success=2 new_authtok_reqd=ok auth_err=ignore ignore=ignore default=bad]   pam_unix.so try_first_pass nullok nodelay
 # auth 	  optional pam_echo.so "%u (%s) with wrong password"
 auth      [success=2 default=die]  /usr/local/lib/security/pam_typtop.so use_first_pass incorrect_pass
 auth	  requisite pam_deny.so
