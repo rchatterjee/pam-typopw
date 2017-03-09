@@ -1,7 +1,7 @@
 import pytest
 import pam
 import os
-from typtop.config import SEC_DB_PATH, distro
+from typtop.config import SEC_DB_PATH, DISTRO
 
 user = 'tmp2540'
 pws = [
@@ -76,7 +76,7 @@ def pytest_sessionstart(request):
     """ before session.main() is called. """
     import crypt
     pw = crypt.crypt(pws[0], 'ab')
-    if distro == 'darwin':
+    if DISTRO == 'darwin':
         os.system("""
         sudo dscl . -create /Users/{0} && sudo dscl . -passwd /Users/{0} {1}
         """.format(user, pws[0]),
