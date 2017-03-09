@@ -5,14 +5,12 @@ matrix:
         - os: linux
           sudo: required
           python: 2.7
-          env: TOXENV=py32
         - os: osx
           language: generic
-          env: TOXENV=py32
 
 before_install:
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update        ; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then type python >/dev/null 2>&1 || {brew install python;} fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then type python &>/dev/null || brew install python; fi
 
 language: python
 
