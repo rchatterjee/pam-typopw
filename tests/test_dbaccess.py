@@ -309,7 +309,7 @@ def test_profile():
         time_to_delete += time.time() - t0
     time_to_delete /= (t+1)
     time_to_add /= (t+1)
-    assert time_to_add<0.03 and time_to_delete < 0.04
+    assert time_to_add<0.04 and time_to_delete < 0.05
     remove_DB()
 
 
