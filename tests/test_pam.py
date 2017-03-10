@@ -79,7 +79,7 @@ def pytest_sessionstart(request):
     pw = crypt.crypt(pws[0], 'ab')
     dbpath = os.path.join(SEC_DB_PATH, user)
     if os.path.exists(dbpath):
-        subprocess.Popen("sudo rm -rf {}".format(dbpath))
+        subprocess.Popen("sudo rm -rf {}".format(dbpath), shell=True)
     if DISTRO == 'darwin':
         subprocess.Popen(
             "create_mac_user.sh {0} {1}".format(user, pws[0]),
