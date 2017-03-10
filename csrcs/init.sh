@@ -10,12 +10,14 @@ if [[ "$platform" == "Linux" ]]; then
     subdir='linux/'
     makecmd='make && make install'
     sudo apt-get install libssl-dev libpam-dev
+    pwd
+    cd $curdir/$subdir
+    make && make install
 elif [[ "$platform" == "Darwin" ]]; then
     subdir='osx/prebuilt/'
     makecmd='./install.sh'
+    cd $curdir/$subdir
+    ./install.sh
 fi
 
-cd $curdir/$subdir
-pwd
-$makecmd
 cd -
