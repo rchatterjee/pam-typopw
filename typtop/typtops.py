@@ -84,7 +84,7 @@ def call_update():
     cmd = """export PIP_FORMAT=columns;
         pip list --outdated|grep typtop;
         if [ "$?" = "0" ]; then
-           pip uninstall -yq typtop
+           pip -q uninstall --yes typtop
            pip install -U --ignore-installed typtop && typtops.py --init
         else
            echo "Already up-to-date! No need to update."
