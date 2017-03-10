@@ -7,7 +7,8 @@ import yaml
 import sys
 import pwd
 import random
-from zxcvbn import password_strength
+import math
+from zxcvbn import zxcvbn
 from collections import defaultdict
 from base64 import urlsafe_b64encode, urlsafe_b64decode
 from word2keypress import distance
@@ -44,7 +45,6 @@ from typtop.pw_pkcrypto import (
 
 _entropy_cache = {}
 
-
 def get_logging_path(username):
     homedir = pwd.getpwnam(username).pw_dir
     return "{}/{}.log".format(homedir, DB_NAME)
@@ -61,7 +61,8 @@ def get_time():
 
 def entropy(typo):
     if typo not in _entropy_cache:
-        _entropy_cache[typo] = password_strength(typo)['entropy']
+        n_guesses = zxcvbn(typo)['guesses']
+        _entropy_cache[typo] = math.log(n_guesses)
     return _entropy_cache[typo]
 
 

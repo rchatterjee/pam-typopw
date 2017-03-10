@@ -78,14 +78,20 @@ def pytest_sessionstart(request):
     import crypt, shutil
     pw = crypt.crypt(pws[0], 'ab')
     dbpath = os.path.join(SEC_DB_PATH, user)
+    thisdir = os.path.dirname(os.path.abspath(__file__))
     if os.path.exists(dbpath):
         subprocess.Popen("sudo rm -rf {}".format(dbpath), shell=True)
     if DISTRO == 'darwin':
         subprocess.Popen(
-            "create_mac_user.sh {0} {1}".format(user, pws[0]),
+            "sudo {2}/create_mac_user.sh {0} {1}"
+            .format(user, pws[0], thisdir),
             shell=True
         )
     elif DISTRO == 'windows':
-        print "Ignoring!!"
+        print("Ignoring!!")
     else:
-        subprocess.Popen("create_linux_user.sh {0} {1}".format(user, pw), shell=True)
+        subprocess.Popen(
+            "sudo {2}/create_linux_user.sh {0} {1}"
+            .format(user, pw, thisdir),
+            shell=True
+        )

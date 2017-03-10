@@ -47,5 +47,5 @@ crontab -l | sed -E '/send_typto_logs.py|typtop/d' | crontab -
 
 pip freeze | grep typtop
 if [[ $? == 0 ]]; then
-    pip -q uninstall --yes typtop
+    pip -q uninstall --yes typtop word2keypress zxcvbn zxcvbn-python >&/dev/null
 fi

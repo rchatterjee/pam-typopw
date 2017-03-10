@@ -33,6 +33,7 @@ sudo: True
 # command to install dependencies
 install:
   - pip install .
+  - sudo pip install .
   - sudo bash csrcs/init.sh
 
 before_script:

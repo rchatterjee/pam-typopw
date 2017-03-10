@@ -71,8 +71,8 @@ PYTHON_DEPS = [
     # 'pycryptodome',
     'word2keypress',
     # 'dataset',
-    'zxcvbn',
-    'requests==2.11.1', # 2.12 has issue with x509 cetificate
+    'zxcvbn-python==4.4.14',
+    'requests==2.13', # 2.12 has issue with x509 cetificate
     'pyyaml',
     'distro',
 ]
@@ -82,7 +82,7 @@ OPTIONS = {
     # 'packages': ['requests', 'requests', 'selenium']
 }
 
-    
+
 TEST_REQUIRES = ['pam', 'pytest']
 
 setup(
@@ -119,5 +119,3 @@ setup(
     # cmdclass={'install': CustomInstaller},
     zip_safe=True,
 )
-
-
