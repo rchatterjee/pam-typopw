@@ -27,7 +27,10 @@ def check(pindex):
     assert pindex < len(pws)
     return pam.authenticate(user, pws[pindex], service='su')
 
-
+@pytest.mark.skipif(
+    DISTRO=='windows',
+    reason="pam does not work here! Need find new method "
+)
 def test_login_correctpw():
     assert check(0)
     assert check(1)
@@ -35,6 +38,10 @@ def test_login_correctpw():
     assert not check(3)
 
 
+@pytest.mark.skipif(
+    DISTRO=='windows',
+    reason="pam does not work here! Need find new method "
+)
 def test_train_pass():
     assert not check(4)
     for _ in range(2):
