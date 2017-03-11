@@ -17,10 +17,10 @@ if os.environ.get('RUN_TYPTOP_TEST'):
 
 
 def set_distro():
-    os = sys.platform
-    if os == 'darwin':
+    _os = sys.platform
+    if _os == 'darwin':
         return 'darwin'
-    elif os.startswith('linux'):
+    elif _os.startswith('linux'):
         try:
             import distro
             dist = distro.id()
@@ -42,10 +42,12 @@ def set_distro():
                 "Not supported for your Linux distribution: {}"\
                 .format(name)
             )
+    elif _os.startswith('win'):  # win32 to be precise
+        return 'windows'
     else:
         raise ValueError(
             "Not supported for your OS: {}"\
-            .format(os)
+            .format(_os)
         )
 
 DISTRO = set_distro()
@@ -70,14 +72,18 @@ if sys.platform=='darwin':
     SYSTEM = 'OSX'
 elif sys.platform.startswith('linux'):
     SYSTEM = 'LINUX'
+elif sys.platform.startswith('win'):
+    SYSTEM = 'WINDOWS'
 else:
-    raise ValueError("Not yet suporrted. Report in @github/rchatterjee/pam_typopw")
+    raise ValueError("Not yet suported. Report in @github/rchatterjee/pam_typopw")
 
 if SYSTEM == 'OSX':
     SEC_DB_PATH = '/usr/local/etc/typtop.d/' # ETC is not writable due to SIP in OSX
 elif SYSTEM == 'LINUX':
     SEC_DB_PATH = '/usr/local/etc/typtop.d/'  # Changing from /etc/pam_typtop
-
+elif SYSTEM == 'WINDOWS':
+    SEC_DB_PATH = 'C:\\ProgramData\\typtop.d\\' # ProgramData symslike a typical place for
+                                             # windows guys
 
 ################################################################################
                   ########## PARAMETERS ##########

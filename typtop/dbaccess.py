@@ -5,7 +5,7 @@ import time
 import json
 import yaml
 import sys
-import pwd
+# import pwd  # Unused import, will remove once fully tested.
 import random
 from zxcvbn import password_strength
 from collections import defaultdict
@@ -43,11 +43,6 @@ from typtop.pw_pkcrypto import (
 #
 
 _entropy_cache = {}
-
-
-def get_logging_path(username):
-    homedir = pwd.getpwnam(username).pw_dir
-    return "{}/{}.log".format(homedir, DB_NAME)
 
 
 def get_time():

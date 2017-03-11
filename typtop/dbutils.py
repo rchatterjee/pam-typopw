@@ -2,23 +2,45 @@
 import struct
 from typtop.pw_pkcrypto import decrypt, hash256, urlsafe_b64encode
 import logging
-from typtop.config import DB_NAME, GROUP
-import pwd, grp
+from typtop.config import DB_NAME, GROUP, SYSTEM
 import uuid
 import os
 
 
-def is_user(u):
+def getUserDir(userName):
+    from win32security import LookupAccountName, ConvertSidToStringSid
+    from _winreg import OpenKey, QueryValueEx, HKEY_LOCAL_MACHINE
+    ssid = ConvertSidToStringSid(LookupAccountName(None, userName)[0])
+    key = OpenKey(HKEY_LOCAL_MACHINE, r'SOFTWARE\Microsoft\Windows NT\CurrentVersion\ProfileList\\' + ssid)
+    return QueryValueEx(key, 'ProfileImagePath')[0]
+
+def _is_user_windows(u):
+    from win32security import LookupAccountName
+    try:
+        LookupAccountName(None, u)
+        return True
+    except:
+        return False
+
+def _is_user_linux(u):
+    from pwd import getpwnam
     try:
         pwd.getpwnam(u)
         return True
     except KeyError:
         return False
+    
+def is_user(u):
+    if SYSTEM == 'WINDOWS':
+        return _is_user_windows(u)
+    else: # SYSTEM in ('LINUX', 'OSX')
+        return _is_user_unix(u)
 
 logger = logging.getLogger(DB_NAME)
 
 
 def change_db_ownership(fl):
+    import grp # Windows does not have this
     try:
         g_id = grp.getgrnam(GROUP).gr_gid
         f_stat = os.stat(fl)

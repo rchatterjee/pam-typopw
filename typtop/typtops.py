@@ -13,7 +13,7 @@ from typtop.dbaccess import (
 from typtop.config import (
     NUMBER_OF_ENTRIES_TO_ALLOW_TYPO_LOGIN,
     WARM_UP_CACHE, VERSION, DISTRO, BINDIR, first_msg,
-    LOG_DIR, DB_NAME, TEST,
+    LOG_DIR, DB_NAME, TEST, SYSTEM,
     SEC_DB_PATH)
 from typtop.validate_parent import is_valid_parent
 import subprocess
@@ -165,15 +165,19 @@ def initiate_typodb():
     else:
         branch = "master"
         subdir, download_bin, makecmd = '', '', ''
-        if DISTRO == 'darwin':
+        if SYSTEM == 'OSX':
             # TODO: Cleanup this directories. e.g., pam_opendirectory
             subdir = 'csrcs/osx/prebuilt'
             download_bin = "curl -LO"
             makecmd = './install.sh'
-        elif DISTRO in ('debian', 'fedora', 'arch'):
+        elif SYSTEM == 'LINUX':
             subdir = 'csrcs/linux/'
             download_bin = "wget"
             makecmd = "make && make install"
+        elif SYSTEM == 'WINDOWS':
+            print("Still working on it!!")
+            raise Exception("Not impelemented yet!")
+
         download_url = "https://github.com/rchatterjee/pam-typopw/archive/"\
                        "{0}.zip".format(VERSION)
         cmd = """
@@ -184,12 +188,13 @@ def initiate_typodb():
                    download_bin=download_bin, makecmd=makecmd, version=VERSION)
         os.system(cmd)
 
-common_auth = {   # Not used
-    'debian': '/etc/pam.d/common-auth',
-    'fedora': '/etc/pam.d/system-auth',
-    'darwin': '',
-    'arch'  : '/etc/pam.d/system-auth',
-}[DISTRO]
+# common_auth = {   # Not used
+#     'debian': '/etc/pam.d/common-auth',
+#     'fedora': '/etc/pam.d/system-auth',
+#     'darwin': '',
+#     'arch'  : '/etc/pam.d/system-auth',
+#     'windows': ''
+# }[DISTRO]
 
 
 def uninstall_pam_typtop():
@@ -197,7 +202,7 @@ def uninstall_pam_typtop():
     root_only_operation()
 
     typtop_uninstall_script = BINDIR + '/typtop-uninstall.sh'
-    print(DISTRO)
+    print(DISTRO, SYSTEM)
     subprocess.call(typtop_uninstall_script)
 
 parser = argparse.ArgumentParser("typtop ")

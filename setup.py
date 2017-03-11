@@ -57,6 +57,7 @@ LIB_DEPENDENCIES = {
     ],
     'darwin': [],
     'arch'  : [],
+    'windows': []  # Still trying to figure out
 }[DISTRO]
 
 PACMAN = {
@@ -64,6 +65,7 @@ PACMAN = {
     'fedora': 'yum install -y'.split(),
     'darwin': [],
     'arch': [],
+    'windows': []
 }[DISTRO]
 
 PYTHON_DEPS = [
@@ -77,13 +79,17 @@ PYTHON_DEPS = [
     'distro',
 ]
 
+if SYSTEM == 'WINDOWS':
+    PYTHON_DEPS.append('pycryptodome==3.4.5')
+
 OPTIONS = {
     'argv_emulation': True,
     # 'packages': ['requests', 'requests', 'selenium']
 }
 
-    
-TEST_REQUIRES = ['pam', 'pytest']
+if os.environ.get('TEST_TYPTOP_RUN'):    
+    TEST_REQUIRES = ['pam', 'pytest']
+    PYTHON_DEPS.extend(TEST_REQUIRES)
 
 setup(
     name='typtop',   # 'loginwitherror',
