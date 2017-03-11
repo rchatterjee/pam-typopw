@@ -67,14 +67,14 @@ PACMAN = {
 }[DISTRO]
 
 PYTHON_DEPS = [
-    'cryptography',
+    'cryptography==1.8.1',
     # 'pycryptodome',
-    'word2keypress',
+    'word2keypress==1.0.8',
     # 'dataset',
     'zxcvbn-python==4.4.14',
     'requests==2.13', # 2.12 has issue with x509 cetificate
-    'pyyaml',
-    'distro',
+    'pyyaml==3.12',
+    'distro==1.0.2',
 ]
 
 OPTIONS = {

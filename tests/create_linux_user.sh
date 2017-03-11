@@ -12,11 +12,12 @@ USERNAME="$1"
 FULLNAME="tmp tmp"
 PASSWORD="$2"
 
+echo "$USERNAME", "$PASSWORD"
 if [[ $UID -ne 0 ]]; then echo "Please run $0 as root." && exit 1; fi
 
 cut -d : -f 1 /etc/group | grep -w $USERNAME
 if [[ "$?" == "0" ]]; then
-    sudo userdel $USERNAME
+    userdel $USERNAME
 fi
 
 useradd -u 2540 -p "$PASSWORD" "$USERNAME"

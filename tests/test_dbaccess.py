@@ -236,6 +236,23 @@ def test_pw_change(isStandAlone = True):
         return typoDB
 
 
+def test_edit_dist_entropy_cap(is_stand_alone=True):
+    typodb = start_DB()
+    typodb.allow_login()
+    on_correct_password(typodb, get_pw())
+    on_wrong_password(typodb, '')
+    on_wrong_password(typodb, ' ')
+    log = typodb._db[logT]
+    assert all(l['edit_dist'] <= 5 for l in log)
+    assert all(-10 <= l['rel_entropy'] <= 10 for l in log)
+    if is_stand_alone:
+        remove_DB()
+    else:
+        return typodb
+    # TODO: assert some property of logT
+
+
+
 def test_logT(is_stand_alone=True):
     typoDB = start_DB()
     typoDB.allow_login()
@@ -309,7 +326,7 @@ def test_profile():
         time_to_delete += time.time() - t0
     time_to_delete /= (t+1)
     time_to_add /= (t+1)
-    assert time_to_add < 0.05 and time_to_delete < 0.06
+    assert time_to_add < 0.06 and time_to_delete < 0.07
     remove_DB()
 
 

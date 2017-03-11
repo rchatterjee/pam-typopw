@@ -3,6 +3,7 @@ import pam
 import os
 from typtop.config import SEC_DB_PATH, DISTRO
 import subprocess
+import time
 
 user = 'tmp2540'
 pws = [
@@ -33,6 +34,7 @@ def check(pindex):
 )
 def test_login_correctpw():
     assert check(0)
+    time.sleep(.4)
     assert check(1)
     assert check(2)
     assert not check(3)
@@ -95,10 +97,12 @@ def pytest_sessionstart(request):
             shell=True
         )
     elif DISTRO == 'windows':
-        print("Ignoring!!")
+        print("WINDOWS: Ignoring!!")
     else:
+        cmd = "sudo {2}/create_linux_user.sh {0} {1}".format(user, pw, thisdir),
         subprocess.Popen(
-            "sudo {2}/create_linux_user.sh {0} {1}"
-            .format(user, pw, thisdir),
+            cmd,
             shell=True
         )
+        print("LINUX: {}".format(cmd))
+    assert check(0)

@@ -60,9 +60,18 @@ def get_time():
 
 
 def entropy(typo):
+    ent = 0
     if typo not in _entropy_cache:
-        n_guesses = zxcvbn(typo)['guesses']
-        _entropy_cache[typo] = math.log(n_guesses)
+        if not typo or len(typo) == 0:
+            ent = 0
+        else:
+            try:
+                n_guesses = zxcvbn(typo)['guesses']
+                ent = math.log(n_guesses)
+            except IndexError as e:
+                logger.exception(e)
+                logger.debug(typo)
+    _entropy_cache[typo] = ent
     return _entropy_cache[typo]
 
 
@@ -130,7 +139,7 @@ class UserTypoDB(object):
         self._sk, self._pk = None, None
         # the global salt for the hmac-id only will be available if
         # correct pw is provided.
-        self._hmac_salt, self._pw, self._pwent = None, None, None
+        self._hmac_salt, self._pw, self._pwent = None, '', -1
 
     def __del__(self):
         tmp_f = self._db_path + '.tmp'
@@ -408,14 +417,15 @@ class UserTypoDB(object):
         is expected for the original password.
         """
         assert self._pw and self._hmac_salt
-        # Only log columns:
-        # log_columns = set([
-        #     'tid', 'edit_dist', 'rel_entropy', 'ts',
-        #     'istop5fixable', 'in_cache'
-        # ])
+        rel_ent = entropy(typo) - self._pwent
+        if rel_ent == self._pwent:
+            logger.debug('typo is empty string, should not happen!!')
+        # cap rel_ent to the +10, -10
+        rel_ent = max(-10, min(rel_ent, 10))
+        edit_dist = min(5, distance(str(self._pw), str(typo)))
         log_info = {
             'tid': compute_id(self._hmac_salt, typo),
-            'edit_dist': distance(str(self._pw), str(typo)),
+            'edit_dist': edit_dist,
             'rel_entropy': entropy(typo) - self._pwent,
             'ts': ts if ts else get_time(),
             'istop5fixable': is_in_top5_fixes(self._pw, typo),
@@ -452,7 +462,8 @@ class UserTypoDB(object):
         """
         filtered_typos = defaultdict(int)
         sk = deserialize_sk(self._sk)
-        assert self._pwent, "PW is not initialized: {}".format(self._pwent)
+        assert self._pwent >= 0, \
+            "pw={} is not initialized: {}".format(self._pw, self._pwent)
         ignore = set()
         install_id = self.get_installation_id()
         for typo_ctx in self.get_from_auxtdb(WAIT_LIST): # , yaml.load):
@@ -543,7 +554,7 @@ class UserTypoDB(object):
             break
         allowed = False
         if match_found:
-            assert self._pwent, "PW is not initialized: {}".format(self._pwent)
+            assert self._pwent >= 0, "PW is not initialized: {}".format(self._pwent)
             self._update_typo_cache_by_waitlist(typo_cache, freq_counts)
             if i == 0:   # the real password entered
                 self.check_login_count(update=True)
