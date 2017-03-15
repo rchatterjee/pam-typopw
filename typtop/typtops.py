@@ -21,6 +21,13 @@ import subprocess
 USER = ""
 ALLOW_TYPO_LOGIN = True
 
+# To deal with python3 mess
+def _raw_input(prompt):
+    if sys.version_info >= (3,):
+        result = input(prompt)
+    else:
+        result = raw_input(prompt)
+    return result
 
 class AbortSettings(RuntimeError):
     pass
@@ -44,7 +51,7 @@ def _get_username():
     is_root = uid == 0
     user = _get_login_user()
     if is_root:
-        r = raw_input("Setting will be done for login user: {}.\n"
+        r = _raw_input("Setting will be done for login user: {}.\n"
                       "Please confirm. (Yn) ".format(user))
         abort = r and r.lower() == "n"
         if abort:
@@ -84,7 +91,7 @@ def call_update():
     cmd = """export PIP_FORMAT=columns;
         pip list --outdated|grep typtop;
         if [ "$?" = "0" ]; then
-           pip -q uninstall --yes typtop
+           pip -q uninstall --yes typtop zxcvbn
            pip install -U --ignore-installed typtop && typtops.py --init
         else
            echo "Already up-to-date! No need to update."
@@ -332,7 +339,7 @@ whenever you want.
                 print("\tWarmup cache: {}".format(WARM_UP_CACHE))
 
         if args.uninstall:
-            r = raw_input("Uninstalling pam_typtop. Will delete all the "
+            r = _raw_input("Uninstalling pam_typtop. Will delete all the "
                           "databases.\nPlease confirm. (yN)")
             if r and r.lower() == "y":
                 uninstall_pam_typtop()

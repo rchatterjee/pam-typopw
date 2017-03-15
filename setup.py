@@ -83,7 +83,7 @@ OPTIONS = {
 }
 
 
-TEST_REQUIRES = ['pam', 'pytest']
+TEST_REQUIRES = ['python-pam', 'pytest']
 
 setup(
     name='typtop',   # 'loginwitherror',

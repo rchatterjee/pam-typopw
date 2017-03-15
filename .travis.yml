@@ -37,8 +37,8 @@ install:
   - sudo bash csrcs/init.sh
 
 before_script:
-  - sudo pip install pam pytest
-  - pip install pam pytest  # dumb .travis
+  - sudo pip install python-pam pytest
+  - pip install python-pam pytest  # dumb .travis
 
 # after_install:
 #  - sudo userdel tmp

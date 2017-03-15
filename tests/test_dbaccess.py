@@ -1,3 +1,4 @@
+from __future__ import print_function
 import os
 import json
 from typtop.dbaccess import (
@@ -160,7 +161,7 @@ def test_alt_typo(isStandAlone = True):
         typoDB.check_login_count(update=True)
     for _ in range(5):
         typoDB.check(pws[4])
-    ##    print "added 5 typos to waitlist"
+    ##    print("added 5 typos to waitlist")
     assert typoDB.check(get_pw())
     assert typoDB.check(pws[4])
     if isStandAlone:
@@ -169,19 +170,19 @@ def test_alt_typo(isStandAlone = True):
         return typoDB
 
 def test_many_entries(isStandAlone = True):
-    print "TEST MANY ENTRIES"
+    print("TEST MANY ENTRIES")
     BIG = 60
     config.WARM_UP_CACHE = True
     typoDB = start_DB()
     log_t = typoDB.getdb('Log')
     assert all(a['ts'] == -1 for a in log_t)
     assert len(log_t)> 0 and len(log_t) <= len(config.warm_up_with(get_pw()))
-    print "start log:{}".format(len(log_t))
+    print("start log:{}".format(len(log_t)))
     for typ in listOfOneDist(BIG):
         typoDB.check(typ)
     typoDB.check(get_pw())
-    print "log len:{}".format(len(log_t))
-    # print "hash len:{}".format(count_real_typos_in_cache(typoDB))
+    print("log len:{}".format(len(log_t)))
+    # print("hash len:{}".format(count_real_typos_in_cache(typoDB)))
     assert(len(log_t) >= WAITLIST_SIZE + 1) # plus the original password
     # realIn = min(BIG, NN)
     # tcnt, fcnt = count_real_typos_in_cache(typoDB)
@@ -291,7 +292,7 @@ def test_disabling_first_30_times(isStandAlone = True):
     # count = 1
     # 29 left
     for i in xrange(29):
-        print "{}th try".format(i)
+        print("{}th try".format(i))
         assert not on_wrong_password(typoDB, pws[0])
         assert not on_wrong_password(typoDB, pws[1])
         assert on_correct_password(typoDB, get_pw())

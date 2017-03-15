@@ -1,5 +1,5 @@
 import pytest
-import pam
+import pam   # python-pam
 import os
 from typtop.config import SEC_DB_PATH, DISTRO
 import subprocess
@@ -14,6 +14,7 @@ pws = [
     "suprepass"   # 4, allow
 ]
 
+pam_exec = pam.pam()
 
 @pytest.fixture(autouse=True)
 def no_requests(monkeypatch):
@@ -26,7 +27,7 @@ def get_correct_pw():
 
 def check(pindex):
     assert pindex < len(pws)
-    return pam.authenticate(user, pws[pindex], service='su')
+    return pam_exec.authenticate(user, pws[pindex], service='su')
 
 @pytest.mark.skipif(
     DISTRO=='windows',
