@@ -244,8 +244,8 @@ def test_edit_dist_entropy_cap(is_stand_alone=True):
     on_wrong_password(typodb, '')
     on_wrong_password(typodb, ' ')
     log = typodb._db[logT]
-    assert all(l['edit_dist'] <= 5 for l in log)
-    assert all(-10 <= l['rel_entropy'] <= 10 for l in log)
+    assert all((l['edit_dist'] <= 5 for l in log))
+    assert all((-10 <= l['rel_entropy'] <= 10 for l in log))
     if is_stand_alone:
         remove_DB()
     else:
