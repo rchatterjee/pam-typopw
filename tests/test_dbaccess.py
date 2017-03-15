@@ -1,3 +1,4 @@
+from __future__ import print_function
 import os
 import json
 from typtop.dbaccess import (
@@ -160,7 +161,7 @@ def test_alt_typo(isStandAlone = True):
         typoDB.check_login_count(update=True)
     for _ in range(5):
         typoDB.check(pws[4])
-    ##    print "added 5 typos to waitlist"
+    ##    print("added 5 typos to waitlist")
     assert typoDB.check(get_pw())
     assert typoDB.check(pws[4])
     if isStandAlone:
@@ -169,19 +170,19 @@ def test_alt_typo(isStandAlone = True):
         return typoDB
 
 def test_many_entries(isStandAlone = True):
-    print "TEST MANY ENTRIES"
+    print("TEST MANY ENTRIES")
     BIG = 60
     config.WARM_UP_CACHE = True
     typoDB = start_DB()
     log_t = typoDB.getdb('Log')
     assert all(a['ts'] == -1 for a in log_t)
     assert len(log_t)> 0 and len(log_t) <= len(config.warm_up_with(get_pw()))
-    print "start log:{}".format(len(log_t))
+    print("start log:{}".format(len(log_t)))
     for typ in listOfOneDist(BIG):
         typoDB.check(typ)
     typoDB.check(get_pw())
-    print "log len:{}".format(len(log_t))
-    # print "hash len:{}".format(count_real_typos_in_cache(typoDB))
+    print("log len:{}".format(len(log_t)))
+    # print("hash len:{}".format(count_real_typos_in_cache(typoDB)))
     assert(len(log_t) >= WAITLIST_SIZE + 1) # plus the original password
     # realIn = min(BIG, NN)
     # tcnt, fcnt = count_real_typos_in_cache(typoDB)
@@ -236,6 +237,23 @@ def test_pw_change(isStandAlone = True):
         return typoDB
 
 
+def test_edit_dist_entropy_cap(is_stand_alone=True):
+    typodb = start_DB()
+    typodb.allow_login()
+    on_correct_password(typodb, get_pw())
+    on_wrong_password(typodb, '')
+    on_wrong_password(typodb, ' ')
+    log = typodb._db[logT]
+    assert all(l['edit_dist'] <= 5 for l in log)
+    assert all(-10 <= l['rel_entropy'] <= 10 for l in log)
+    if is_stand_alone:
+        remove_DB()
+    else:
+        return typodb
+    # TODO: assert some property of logT
+
+
+
 def test_logT(is_stand_alone=True):
     typoDB = start_DB()
     typoDB.allow_login()
@@ -274,7 +292,7 @@ def test_disabling_first_30_times(isStandAlone = True):
     # count = 1
     # 29 left
     for i in xrange(29):
-        print "{}th try".format(i)
+        print("{}th try".format(i))
         assert not on_wrong_password(typoDB, pws[0])
         assert not on_wrong_password(typoDB, pws[1])
         assert on_correct_password(typoDB, get_pw())
@@ -309,7 +327,7 @@ def test_profile():
         time_to_delete += time.time() - t0
     time_to_delete /= (t+1)
     time_to_add /= (t+1)
-    assert time_to_add<0.03 and time_to_delete < 0.04
+    assert time_to_add < 0.06 and time_to_delete < 0.07
     remove_DB()
 
 

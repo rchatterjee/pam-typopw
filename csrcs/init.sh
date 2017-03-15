@@ -1,6 +1,6 @@
 #!/bin/bash
 # https://xkcd.com/1654/
-set -e 
+set -e
 set -u
 set -x
 
@@ -8,15 +8,16 @@ curdir="$(dirname "$0")"
 platform=$(uname)
 if [[ "$platform" == "Linux" ]]; then
     subdir='linux/'
-    makecmd='make'
+    makecmd='make && make install'
     sudo apt-get install libssl-dev libpam-dev
+    pwd
+    cd $curdir/$subdir
+    make && make install
 elif [[ "$platform" == "Darwin" ]]; then
-    subdir='osx/pam_opendirectory/'
-    makecmd='make all'
+    subdir='osx/prebuilt/'
+    makecmd='./install.sh'
+    cd $curdir/$subdir
+    ./install.sh
 fi
-
-cd $curdir/$subdir
-pwd
-${makecmd} && make install
 
 cd -

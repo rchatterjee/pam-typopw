@@ -1,7 +1,9 @@
 import pytest
-import pam
+import pam   # python-pam
 import os
 from typtop.config import SEC_DB_PATH, DISTRO
+import subprocess
+import time
 
 user = 'tmp2540'
 pws = [
@@ -12,6 +14,7 @@ pws = [
     "suprepass"   # 4, allow
 ]
 
+pam_exec = pam.pam()
 
 @pytest.fixture(autouse=True)
 def no_requests(monkeypatch):
@@ -24,16 +27,24 @@ def get_correct_pw():
 
 def check(pindex):
     assert pindex < len(pws)
-    return pam.authenticate(user, pws[pindex], service='su')
+    return pam_exec.authenticate(user, pws[pindex], service='su')
 
-
+@pytest.mark.skipif(
+    DISTRO=='windows',
+    reason="pam does not work here! Need find new method "
+)
 def test_login_correctpw():
     assert check(0)
+    time.sleep(.4)
     assert check(1)
     assert check(2)
     assert not check(3)
 
 
+@pytest.mark.skipif(
+    DISTRO=='windows',
+    reason="pam does not work here! Need find new method "
+)
 def test_train_pass():
     assert not check(4)
     for _ in range(2):
@@ -74,18 +85,25 @@ def grab_privileges():
 @pytest.fixture(scope="session", autouse=True)
 def pytest_sessionstart(request):
     """ before session.main() is called. """
-    import crypt
+    import crypt, shutil
     pw = crypt.crypt(pws[0], 'ab')
+    dbpath = os.path.join(SEC_DB_PATH, user)
+    thisdir = os.path.dirname(os.path.abspath(__file__))
+    if os.path.exists(dbpath):
+        subprocess.Popen("sudo rm -rf {}".format(dbpath), shell=True)
     if DISTRO == 'darwin':
-        os.system("""
-        sudo dscl . -create /Users/{0} && sudo dscl . -passwd /Users/{0} {1}
-        """.format(user, pws[0]),
-        shell=True)
+        subprocess.Popen(
+            "sudo {2}/create_mac_user.sh {0} {1}"
+            .format(user, pws[0], thisdir),
+            shell=True
+        )
+    elif DISTRO == 'windows':
+        print("WINDOWS: Ignoring!!")
     else:
-        os.system("sudo userdel {0} && sudo rm -rf {1}/{0}"
-                  .format(user, SEC_DB_PATH))
-        print("Creating user: {} with pass {}".format(user, pw))
-        os.system("sudo useradd -u 2540 -p {!r} {}".format(pw, user))
-        # drop_privileges(user, user)
-        # request.addfinalizer(grab_privileges)
-
+        cmd = "sudo {2}/create_linux_user.sh {0} {1}".format(user, pw, thisdir),
+        subprocess.Popen(
+            cmd,
+            shell=True
+        )
+        print("LINUX: {}".format(cmd))
+    assert check(0)

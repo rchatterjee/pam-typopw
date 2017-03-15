@@ -3,6 +3,8 @@ set -e
 set -u
 set -x
 
+curdir="$(dirname "$0")"
+cd $curdir
 echo "Installing Typtop..."
 platform=$(uname)
 if [[ "$platform" == "Linux" ]]; then
@@ -31,7 +33,8 @@ platform=$(uname)
 unixchkpwd=$(which su)
 
 install -m 0755 -d ${lib_root}/security/
-install -m 0771 -d $db_root
+install -m 0755 -d ${script_root}
+install -m 0771 -d ${db_root}
 install -m 0755 pam_opendirectory_typo.so ${lib_root}/security/
 install -m 0755 uninstall.sh ${script_root}/typtop-uninstall.sh
 install -m 0755 run_as_root $typtopexec # install typtopexec
@@ -69,6 +72,7 @@ for f in ${authorized_execs[@]} ; do
 	    sed -i '.bak' 's/^auth\(.*\)pam_opendirectory.so/auth\1\/usr\/local\/lib\/security\/pam_opendirectory_typo.so/g' $f ;
     fi ;
 done
+cd -
 
 echo "--"
 echo "Congrats!! Looks like installation is successful. Hurray :)"

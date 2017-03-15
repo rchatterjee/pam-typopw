@@ -32,9 +32,9 @@ done
 rm -rf /var/log/typtop.log /tmp/typtop* ${db_root}
 rm -rf ${script_root}/typtop* ${script_root}/send_typo_log.py
 
-crontab -l | sed -d '/send_typto_logs.py|typtop/d' | crontab -
+crontab -l | sed -E '/send_typto_logs.py|typtop/d' | crontab -
 
 pip freeze | grep typtop
 if [[ $? == 0 ]]; then
-    pip -q uninstall --yes typtop
+    pip -q uninstall --yes typtop word2keypress zxcvbn zxcvbn-python >&/dev/null
 fi
