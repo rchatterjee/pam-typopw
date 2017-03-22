@@ -426,7 +426,8 @@ class UserTypoDB(object):
             'tid': compute_id(self._hmac_salt, typo),
             'edit_dist': edit_dist,
             'rel_entropy': rel_ent,
-            'ts': ts if ts else get_time(),
+            'ts': get_time if ts is None else ts,
+            'localtime': time.asctime(),  # without zone, but gives local time in string.
             'istop5fixable': is_in_top5_fixes(self._pw, typo),
             'in_cache': in_cache
         }
