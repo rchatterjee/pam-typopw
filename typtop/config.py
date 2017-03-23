@@ -1,6 +1,6 @@
 import sys
 import os
-VERSION = "0.2.10"
+VERSION = "0.2.11"
 
 DB_NAME = "typtop"
 SEC_DB_PATH = '/etc/typtop.d'
