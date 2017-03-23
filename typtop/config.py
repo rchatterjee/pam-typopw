@@ -143,9 +143,9 @@ WAIT_LIST = 'WaitList'  # PK encryption of typo and timestamp
 #
 #
 logT = 'Log'
-logT_cols = [
+logT_cols = [  # Added localtime
     'tid', 'edit_dist', 'rel_entropy', 'ts',
-    'istop5fixable', 'in_cache'
+    'istop5fixable', 'in_cache', 'localtime'
 ]
 
 GITHUB_URL = 'https://github.com/rchatterjee/pam-typopw'  # URL in github repo

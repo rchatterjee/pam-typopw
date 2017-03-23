@@ -65,3 +65,4 @@ ffile.txt
 run_as_root
 pam_typtop
 .DS_Store
+.tox/

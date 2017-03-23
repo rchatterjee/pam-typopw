@@ -63,15 +63,14 @@ def entropy(typo):
     ent = 0
     if typo not in _entropy_cache:
         if not typo or len(typo) == 0:
-            ent = 0
+            _entropy_cache[typo] = 0
         else:
             try:
                 n_guesses = zxcvbn(typo)['guesses']
-                ent = math.log(n_guesses)
+                _entropy_cache[typo] = math.log(n_guesses)
             except IndexError as e:
                 logger.exception(e)
                 logger.debug(typo)
-    _entropy_cache[typo] = ent
     return _entropy_cache[typo]
 
 
@@ -90,7 +89,7 @@ class UserTypoDB(object):
         return "UserTypoDB ({})".format(self._user)
 
     def __init__(self, user, debug_mode=False):
-        # type: (string, boolean) -> UserTypoDB
+        # type: (str, bool) -> None
         assert is_user(user), "User {!r} does not exists".format(user)
 
         # Disable Typtop for root
@@ -418,16 +417,18 @@ class UserTypoDB(object):
         """
         assert self._pw and self._hmac_salt
         rel_ent = entropy(typo) - self._pwent
-        if rel_ent == self._pwent:
-            logger.debug('typo is empty string, should not happen!!')
+        if rel_ent == -self._pwent:
+            logger.debug('typo (={!r}) is an empty string, should not happen!!'
+                         .format(typo))
         # cap rel_ent to the +10, -10
         rel_ent = max(-10, min(rel_ent, 10))
         edit_dist = min(5, distance(str(self._pw), str(typo)))
         log_info = {
             'tid': compute_id(self._hmac_salt, typo),
             'edit_dist': edit_dist,
-            'rel_entropy': entropy(typo) - self._pwent,
-            'ts': ts if ts else get_time(),
+            'rel_entropy': rel_ent,
+            'ts': get_time if ts is None else ts,
+            'localtime': time.asctime(),  # without zone, but gives local time in string.
             'istop5fixable': is_in_top5_fixes(self._pw, typo),
             'in_cache': in_cache
         }

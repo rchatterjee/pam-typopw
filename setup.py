@@ -69,7 +69,7 @@ PACMAN = {
 PYTHON_DEPS = [
     'cryptography==1.8.1',
     # 'pycryptodome',
-    'word2keypress==1.0.8',
+    'word2keypress==1.0.9',
     # 'dataset',
     'zxcvbn-python==4.4.14',
     'requests==2.13', # 2.12 has issue with x509 cetificate
