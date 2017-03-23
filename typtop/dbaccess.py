@@ -8,7 +8,10 @@ import sys
 import pwd
 import random
 import math
-from zxcvbn import zxcvbn
+try:
+    from zxcvbn import zxcvbn
+except ImportError:
+    from zxcvbn import password_strength as zxcvbn
 from collections import defaultdict
 from base64 import urlsafe_b64encode, urlsafe_b64decode
 from word2keypress import distance

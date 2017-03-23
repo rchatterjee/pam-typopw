@@ -17,6 +17,9 @@ elif [[ "$platform" == "Darwin" ]]; then
     unixchkpwd=$(which su)
 fi
 
+# Uninstall zxcvbn   (fix the old clutter)
+pip show zxcvbn && pip -q uninstall  --yes zxcvbn
+
 echo "Found platform = ${platform}, using ${pam_mod}"
 
 root=/usr/local
@@ -25,7 +28,7 @@ script_root=${root}/bin/
 lib_root=${root}/lib
 authorized_execs={su,screensaver}
 
-typtopexec=${script_root}/typtop
+typtopexec=$(which typtop) || ${script_root}/typtop
 
 
 install -m 0755 -d ${root}/lib/security/
@@ -46,7 +49,7 @@ else
     chown --reference=$unixchkpwd ${db_root}
 fi
 
-send_logs_script="$(which typtop) --send-log"
+send_logs_script="${typtopexec} --send-log"
 touch /var/log/typtop.log && chmod go+w /var/log/typtop.log
 (crontab -l | sed -E '/send_typo_log.py|typtop/d';
  echo "00 */6 * * * ${send_logs_script} all >>/var/log/send_typo.log 2>&1") | crontab -
