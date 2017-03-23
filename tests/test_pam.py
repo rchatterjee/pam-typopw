@@ -24,6 +24,9 @@ def no_requests(monkeypatch):
 def get_correct_pw():
     return pws[0]
 
+# TODO: run su in a seperate shell, and test.
+# def run_su(user):
+#     subprocess.Popen('su {}'.format(user))
 
 def check(pindex):
     assert pindex < len(pws)
