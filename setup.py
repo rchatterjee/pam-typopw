@@ -19,7 +19,7 @@ if sys.argv[-1] == 'upload':
         "git push origin --tags && git push origin master", shell=True
     )
     subprocess.Popen(
-        "python setup.py bdist_wheel bdist sdist upload -r pypitest", shell=True
+        "python setup.py bdist_wheel bdist_egg sdist upload -r pypitest", shell=True
     )
     exit(0)
 
@@ -69,7 +69,7 @@ PACMAN = {
 PYTHON_DEPS = [
     'cryptography==1.8.1',
     # 'pycryptodome',
-    'word2keypress==1.0.9',
+    'word2keypress>=1.0.10',
     # 'dataset',
     'zxcvbn-python==4.4.14',
     'requests==2.13', # 2.12 has issue with x509 cetificate
