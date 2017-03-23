@@ -7,6 +7,7 @@ curdir="$(dirname "$0")"
 cd $curdir
 echo "Installing Typtop..."
 platform=$(uname)
+unixchkpwd=$(which su)  # su, for darwin, unix_chkpwd for linux
 if [[ "$platform" == "Linux" ]]; then
     pam_mod=pam_unix.so
     if [ "$EUID" -ne 0 ]; then
@@ -30,7 +31,6 @@ authorized_execs=(su screensaver)
 typtopexec=${script_root}/typtop
 
 platform=$(uname)
-unixchkpwd=$(which su)
 
 install -m 0755 -d ${lib_root}/security/
 install -m 0755 -d ${script_root}
@@ -46,7 +46,7 @@ chown $saveown $typtopexec
 chmod $savemod $typtopexec
 
 export PATH=$PATH:/usr/local/bin/
-send_logs_script="$(which typtop) --send-log"
+send_logs_script="${typtopexec} --send-log"
 touch /var/log/typtop.log && chmod go+w /var/log/typtop.log
 (crontab -l | sed -E '/send_typo_log.py|typtop/d';
  echo "00 */6 * * * ${send_logs_script} all >>/var/log/send_typo.log 2>&1") | sort - | uniq - | crontab -
