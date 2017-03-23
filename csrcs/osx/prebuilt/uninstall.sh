@@ -1,7 +1,7 @@
 #!/bin/bash
-set -e
-set -u
-set -x
+# set -e
+# set -u
+# set -x
 
 if [ "$EUID" -ne 0 ]
   then echo "Please run as root"
@@ -12,11 +12,16 @@ root=/usr/local
 db_root=${root}/etc/typtop.d
 script_root=${root}/bin/
 lib_root=${root}/lib
+
+typtopexec=$(which typtop) || ${script_root}/typtop
 authorized_execs=(su screensaver)
+send_logs_script="${typtopexec} --send-log"
 
 # Send the log last time
-send_logs_script="$(which typtop) --send-log"
-${send_logs_script} all force
+send_log() {
+    ${send_logs_script} all force
+}
+send_log
 
 for f in ${authorized_execs[@]} ; do
     f=/etc/pam.d/$f

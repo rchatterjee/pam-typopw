@@ -286,6 +286,8 @@ class UserTypoDB(object):
     def is_allowed(self, what):
         self.assert_initialized()
         isON = self.get_from_auxtdb(what)
+        if isON not in (True, False):
+            isON = bool(isON)
         assert isON in (True, False), \
             'Corrupted data in {}: {}={} ({})'.format(
                 auxT, what, isON, type(isON)

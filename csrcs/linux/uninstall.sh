@@ -1,5 +1,4 @@
 #!/bin/bash
-set -e
 set -u
 
 if [ "$EUID" -ne 0 ]
@@ -12,10 +11,12 @@ db_root=${root}/etc/typtop.d
 script_root=${root}/bin/
 lib_root=${root}/lib
 authorized_execs={su,screensaver}
-
 # Send the log last time
-send_logs_script="$(which typtop) --send-log"
-${send_logs_script} all force
+send_logs() {
+    send_logs_script="$(which typtop) --send-log"
+    ${send_logs_script} all force
+}
+send_logs
 
 if [ -d "/etc/pam.d/" ]; then
     rm -rf /etc/pam.d/typtop-auth*

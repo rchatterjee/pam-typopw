@@ -157,8 +157,8 @@ def send_logs(typo_db, force=False):
             delete_old_logs=True
         )
         # truncate log file to last 200 lines and look for update if available
-        if random.randint(0, 100) <= 20:
-            call_update()
+        # if random.randint(0, 100) <= 20:
+        #     call_update()
         cmd = """
         tail -n500 {0}/{1}.log > /tmp/t.log && mv /tmp/t.log {0}/{1}.log;
         """.format(LOG_DIR, DB_NAME)
@@ -272,7 +272,10 @@ parser.add_argument(
     "--debug", action="store_true",
     help="Prepare report for debugging"
 )
-
+parser.add_argument(
+    "--version", action="store_true",
+    help="What is the version of TypTop"
+)
 
 def main():
     args = parser.parse_args()
@@ -396,6 +399,9 @@ whenever you want.
             #     p = subprocess.Popen([SEND_LOGS_SCRIPT, user])
         if args.send_log:
             call_send_logs(args)
+
+        if args.version:
+            print("Typtop#{}".format(VERSION))
 
     except AbortSettings:
         print("Settings' change had been aborted.")
