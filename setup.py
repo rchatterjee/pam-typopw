@@ -29,7 +29,7 @@ if sys.argv[-1] == 'publish':
         "git push origin --tags && git push origin master", shell=True
     )
     subprocess.Popen(
-        "python setup.py bdist_wheel bdist sdist upload -r pypi", shell=True
+        "python setup.py bdist_wheel bdist_egg sdist upload -r pypi", shell=True
     )
     exit(0)
 
