@@ -1,3 +1,8 @@
+import os, sys
+print(sys.prefix)
+for f in ['LD_LIBRARY_PATH', 'LD_LIBRARY']:
+    print(f, os.getenv(f, '<none specified>'))
+
 
 try: # try cryptography
     import cryptography

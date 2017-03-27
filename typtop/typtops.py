@@ -391,7 +391,7 @@ whenever you want.
 
         if args.check:
             # ensure the parent is pam_opendirectory_typo.so
-            assert is_valid_parent()
+            # assert is_valid_parent()
             failed, user, pw = args.check
             ret = call_check(failed, user, pw)
             sys.stdout.write(str(ret))
