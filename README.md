@@ -10,7 +10,8 @@ please fill in this
 
 <!-- *For the purpose of the research study, TypTop might not allow login with typos
 until you login successfully 30 times.* -->
-
+Checkout the new [C++ version of this here](https://github.com/rchatterjee/typtopcpp). It is more stable and much faster. 
+Prebuild packages are available for many systems.
 
 
 ## <a name="install"></a>Install
